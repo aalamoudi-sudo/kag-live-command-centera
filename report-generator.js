@@ -67,16 +67,15 @@ async function fillTemplate(templatePath, replacements) {
   const buf = fs.readFileSync(templatePath);
   const zip = await JSZip.loadAsync(buf);
 
-  // أعد حقن الصور المشتركة من مجلد shared
+  // أضف الصور المشتركة من مجلد shared
   const sharedDir = path.join(path.dirname(templatePath), "shared");
   const mapFile = zip.files["ppt/media/_map.json"];
-  if(mapFile) {
+  if(mapFile && fs.existsSync(sharedDir)) {
     const imgMap = JSON.parse(await mapFile.async("string"));
     for(const [mediaPath, sharedName] of Object.entries(imgMap)) {
       const sharedFile = path.join(sharedDir, sharedName);
       if(fs.existsSync(sharedFile)) {
-        const imgData = fs.readFileSync(sharedFile);
-        zip.file(mediaPath, imgData);
+        zip.file(mediaPath, fs.readFileSync(sharedFile));
       }
     }
   }
@@ -85,7 +84,6 @@ async function fillTemplate(templatePath, replacements) {
     const slideFile = `ppt/slides/${slideName}`;
     if(!zip.files[slideFile]) continue;
     let xml = await zip.files[slideFile].async("string");
-
     for(const [from, to] of pairs) {
       xml = replaceText(xml, from, to);
     }
