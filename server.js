@@ -588,7 +588,7 @@ const server=http.createServer(async (req,res)=>{
     if(req.method==="GET" && url==="/api/admin-check")
       return sendJson(res,200,{authed:isAuthed(req), isAdmin:isAdmin(req)});
 
-    // ===== توليد التقارير =====
+    // ===== توليد التقارير (Python) =====
     if(url.startsWith("/api/report") && req.method==="POST"){
       if(!isAuthed(req)) return sendJson(res,401,{error:"غير مصرّح"});
       let body={};
@@ -597,11 +597,25 @@ const server=http.createServer(async (req,res)=>{
       const reportType = body.type || "comprehensive";
       if(!liveState) return sendJson(res,503,{error:"البيانات غير متاحة بعد"});
       try{
-        const buf = await generateReport(reportType, liveState);
-        const trackNames = { "أ":"A", "ب":"B", "ج":"C", "د":"D", "comprehensive":"Comprehensive" };
-        const safeType = trackNames[reportType] || reportType.replace(/[^\w-]/g, "_");
-        const dateStr = new Date().toISOString().slice(0,10);
-        const fname = `KAGA-Report-${safeType}-${dateStr}.pptx`;
+        const {execFile} = require("child_process");
+        const scriptPath = path.join(__dirname,"generate_report.py");
+        const inputData  = JSON.stringify({type:reportType, state:liveState});
+        const buf = await new Promise((resolve,reject)=>{
+          const chunks=[];
+          const proc = execFile("python3",[scriptPath],{maxBuffer:50*1024*1024},(err,stdout,stderr)=>{
+            if(err){ reject(new Error(stderr||err.message)); return; }
+          });
+          proc.stdin.write(inputData);
+          proc.stdin.end();
+          proc.stdout.on("data",chunk=>chunks.push(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk)));
+          proc.stdout.on("end",()=>resolve(Buffer.concat(chunks)));
+          proc.stderr.on("data",d=>{}); // تجاهل stderr
+          proc.on("error",reject);
+        });
+        const safeNames = {"comprehensive":"Comprehensive","أ":"A","ب":"B","ج":"C","د":"D"};
+        const safeName  = safeNames[reportType] || "Report";
+        const dateStr   = new Date().toISOString().slice(0,10);
+        const fname     = `KAGA-Report-${safeName}-${dateStr}.pptx`;
         res.writeHead(200,{
           "Content-Type":"application/vnd.openxmlformats-officedocument.presentationml.presentation",
           "Content-Disposition":`attachment; filename="${fname}"`,
