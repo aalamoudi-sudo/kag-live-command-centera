@@ -616,7 +616,29 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
 // تمت إزالة الاستيراد المحلي (لصق/CSV) — البيانات تُسحب الآن من Google Sheet عبر الخادم.
 trackSelect.onchange=()=>{const t=state.tracks.find(x=>x.id===trackSelect.value);progressInput.value=t.progress;tasksInput.value=t.tasks;doneInput.value=t.done;activeInput.value=t.active;riskInput.value=t.risk;leadInput.value=t.lead;focusInput.value=t.focus}
 trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;t.status=t.progress>=70?"ضمن المسار":t.progress>=45?"تحت المتابعة":"معرض للخطر";addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
-itemForm.onsubmit=e=>{e.preventDefault();state.items.push({track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value});if(typeof recalcTrackCountersFromItems==="function")recalcTrackCountersFromItems();addFeed(["إضافة عنصر",`تمت إضافة ${itemTitle.value} إلى المسار ${itemTrack.value}`,colorByStatus(itemStatus.value)]);itemForm.reset();save();renderAll()}
+itemForm.onsubmit=async function(e){
+  e.preventDefault();
+  const newItem={track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value};
+  // 1) أضف فوراً في الواجهة للاستجابة السريعة
+  state.items.push(newItem);
+  if(typeof recalcTrackCountersFromItems==="function")recalcTrackCountersFromItems();
+  addFeed(["إضافة عنصر",`تمت إضافة ${newItem.title} إلى المسار ${newItem.track}`,colorByStatus(newItem.status)]);
+  itemForm.reset();
+  save();
+  renderAll();
+  // 2) اكتب في Google Sheet عبر الخادم
+  try{
+    const res=await fetch("/api/items",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify(newItem)});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||res.status);
+    addFeed(["✅ حُفظ في الشيت",`${newItem.title} — تم الحفظ في Google Sheet`,"green"]);
+    // بعد 4 ثوان: اسحب آخر نسخة من الخادم لتحديث liveState
+    setTimeout(()=>{ if(typeof backendSyncNow==="function") backendSyncNow(); },4000);
+  }catch(err){
+    addFeed(["⚠️ تحذير","لم يتم الحفظ في Google Sheet: "+err.message,"red"]);
+    console.error("[itemForm] sheet write error:",err);
+  }
+}
 simulate.onclick=()=>{const t=state.tracks[Math.floor(Math.random()*state.tracks.length)];t.done=Math.min(t.tasks,t.done+1);t.active=Math.max(0,t.active-1);t.progress=t.tasks?Math.round(t.done/t.tasks*100):t.progress;addFeed(["تحديث حي",`تغيرت نسبة إنجاز مسار ${t.name} إلى ${t.progress}%`,colorByStatus(t.status)]);save();renderAll()}
 if(typeof exportJson!=="undefined"&&exportJson){exportJson.onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kag-command-center-data.json";a.click()}}
 

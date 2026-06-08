@@ -25,10 +25,76 @@ const path = require("path");
 const crypto = require("crypto");
 const { generateReport } = require("./report-generator");
 
+/* ============ Google Sheets API — كتابة البيانات ============ */
+const GSERVICE = (() => {
+  try {
+    const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || "";
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) {
+    console.error("[sheets-write] فشل تحليل GOOGLE_SERVICE_ACCOUNT_JSON:", e.message);
+    return null;
+  }
+})();
+
+// توليد JWT للمصادقة مع Google APIs
+async function getGoogleAccessToken() {
+  if (!GSERVICE) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON غير مضبوط");
+  const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
+  const now = Math.floor(Date.now() / 1000);
+  const claim = Buffer.from(JSON.stringify({
+    iss: GSERVICE.client_email,
+    scope: "https://www.googleapis.com/auth/spreadsheets",
+    aud: "https://oauth2.googleapis.com/token",
+    exp: now + 3600,
+    iat: now
+  })).toString("base64url");
+
+  const sigInput = `${header}.${claim}`;
+  // توقيع RS256
+  const { createSign } = require("crypto");
+  const sign = createSign("RSA-SHA256");
+  sign.update(sigInput);
+  const sig = sign.sign(GSERVICE.private_key, "base64url");
+  const jwt = `${sigInput}.${sig}`;
+
+  const body = new URLSearchParams({
+    grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+    assertion: jwt
+  });
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString()
+  });
+  const data = await res.json();
+  if (!data.access_token) throw new Error("فشل الحصول على access_token: " + JSON.stringify(data));
+  return data.access_token;
+}
+
+// كتابة صف واحد في آخر الشيت
+async function appendRowToSheet(rowValues) {
+  const token = await getGoogleAccessToken();
+  const sheetTab = SHEET_NAME || "KAG_GoogleSheet_Template";
+  const range = encodeURIComponent(`${sheetTab}!A:F`);
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ values: [rowValues] })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error("فشل الكتابة في الشيت: " + JSON.stringify(data));
+  return data;
+}
+
 const PORT = Number(process.env.PORT || 3000);
 // معرّف جدول حدائق الملك عبدالله المثبّت مسبقًا (يمكن تجاوزه بمتغيّر البيئة SHEET_ID)
 const SHEET_ID = process.env.SHEET_ID || "15m2VHVr7W2mWWz7g_Z5iMDxaIZuRshj-N3EtA9j4lWk";
-const SHEET_NAME = process.env.SHEET_NAME || "";
+const SHEET_NAME = process.env.SHEET_NAME || "KAG_GoogleSheet_Template";
 const SHEET_GID = process.env.SHEET_GID || "";          // رقم التبويب (gid) إن وُجد
 const SHEET_CSV_URL = process.env.SHEET_CSV_URL || "";  // رابط "النشر للويب" CSV (الأكثر ضمانًا)
 const LOCAL_CSV = process.env.LOCAL_CSV || "";          // مسار ملف CSV محلي كحل احتياطي تام
@@ -617,6 +683,28 @@ const server=http.createServer(async (req,res)=>{
       }catch(e){
         console.error("خطأ في توليد التقرير:", e);
         return sendJson(res,500,{error:"فشل توليد التقرير: "+e.message});
+      }
+    }
+
+    // ===== إضافة عنصر جديد من الإدخال اليدوي → يُكتب مباشرة في Google Sheet =====
+    if(url === "/api/items" && req.method === "POST"){
+      if(!isAuthed(req)) return sendJson(res,401,{error:"يلزم تسجيل الدخول"});
+      const raw = await readBody(req);
+      let body = {};
+      try{ body = raw ? JSON.parse(raw) : {}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
+      const { track, type, title, owner, status, due } = body;
+      if(!track || !title) return sendJson(res,400,{error:"الحقلان track و title مطلوبان"});
+      // ترتيب الأعمدة: المسار, النوع, العنوان, المسؤول, الحالة, التاريخ
+      const typeLabel = { tasks:"مهمة", risks:"مخاطرة", permits:"تصريح", milestones:"معلم رئيسي" }[type] || type || "مهمة";
+      const row = [track, typeLabel, title, owner||"", status||"قيد التنفيذ", due||""];
+      try{
+        await appendRowToSheet(row);
+        // انتظر ثانيتين ثم اسحب الشيت فوراً لتحديث liveState
+        setTimeout(refreshFromSheet, 2000);
+        return sendJson(res,200,{ok:true, message:"تمت الإضافة في Google Sheet بنجاح"});
+      }catch(e){
+        console.error("[api/items] فشل الكتابة:", e.message);
+        return sendJson(res,500,{error:"فشل الكتابة في Google Sheet: " + e.message});
       }
     }
 
