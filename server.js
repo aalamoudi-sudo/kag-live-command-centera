@@ -721,6 +721,27 @@ server.headersTimeout = 15000;
 server.keepAliveTimeout = 8000;
 
 (async ()=>{
+  // تثبيت python-pptx عند الإقلاع إذا لم يكن موجوداً
+  await new Promise((resolve)=>{
+    const {execFile} = require("child_process");
+    execFile("pip3",["install","python-pptx","--quiet","--disable-pip-version-check"],
+      {timeout:60000},
+      (err,stdout,stderr)=>{
+        if(err){
+          // جرب pip بدل pip3
+          execFile("pip",["install","python-pptx","--quiet","--disable-pip-version-check"],
+            {timeout:60000},
+            (err2)=>{
+              if(err2) console.error("[pip] تحذير: تعذر تثبيت python-pptx:",err2.message);
+              else console.log("[pip] python-pptx جاهز");
+              resolve();
+            });
+        } else {
+          console.log("[pip3] python-pptx جاهز");
+          resolve();
+        }
+      });
+  });
   await refreshFromSheet();
   setInterval(refreshFromSheet, SHEET_REFRESH_MS);
   server.listen(PORT,()=>{
