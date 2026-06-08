@@ -501,23 +501,6 @@ const server=http.createServer(async (req,res)=>{
       return sendJson(res,200,{version:liveVersion,updatedAt:liveUpdatedAt,state:liveState,sync:publicSync()});
     }
 
-    // حفظ الحالة من الواجهة (إدخال يدوي، تحديثات مباشرة)
-    if(req.method==="POST" && url==="/api/state"){
-      if(!isAuthed(req)) return sendJson(res,401,{error:"يلزم تسجيل الدخول"});
-      const raw=await readBody(req);
-      let body={};
-      try{ body=raw?JSON.parse(raw):{}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
-      if(!body.state) return sendJson(res,400,{error:"لا توجد حالة في الطلب"});
-      const incoming = body.state;
-      if(incoming.items && Array.isArray(incoming.items)){
-        liveState = incoming;
-        liveUpdatedAt = new Date().toISOString();
-        liveVersion = (liveVersion||0)+1;
-        liveHash = crypto.createHash("sha1").update(JSON.stringify({tracks:liveState.tracks,items:liveState.items})).digest("hex");
-      }
-      return sendJson(res,200,{ok:true,version:liveVersion,updatedAt:liveUpdatedAt});
-    }
-
     // حالة مصدر البيانات (تفاصيل حساسة) — للأدمن فقط
     if(url==="/api/config"){
       if(req.method!=="GET") return sendJson(res,405,{error:"الطريقة غير مسموحة"});
@@ -613,8 +596,13 @@ const server=http.createServer(async (req,res)=>{
       try{ body=raw?JSON.parse(raw):{}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
       const reportType = body.type || "comprehensive";
       if(!liveState) return sendJson(res,503,{error:"البيانات غير متاحة بعد"});
+      // إذا أرسل المتصفح حالته الحالية (تشمل الإدخال اليدوي)، ندمجها مع liveState
+      let reportState = liveState;
+      if(body.state && body.state.items && Array.isArray(body.state.items)){
+        reportState = body.state;
+      }
       try{
-        const buf = await generateReport(reportType, liveState);
+        const buf = await generateReport(reportType, reportState);
         const trackNames = { "أ":"A", "ب":"B", "ج":"C", "د":"D", "comprehensive":"Comprehensive" };
         const safeType = trackNames[reportType] || reportType.replace(/[^\w-]/g, "_");
         const dateStr = new Date().toISOString().slice(0,10);
