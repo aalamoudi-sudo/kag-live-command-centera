@@ -615,8 +615,8 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
 })
 // تمت إزالة الاستيراد المحلي (لصق/CSV) — البيانات تُسحب الآن من Google Sheet عبر الخادم.
 trackSelect.onchange=()=>{const t=state.tracks.find(x=>x.id===trackSelect.value);progressInput.value=t.progress;tasksInput.value=t.tasks;doneInput.value=t.done;activeInput.value=t.active;riskInput.value=t.risk;leadInput.value=t.lead;focusInput.value=t.focus}
-trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;t.status=t.progress>=70?"ضمن المسار":t.progress>=45?"تحت المتابعة":"معرض للخطر";addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
-itemForm.onsubmit=e=>{e.preventDefault();state.items.push({track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value});if(typeof recalcTrackCountersFromItems==="function")recalcTrackCountersFromItems();addFeed(["إضافة عنصر",`تمت إضافة ${itemTitle.value} إلى المسار ${itemTrack.value}`,colorByStatus(itemStatus.value)]);itemForm.reset();save();renderAll()}
+trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;t.status=t.progress>=70?"ضمن المسار":t.progress>=45?"تحت المتابعة":"معرض للخطر";addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();if(typeof pushRemoteState==="function")pushRemoteState();renderAll()}
+itemForm.onsubmit=e=>{e.preventDefault();state.items.push({track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value});if(typeof recalcTrackCountersFromItems==="function")recalcTrackCountersFromItems();addFeed(["إضافة عنصر",`تمت إضافة ${itemTitle.value} إلى المسار ${itemTrack.value}`,colorByStatus(itemStatus.value)]);itemForm.reset();save();if(typeof pushRemoteState==="function")pushRemoteState();renderAll()}
 simulate.onclick=()=>{const t=state.tracks[Math.floor(Math.random()*state.tracks.length)];t.done=Math.min(t.tasks,t.done+1);t.active=Math.max(0,t.active-1);t.progress=t.tasks?Math.round(t.done/t.tasks*100):t.progress;addFeed(["تحديث حي",`تغيرت نسبة إنجاز مسار ${t.name} إلى ${t.progress}%`,colorByStatus(t.status)]);save();renderAll()}
 if(typeof exportJson!=="undefined"&&exportJson){exportJson.onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kag-command-center-data.json";a.click()}}
 
@@ -1431,7 +1431,7 @@ function bindOps(){
       if(log.decision) state.decisions.unshift({track:log.track,trackName:log.trackName,title:log.decision,impact:log.delayed || log.risks || "-",owner:"الأمانة / PMC",due:"",status:"مفتوح"});
       addFeed(["تحديث يومي",`تم تسجيل تحديث يومي لمسار ${log.trackName}`,log.severity]);
       dailyUpdateForm.reset();
-      save(); renderAll();
+      save();if(typeof pushRemoteState==="function")pushRemoteState(); renderAll();
     };
   }
 
@@ -1450,7 +1450,7 @@ function bindOps(){
       });
       addFeed(["قرار مطلوب",`تمت إضافة قرار مطلوب: ${decisionTitle.value}`,colorByStatus(decisionStatus.value)]);
       decisionForm.reset();
-      save(); renderAll();
+      save();if(typeof pushRemoteState==="function")pushRemoteState(); renderAll();
     };
   }
 
@@ -1842,9 +1842,9 @@ setTimeout(function(){
     }
   }
 
-  // البيانات تُسحب من Google Sheet عبر الخادم وهي للقراءة فقط داخل اللوحة،
-  // لذلك لم تعد هناك حاجة لإرسال الحالة إلى الخادم. save() تبقى محلية فقط (localStorage).
+  // save() تحفظ في localStorage، وpushRemoteState() تُزامن مع الخادم عند الإدخال اليدوي.
 
+  window.pushRemoteState = pushRemoteState;
   window.backendSyncNow = function(){
     return applyRemoteIfNewer(true);
   };

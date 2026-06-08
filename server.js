@@ -501,6 +501,23 @@ const server=http.createServer(async (req,res)=>{
       return sendJson(res,200,{version:liveVersion,updatedAt:liveUpdatedAt,state:liveState,sync:publicSync()});
     }
 
+    // حفظ الحالة من الواجهة (إدخال يدوي، تحديثات مباشرة)
+    if(req.method==="POST" && url==="/api/state"){
+      if(!isAuthed(req)) return sendJson(res,401,{error:"يلزم تسجيل الدخول"});
+      const raw=await readBody(req);
+      let body={};
+      try{ body=raw?JSON.parse(raw):{}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
+      if(!body.state) return sendJson(res,400,{error:"لا توجد حالة في الطلب"});
+      const incoming = body.state;
+      if(incoming.items && Array.isArray(incoming.items)){
+        liveState = incoming;
+        liveUpdatedAt = new Date().toISOString();
+        liveVersion = (liveVersion||0)+1;
+        liveHash = crypto.createHash("sha1").update(JSON.stringify({tracks:liveState.tracks,items:liveState.items})).digest("hex");
+      }
+      return sendJson(res,200,{ok:true,version:liveVersion,updatedAt:liveUpdatedAt});
+    }
+
     // حالة مصدر البيانات (تفاصيل حساسة) — للأدمن فقط
     if(url==="/api/config"){
       if(req.method!=="GET") return sendJson(res,405,{error:"الطريقة غير مسموحة"});
