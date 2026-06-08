@@ -666,15 +666,9 @@ const server=http.createServer(async (req,res)=>{
       if(!liveState) return sendJson(res,503,{error:"البيانات غير متاحة بعد"});
       try{
         const buf = await generateReport(reportType, liveState);
-        const trackNames = { "أ":"A", "ب":"B", "ج":"C", "د":"D", "comprehensive":"Comprehensive" };
-        const safeType = trackNames[reportType] || reportType.replace(/[^\w-]/g, "_");
-        const dateStr = new Date().toISOString().slice(0,10);
-        const fname = `KAGA-Report-${safeType}-${dateStr}.pptx`;
         res.writeHead(200,{
-          "Content-Type":"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-          "Content-Disposition":`attachment; filename="${fname}"`,
-          "Content-Length": buf.length,
-          "Cache-Control":"no-store"
+          "Content-Type":"text/html; charset=utf-8",
+          "Cache-Control":"no-store, no-cache"
         });
         return res.end(buf);
       }catch(e){

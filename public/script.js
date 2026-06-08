@@ -1890,7 +1890,7 @@ setTimeout(function(){
 })();
 
 // ============================================================
-// تصدير التقارير PPTX
+// تصدير التقارير
 // ============================================================
 (function(){
   function bindReportExport(){
@@ -1920,18 +1920,21 @@ setTimeout(function(){
             throw new Error(err.error || res.status);
           }
 
-          // تنزيل الملف
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          const dateStr = new Date().toISOString().slice(0,10);
-          a.href = url;
-          a.download = `KAGA-Report-${type}-${dateStr}.pptx`;
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 2000);
-
-          if(statusEl){ statusEl.textContent = "✅ تم توليد التقرير بنجاح — جارٍ التنزيل"; }
+          // فتح التقرير HTML في نافذة جديدة
+          const html = await res.text();
+          const blob = new Blob([html],{type:"text/html;charset=utf-8"});
+          const url  = URL.createObjectURL(blob);
+          const win  = window.open(url,"_blank");
+          if(!win){
+            // إذا حُجبت النوافذ المنبثقة — حمّل كملف HTML
+            const a = document.createElement("a");
+            a.href=url; a.download=`KAGA-Report-${type}-${new Date().toISOString().slice(0,10)}.html`;
+            document.body.appendChild(a); a.click();
+            setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },2000);
+          } else {
+            setTimeout(()=>URL.revokeObjectURL(url),10000);
+          }
+          if(statusEl){ statusEl.textContent = "✅ تم توليد التقرير — اضغط طباعة لحفظه PDF"; }
           addFeed(["التقارير", `تم تصدير: ${label}`, "green"]);
 
         }catch(e){
