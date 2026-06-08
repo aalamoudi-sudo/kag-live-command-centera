@@ -1,0 +1,18 @@
+{
+  "name": "kag-live-command-center-gsheet",
+  "version": "69.0.0",
+  "private": true,
+  "description": "KAG Live Command Center — data sourced live from Google Sheets",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "postinstall": "pip3 install python-pptx lxml --quiet 2>/dev/null || pip install python-pptx lxml --quiet 2>/dev/null || true"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "jsdom": "^29.1.1",
+    "pptxgenjs": "^4.0.1"
+  }
+}
