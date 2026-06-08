@@ -3,7 +3,7 @@ services:
     name: kaga-command-center
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: pip3 install python-pptx --break-system-packages --quiet || pip install python-pptx --quiet; npm install
     startCommand: node server.js
     healthCheckPath: /api/health
     envVars:
