@@ -661,14 +661,11 @@ const server=http.createServer(async (req,res)=>{
       const raw=await readBody(req);
       try{ body=raw?JSON.parse(raw):{}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
       const reportType = body.type || "comprehensive";
+      // اسحب أحدث بيانات من الشيت قبل التوليد — يضمن ظهور أي عنصر جديد في التقرير
+      await refreshFromSheet();
       if(!liveState) return sendJson(res,503,{error:"البيانات غير متاحة بعد"});
-      // إذا أرسل المتصفح حالته الحالية (تشمل الإدخال اليدوي)، ندمجها مع liveState
-      let reportState = liveState;
-      if(body.state && body.state.items && Array.isArray(body.state.items)){
-        reportState = body.state;
-      }
       try{
-        const buf = await generateReport(reportType, reportState);
+        const buf = await generateReport(reportType, liveState);
         const trackNames = { "أ":"A", "ب":"B", "ج":"C", "د":"D", "comprehensive":"Comprehensive" };
         const safeType = trackNames[reportType] || reportType.replace(/[^\w-]/g, "_");
         const dateStr = new Date().toISOString().slice(0,10);
