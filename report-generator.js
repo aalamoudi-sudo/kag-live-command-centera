@@ -67,7 +67,7 @@ async function fillTemplate(templatePath, replacements) {
   const buf = fs.readFileSync(templatePath);
   const zip = await JSZip.loadAsync(buf);
 
-  // أضف الصور المشتركة من مجلد shared
+  // أعد حقن الصور الأصلية من shared إلى ملفات المديا الفارغة
   const sharedDir = path.join(path.dirname(templatePath), "shared");
   const mapFile = zip.files["ppt/media/_map.json"];
   if(mapFile && fs.existsSync(sharedDir)) {
@@ -75,11 +75,13 @@ async function fillTemplate(templatePath, replacements) {
     for(const [mediaPath, sharedName] of Object.entries(imgMap)) {
       const sharedFile = path.join(sharedDir, sharedName);
       if(fs.existsSync(sharedFile)) {
+        // استبدل الملف الفارغ بالصورة الأصلية
         zip.file(mediaPath, fs.readFileSync(sharedFile));
       }
     }
   }
 
+  // استبدل النصوص في الشرائح
   for(const [slideName, pairs] of Object.entries(replacements)) {
     const slideFile = `ppt/slides/${slideName}`;
     if(!zip.files[slideFile]) continue;
