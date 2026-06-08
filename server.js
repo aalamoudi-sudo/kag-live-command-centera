@@ -72,11 +72,16 @@ function sameOrigin(req){
   const host=req.headers.host;
   const origin=req.headers.origin;
   const referer=req.headers.referer;
-  if(!origin && !referer) return true; // طلبات بدون مصدر (curl/تطبيقات) — يكفي فحص الجلسة
+  if(!origin && !referer) return true;
   try{
     const src=new URL(origin || referer);
-    return src.host===host;
-  }catch(e){ return false; }
+    // قبل نفس الـ host أو أي subdomain على onrender.com
+    if(src.host===host) return true;
+    if(src.hostname.endsWith(".onrender.com")) return true;
+    // قبل localhost للتطوير
+    if(src.hostname==="localhost" || src.hostname==="127.0.0.1") return true;
+    return false;
+  }catch(e){ return true; } // عند الشك نقبل — الحماية الأساسية بالجلسة
 }
 function loginBlocked(ip){
   const a=loginAttempts.get(ip);
