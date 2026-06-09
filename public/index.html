@@ -594,34 +594,34 @@
     <section id="reports" class="page">
       <div class="page-title">
         <div>
-          <h2>مولّد التقرير اليومي</h2>
-          <p>تقرير تنفيذي جاهز للنسخ أو الطباعة بناءً على بيانات اللوحة الحالية</p>
+          <h2>مركز التقارير</h2>
+          <p>تقارير PDF احترافية جاهزة للطباعة والعرض الرسمي — مسحوبة مباشرة من بيانات اللوحة</p>
         </div>
         <button class="ghost" id="copyReport">نسخ التقرير</button>
       </div>
 
-      <!-- تصدير PPTX -->
+      <!-- تصدير PDF -->
       <section class="report-layout" style="margin-bottom:1.2rem;">
         <div class="glass panel" style="grid-column:1/-1;">
-          <div class="panel-title"><b>📊</b><h3>تصدير تقرير PowerPoint</h3></div>
+          <div class="panel-title"><b>📥</b><h3>تصدير تقرير PDF</h3></div>
           <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;text-align:right;">
-            اختر نوع التقرير وسيتم توليد ملف PPTX كامل من بيانات اللوحة الحالية
+            اختر نوع التقرير لفتحه في نافذة جديدة — ثم اضغط «تصدير PDF / طباعة» داخل التقرير
           </p>
           <div id="reportExportBtns" style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:flex-end;">
             <button class="control" data-report-type="comprehensive" id="exportComprehensive">
               📄 التقرير الشامل
             </button>
             <button class="control" data-report-type="أ" id="exportTrackA">
-              التقرير اليومي — مسار أ
+              PDF — مسار أ: التخطيط والتنسيق
             </button>
             <button class="control" data-report-type="ب" id="exportTrackB">
-              التقرير اليومي — مسار ب
+              PDF — مسار ب: التواصل والتسويق
             </button>
             <button class="control" data-report-type="ج" id="exportTrackC">
-              التقرير اليومي — مسار ج
+              PDF — مسار ج: الفعاليات والأنشطة
             </button>
             <button class="control" data-report-type="د" id="exportTrackD">
-              التقرير اليومي — مسار د
+              PDF — مسار د: تجهيز وتفعيل الحديقة
             </button>
           </div>
           <div id="reportExportStatus" style="margin-top:0.75rem;font-size:0.85rem;color:var(--text-muted);text-align:right;display:none;"></div>

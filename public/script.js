@@ -1934,7 +1934,7 @@ setTimeout(function(){
           } else {
             setTimeout(()=>URL.revokeObjectURL(url),10000);
           }
-          if(statusEl){ statusEl.textContent = "✅ تم توليد التقرير — اضغط طباعة لحفظه PDF"; }
+          if(statusEl){ statusEl.textContent = "✅ تم توليد التقرير — اضغط «تصدير PDF» داخل نافذة التقرير"; }
           addFeed(["التقارير", `تم تصدير: ${label}`, "green"]);
 
         }catch(e){
