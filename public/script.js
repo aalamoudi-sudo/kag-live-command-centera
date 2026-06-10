@@ -265,12 +265,10 @@ function v20OpenDecisions(){
   return (state.decisions||[]).filter(d=>d.status!=="معتمد");
 }
 function v20OverdueItems(){
-  const today = new Date(); today.setHours(0,0,0,0);
-  return (state.items||[]).filter(i=>{
-    if(!i.due) return false;
-    const d = new Date(i.due);
-    return !isNaN(d) && d < today && !["مكتملة","معتمدة","Completed","Cleared"].includes(i.status);
-  });
+  // فقط المهام المصنّفة صراحةً كـ "متأخرة" في الشيت
+  return (state.items||[]).filter(i=>
+    ["متأخرة","متأخر","Overdue"].includes(i.status)
+  );
 }
 function v20DueTodayItems(){
   const today = v20TodayISO();
