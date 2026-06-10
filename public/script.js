@@ -298,10 +298,25 @@ function v20UpdateCompliance(){
   return v20Clamp((updated.size/state.tracks.length)*100);
 }
 function v20TrackHealth(t){
-  const variance = Number(t.progress||0) - v20PlannedTrack(t);
-  const risks = v20Items("risks").filter(i=>i.track===t.id).length;
+  // 1. الإنجاز مقابل المخطط (40%)
+  const actual = Number(t.progress||0);
+  const planned = v20PlannedTrack(t);
+  const variance = actual - planned;
+  const progressScore = variance >= 0 ? 100 : Math.max(0, 100 + variance * 2);
+
+  // 2. المخاطر المفتوحة (25%)
+  const openRisks = v20Items("risks").filter(i=>i.track===t.id&&i.status!=="مغلقة"&&i.status!=="مكتملة"&&i.status!=="معتمدة").length;
+  const riskScore = Math.max(0, 100 - openRisks * 15);
+
+  // 3. المهام المتأخرة (25%)
+  const overdueCount = v20OverdueItems().filter(i=>i.track===t.id).length;
+  const overdueScore = Math.max(0, 100 - overdueCount * 20);
+
+  // 4. القرارات المعلقة (10%)
   const decisions = v20OpenDecisions().filter(d=>d.track===t.id).length;
-  return v20Clamp(100 + variance - (risks*8) - (decisions*6) - (Number(t.risk||0)*4));
+  const decisionScore = Math.max(0, 100 - decisions * 10);
+
+  return v20Clamp(Math.round(progressScore*0.40 + riskScore*0.25 + overdueScore*0.25 + decisionScore*0.10));
 }
 function v20HealthLabel(score){
   if(score >= 80) return ["مطمئن","green","#43ee8d"];
