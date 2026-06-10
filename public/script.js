@@ -321,9 +321,7 @@ function v20ProjectHealth(){
 }
 function v20OpeningReadiness(){
   // جاهزية الافتتاح = المهام المكتملة التي تاريخها ≤ تاريخ الافتتاح ÷ إجمالي المهام الحرجة
-  const _od = (state.project&&state.project.openingDate)||"2026-11-01";
-  const opening = new Date(_od.length===10 ? _od+"T23:59:59" : _od);
-  if(isNaN(opening)||opening.getFullYear()<2026) opening.setTime(new Date("2026-11-01T23:59:59").getTime());
+  const opening = new Date("2026-11-01T23:59:59");
   const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
   const criticalTasks = allTasks.filter(i=>{
     if(!i.due) return false;
