@@ -517,6 +517,7 @@ function renderKpis(){
     ["cyan",k.total,"إجمالي المهام","tasks"],
     ["green",k.done,"المهام المنجزة","tasks"],
     ["amber",k.active,"مهام نشطة","tasks"],
+    ["gray",k.notStarted,"لم تبدأ","tasks"],
     ["red",k.risk,"مخاطر مفتوحة","risks"],
     ["sand",k.overall+"%","الإنجاز العام","track"],
     ["cyan",readiness+"%","جاهزية الافتتاح","milestones"]

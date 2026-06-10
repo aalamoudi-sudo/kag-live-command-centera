@@ -310,6 +310,7 @@ function buildState(items){
     t.active=tasks.filter(i=>ACTIVE_SET.includes(i.status)).length;
     t.risk=risks.length + tasks.filter(i=>RISK_SET.includes(i.status)).length;
     t.notStarted=tasks.filter(i=>i.status==="لم يبدأ").length;
+    t.notStarted=tasks.filter(i=>i.status==="لم يبدأ").length;
     if(t.tasks>0){
       t.progress=Math.round((t.done/t.tasks)*100);
       t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=45 ? "تحت المتابعة" : "معرض للخطر";
