@@ -319,9 +319,9 @@ function v20TrackHealth(t){
   return v20Clamp(Math.round(progressScore*0.40 + riskScore*0.25 + overdueScore*0.25 + decisionScore*0.10));
 }
 function v20HealthLabel(score){
-  if(score >= 80) return ["مطمئن","green","#43ee8d"];
-  if(score >= 60) return ["تحت المتابعة","amber","#ffc247"];
-  if(score >= 40) return ["يحتاج تدخل","red","#ff5e6b"];
+  if(score >= 85) return ["ضمن المسار","green","#43ee8d"];
+  if(score >= 65) return ["تحت المتابعة","amber","#ffc247"];
+  if(score >= 45) return ["يحتاج تدخل","red","#ff5e6b"];
   return ["حرج","red","#ff5e6b"];
 }
 function v20ProjectHealth(){
