@@ -18,15 +18,24 @@ function renderForms(){const opts=state.tracks.map(t=>`<option value="${t.id}">$
 
 // ===== V18 DIWAN + PLANNED VS ACTUAL + CLICKABLE DETAILS =====
 function plannedForTrack(t){
+  // يحسب المخطط تلقائياً من تواريخ الاستحقاق
+  const today = new Date(); today.setHours(0,0,0,0);
+  const trackItems = (state&&state.items||[]).filter(i=>i.track===t.id && i.type==="tasks");
+  if(trackItems.length){
+    const due = trackItems.filter(i=>{ if(!i.due) return false; const d=new Date(i.due); return !isNaN(d) && d<=today; }).length;
+    return Math.round((due/trackItems.length)*100);
+  }
   if(t && typeof t.planned === "number") return t.planned;
   const base = { "أ":88, "ب":66, "ج":55, "د":60, "هـ":58 };
   return base[t.id] || Math.min(100, Number(t.progress||0) + 10);
 }
 function projectPlanned(){
-  if(!state.tracks.length) return 0;
-  let totalTasks=0, weightedSum=0;
-  state.tracks.forEach(t=>{ const n=Number(t.tasks||0); totalTasks+=n; weightedSum+=plannedForTrack(t)*n; });
-  return totalTasks>0 ? Math.round(weightedSum/totalTasks) : 0;
+  if(!state||!state.tracks||!state.tracks.length) return 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
+  if(!allTasks.length) return 0;
+  const due = allTasks.filter(i=>{ if(!i.due) return false; const d=new Date(i.due); return !isNaN(d) && d<=today; }).length;
+  return Math.round((due/allTasks.length)*100);
 }
 function projectActual(){
   if(!state.tracks.length) return 0;
@@ -233,19 +242,21 @@ function v20ProjectActual(){
   return totalTasks > 0 ? v20Clamp(Math.round(weightedSum/totalTasks)) : 0;
 }
 function v20PlannedTrack(t){
-  const planned = {"أ":88,"ب":66,"ج":55,"د":60,"هـ":58};
-  return planned[t.id] || v20Clamp(Number(t.progress||0)+10);
+  // يحسب المخطط تلقائياً: المهام التي حان استحقاقها حتى اليوم ÷ إجمالي مهام المسار
+  const today = new Date(); today.setHours(0,0,0,0);
+  const trackItems = (state.items||[]).filter(i=>i.track===t.id && i.type==="tasks");
+  if(!trackItems.length) return 0;
+  const due = trackItems.filter(i=>{ if(!i.due) return false; const d=new Date(i.due); return !isNaN(d) && d<=today; }).length;
+  return Math.round((due/trackItems.length)*100);
 }
 function v20ProjectPlanned(){
   if(!state.tracks || !state.tracks.length) return 0;
   // مرجّح بعدد المهام الفعلية لكل مسار
-  let totalTasks = 0, weightedSum = 0;
-  state.tracks.forEach(t=>{
-    const tasks = Number(t.tasks||0);
-    totalTasks += tasks;
-    weightedSum += v20PlannedTrack(t) * tasks;
-  });
-  return totalTasks > 0 ? v20Clamp(Math.round(weightedSum/totalTasks)) : 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
+  if(!allTasks.length) return 0;
+  const dueTasks = allTasks.filter(i=>{ if(!i.due) return false; const d=new Date(i.due); return !isNaN(d) && d<=today; }).length;
+  return Math.round((dueTasks/allTasks.length)*100);
 }
 function v20Items(type){
   return (state.items||[]).filter(i=>i.type===type);
