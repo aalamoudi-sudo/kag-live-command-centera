@@ -312,12 +312,33 @@ function v20HealthLabel(score){
 function v20ProjectHealth(){
   const actual = v20ProjectActual();
   const planned = v20ProjectPlanned();
-  const variancePenalty = Math.max(0, planned-actual) * 1.1;
-  const riskPenalty = Math.min(35, v20RiskIndex()*0.28);
-  const decisionPenalty = Math.min(18, v20OpenDecisions().length*3);
-  const overduePenalty = Math.min(18, v20OverdueItems().length*4);
-  const approvalBonus = v20ApprovalsRate()*0.06;
-  return v20Clamp(100 - variancePenalty - riskPenalty - decisionPenalty - overduePenalty + approvalBonus);
+
+  // 1. الإنجاز مقابل المخطط (40%)
+  const variance = actual - planned;
+  const progressScore = variance >= 0
+    ? 100
+    : Math.max(0, 100 + variance * 2); // كل 1% تأخر يخصم 2%
+
+  // 2. المخاطر المفتوحة (25%)
+  const openRisks = v20Items("risks").filter(i=>i.status!=="مغلقة"&&i.status!=="مكتملة"&&i.status!=="معتمدة").length;
+  const riskScore = Math.max(0, 100 - openRisks * 15);
+
+  // 3. المهام المتأخرة (25%)
+  const overdueCount = v20OverdueItems().length;
+  const overdueScore = Math.max(0, 100 - overdueCount * 20);
+
+  // 4. القرارات المعلقة (10%)
+  const openDecisions = v20OpenDecisions().length;
+  const decisionScore = Math.max(0, 100 - openDecisions * 10);
+
+  // المعادلة المرجّحة
+  const health = Math.round(
+    progressScore * 0.40 +
+    riskScore     * 0.25 +
+    overdueScore  * 0.25 +
+    decisionScore * 0.10
+  );
+  return v20Clamp(health);
 }
 function v20OpeningReadiness(){
   // جاهزية الافتتاح = المهام المكتملة التي تاريخها ≤ تاريخ الافتتاح ÷ إجمالي المهام الحرجة
