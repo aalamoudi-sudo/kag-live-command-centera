@@ -99,7 +99,7 @@ const SHEET_GID = process.env.SHEET_GID || "";          // رقم التبويب
 const SHEET_CSV_URL = process.env.SHEET_CSV_URL || "";  // رابط "النشر للويب" CSV (الأكثر ضمانًا)
 const LOCAL_CSV = process.env.LOCAL_CSV || "";          // مسار ملف CSV محلي كحل احتياطي تام
 const SHEET_REFRESH_MS = Number(process.env.SHEET_REFRESH_MS || 15000);
-const OPENING_DATE = process.env.OPENING_DATE || "2026-09-27";
+const OPENING_DATE = process.env.OPENING_DATE || "2026-11-01";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "MAYADEEN";
 // كلمة المرور الأساسية المثبّتة (يمكن تغييرها بمتغيّر البيئة ADMIN_PASSWORD).
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Mayadeen@2026";

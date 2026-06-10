@@ -320,14 +320,19 @@ function v20ProjectHealth(){
   return v20Clamp(100 - variancePenalty - riskPenalty - decisionPenalty - overduePenalty + approvalBonus);
 }
 function v20OpeningReadiness(){
-  const weights = {"د":0.30,"ج":0.22,"هـ":0.18,"ب":0.15,"أ":0.15};
-  let total = 0, score = 0;
-  (state.tracks||[]).forEach(t=>{
-    const w = weights[t.id] || 0.1;
-    total += w;
-    score += Number(t.progress||0)*w;
+  // جاهزية الافتتاح = المهام المكتملة التي تاريخها ≤ تاريخ الافتتاح ÷ إجمالي المهام الحرجة
+  const opening = new Date((state.project&&state.project.openingDate)||"2026-11-01");
+  opening.setHours(23,59,59,0);
+  const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
+  const criticalTasks = allTasks.filter(i=>{
+    if(!i.due) return false;
+    const d = new Date(i.due);
+    return !isNaN(d) && d <= opening;
   });
-  return total ? v20Clamp(score/total) : 0;
+  if(!criticalTasks.length) return 0;
+  const DONE_SET=["مكتملة","معتمدة","Completed","Cleared"];
+  const doneCritical = criticalTasks.filter(i=>DONE_SET.includes(i.status)).length;
+  return v20Clamp(Math.round((doneCritical/criticalTasks.length)*100));
 }
 function v20MostCriticalTrack(){
   const ranked = (state.tracks||[]).map(t=>({track:t, health:v20TrackHealth(t)}));
