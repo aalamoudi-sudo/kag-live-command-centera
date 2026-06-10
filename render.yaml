@@ -13,3 +13,5 @@ services:
         value: MAYADEEN
       - key: ADMIN_PASSWORD
         value: Mayadeen@2026
+      - key: OPENING_DATE
+        value: "2026-11-01"
