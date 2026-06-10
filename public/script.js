@@ -423,7 +423,7 @@ function v22OpeningDate(){
   try{
     if(state && state.project && state.project.openingDate) return new Date(state.project.openingDate + "T00:00:00");
   }catch(e){}
-  return new Date("2026-09-27T00:00:00");
+  return new Date("2026-11-01T00:00:00");
 }
 function v22OpeningReadiness(){
   if(typeof v20OpeningReadiness === "function") return v20OpeningReadiness();
@@ -812,7 +812,7 @@ function v28RenderHomeAction(){
 
 // ===== V27 COUNTDOWN SETTINGS MODULE =====
 const defaultCountdownSettings = {
-  date: (state && state.project && state.project.openingDate) ? state.project.openingDate : "2026-09-27",
+  date: (state && state.project && state.project.openingDate) ? state.project.openingDate : "2026-11-01",
   time: "00:00",
   label: "حتى موعد الافتتاح الرسمي"
 };
@@ -1703,7 +1703,7 @@ bindMobileUX();bindMobileMenuV17();bindDetailView();v20BindIntelligence();bindTi
         return new Date(String(state.project.openingDate) + "T00:00:00");
       }
     }catch(e){}
-    return new Date("2026-09-27T00:00:00");
+    return new Date("2026-11-01T00:00:00");
   }
 
   function setText(id, value){
