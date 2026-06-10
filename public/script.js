@@ -298,25 +298,32 @@ function v20UpdateCompliance(){
   return v20Clamp((updated.size/state.tracks.length)*100);
 }
 function v20TrackHealth(t){
-  // 1. الإنجاز مقابل المخطط (40%)
+  const w = v20DynamicWeights();
+
+  // 1. الإنجاز مقابل المخطط
   const actual = Number(t.progress||0);
   const planned = v20PlannedTrack(t);
   const variance = actual - planned;
   const progressScore = variance >= 0 ? 100 : Math.max(0, 100 + variance * 2);
 
-  // 2. المخاطر المفتوحة (25%)
+  // 2. المخاطر المفتوحة
   const openRisks = v20Items("risks").filter(i=>i.track===t.id&&i.status!=="مغلقة"&&i.status!=="مكتملة"&&i.status!=="معتمدة").length;
   const riskScore = Math.max(0, 100 - openRisks * 15);
 
-  // 3. المهام المتأخرة (25%)
+  // 3. المهام المتأخرة
   const overdueCount = v20OverdueItems().filter(i=>i.track===t.id).length;
   const overdueScore = Math.max(0, 100 - overdueCount * 20);
 
-  // 4. القرارات المعلقة (10%)
+  // 4. القرارات المعلقة
   const decisions = v20OpenDecisions().filter(d=>d.track===t.id).length;
   const decisionScore = Math.max(0, 100 - decisions * 10);
 
-  return v20Clamp(Math.round(progressScore*0.40 + riskScore*0.25 + overdueScore*0.25 + decisionScore*0.10));
+  return v20Clamp(Math.round(
+    progressScore * w.progress +
+    riskScore     * w.risk +
+    overdueScore  * w.overdue +
+    decisionScore * w.decision
+  ));
 }
 function v20HealthLabel(score){
   if(score >= 85) return ["ضمن المسار","green","#43ee8d"];
@@ -324,36 +331,41 @@ function v20HealthLabel(score){
   if(score >= 45) return ["يحتاج تدخل","red","#ff5e6b"];
   return ["حرج","red","#ff5e6b"];
 }
+function v20DynamicWeights(){
+  // أوزان ديناميكية حسب المرحلة الزمنية
+  const opening = new Date("2026-11-01T23:59:59");
+  const daysLeft = Math.max(0, Math.round((opening - new Date()) / 86400000));
+  if(daysLeft > 120) return {progress:0.20, risk:0.35, overdue:0.35, decision:0.10}; // تخطيط
+  if(daysLeft > 60)  return {progress:0.35, risk:0.30, overdue:0.25, decision:0.10}; // تنفيذ
+  return                    {progress:0.50, risk:0.25, overdue:0.15, decision:0.10}; // إطلاق
+}
 function v20ProjectHealth(){
   const actual = v20ProjectActual();
   const planned = v20ProjectPlanned();
+  const w = v20DynamicWeights();
 
-  // 1. الإنجاز مقابل المخطط (40%)
+  // 1. الإنجاز مقابل المخطط
   const variance = actual - planned;
-  const progressScore = variance >= 0
-    ? 100
-    : Math.max(0, 100 + variance * 2); // كل 1% تأخر يخصم 2%
+  const progressScore = variance >= 0 ? 100 : Math.max(0, 100 + variance * 2);
 
-  // 2. المخاطر المفتوحة (25%)
+  // 2. المخاطر المفتوحة
   const openRisks = v20Items("risks").filter(i=>i.status!=="مغلقة"&&i.status!=="مكتملة"&&i.status!=="معتمدة").length;
   const riskScore = Math.max(0, 100 - openRisks * 15);
 
-  // 3. المهام المتأخرة (25%)
+  // 3. المهام المتأخرة
   const overdueCount = v20OverdueItems().length;
   const overdueScore = Math.max(0, 100 - overdueCount * 20);
 
-  // 4. القرارات المعلقة (10%)
+  // 4. القرارات المعلقة
   const openDecisions = v20OpenDecisions().length;
   const decisionScore = Math.max(0, 100 - openDecisions * 10);
 
-  // المعادلة المرجّحة
-  const health = Math.round(
-    progressScore * 0.40 +
-    riskScore     * 0.25 +
-    overdueScore  * 0.25 +
-    decisionScore * 0.10
-  );
-  return v20Clamp(health);
+  return v20Clamp(Math.round(
+    progressScore * w.progress +
+    riskScore     * w.risk +
+    overdueScore  * w.overdue +
+    decisionScore * w.decision
+  ));
 }
 function v20OpeningReadiness(){
   // جاهزية الافتتاح = المهام المكتملة التي تاريخها ≤ تاريخ الافتتاح ÷ إجمالي المهام الحرجة
@@ -685,7 +697,7 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
 })
 // تمت إزالة الاستيراد المحلي (لصق/CSV) — البيانات تُسحب الآن من Google Sheet عبر الخادم.
 trackSelect.onchange=()=>{const t=state.tracks.find(x=>x.id===trackSelect.value);progressInput.value=t.progress;tasksInput.value=t.tasks;doneInput.value=t.done;activeInput.value=t.active;riskInput.value=t.risk;leadInput.value=t.lead;focusInput.value=t.focus}
-trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;t.status=t.progress>=70?"ضمن المسار":t.progress>=45?"تحت المتابعة":"معرض للخطر";addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
+trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;{ const h=v20TrackHealth(t); t.status=h>=85?"ضمن المسار":h>=65?"تحت المتابعة":h>=45?"يحتاج تدخل":"حرج"; }addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
 itemForm.onsubmit=async function(e){
   e.preventDefault();
   const newItem={track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value};

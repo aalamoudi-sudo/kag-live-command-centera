@@ -313,7 +313,7 @@ function buildState(items){
     t.notStarted=tasks.filter(i=>i.status==="لم يبدأ").length;
     if(t.tasks>0){
       t.progress=Math.round((t.done/t.tasks)*100);
-      t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=45 ? "تحت المتابعة" : "معرض للخطر";
+      t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=40 ? "تحت المتابعة" : t.progress>=15 ? "يحتاج تدخل" : "حرج";
     }else{ t.progress=0; t.status="تحت المتابعة"; }
     return t;
   });
