@@ -1507,7 +1507,7 @@ body.admin-unlocked .admin-session-bar{display:block}
 }
 .home-kpi-grid{
   margin:0 0 18px!important;
-  grid-template-columns:repeat(6,1fr)!important;
+  grid-template-columns:repeat(7,1fr)!important;
 }
 .home-kpi-grid .kpi{
   min-height:118px;
@@ -1677,7 +1677,7 @@ body.admin-unlocked .admin-session-bar{display:block}
   font-size:16px;
 }
 .home-kpi-grid{
-  grid-template-columns:repeat(6,1fr)!important;
+  grid-template-columns:repeat(7,1fr)!important;
 }
 @media(max-width:900px){
   .countdown-grid{
