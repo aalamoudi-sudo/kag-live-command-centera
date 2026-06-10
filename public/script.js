@@ -24,11 +24,15 @@ function plannedForTrack(t){
 }
 function projectPlanned(){
   if(!state.tracks.length) return 0;
-  return Math.round(state.tracks.reduce((s,t)=>s+plannedForTrack(t),0)/state.tracks.length);
+  let totalTasks=0, weightedSum=0;
+  state.tracks.forEach(t=>{ const n=Number(t.tasks||0); totalTasks+=n; weightedSum+=plannedForTrack(t)*n; });
+  return totalTasks>0 ? Math.round(weightedSum/totalTasks) : 0;
 }
 function projectActual(){
   if(!state.tracks.length) return 0;
-  return Math.round(state.tracks.reduce((s,t)=>s+Number(t.progress||0),0)/state.tracks.length);
+  let totalTasks=0, weightedSum=0;
+  state.tracks.forEach(t=>{ const n=Number(t.tasks||0); totalTasks+=n; weightedSum+=Number(t.progress||0)*n; });
+  return totalTasks>0 ? Math.round(weightedSum/totalTasks) : 0;
 }
 function paHtml(planned, actual){
   const variance = actual - planned;
@@ -219,7 +223,14 @@ function v20TodayISO(){
 }
 function v20ProjectActual(){
   if(!state.tracks || !state.tracks.length) return 0;
-  return v20Clamp(state.tracks.reduce((sum,t)=>sum+Number(t.progress||0),0)/state.tracks.length);
+  // مرجّح بعدد المهام الفعلية لكل مسار
+  let totalTasks = 0, weightedSum = 0;
+  state.tracks.forEach(t=>{
+    const tasks = Number(t.tasks||0);
+    totalTasks += tasks;
+    weightedSum += Number(t.progress||0) * tasks;
+  });
+  return totalTasks > 0 ? v20Clamp(Math.round(weightedSum/totalTasks)) : 0;
 }
 function v20PlannedTrack(t){
   const planned = {"أ":88,"ب":66,"ج":55,"د":60,"هـ":58};
@@ -227,7 +238,14 @@ function v20PlannedTrack(t){
 }
 function v20ProjectPlanned(){
   if(!state.tracks || !state.tracks.length) return 0;
-  return v20Clamp(state.tracks.reduce((sum,t)=>sum+v20PlannedTrack(t),0)/state.tracks.length);
+  // مرجّح بعدد المهام الفعلية لكل مسار
+  let totalTasks = 0, weightedSum = 0;
+  state.tracks.forEach(t=>{
+    const tasks = Number(t.tasks||0);
+    totalTasks += tasks;
+    weightedSum += v20PlannedTrack(t) * tasks;
+  });
+  return totalTasks > 0 ? v20Clamp(Math.round(weightedSum/totalTasks)) : 0;
 }
 function v20Items(type){
   return (state.items||[]).filter(i=>i.type===type);
