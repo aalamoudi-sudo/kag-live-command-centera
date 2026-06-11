@@ -313,7 +313,18 @@ function buildState(items){
     t.notStarted=tasks.filter(i=>i.status==="لم يبدأ").length;
     if(t.tasks>0){
       t.progress=Math.round((t.done/t.tasks)*100);
-      t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=40 ? "تحت المتابعة" : t.progress>=15 ? "يحتاج تدخل" : "حرج";
+      // حساب الحالة بناءً على الفرق بين الفعلي والمخطط الزمني
+      const opening = new Date("2026-11-01");
+      const start   = new Date("2026-05-21"); // تاريخ بداية المشروع الفعلية
+      const today   = new Date();
+      const totalMs = opening - start;
+      const elapsedMs = Math.min(today - start, totalMs);
+      const planned = totalMs > 0 ? Math.round((elapsedMs / totalMs) * 100) : 0;
+      const variance = t.progress - planned;
+      t.status = variance >= 0   ? "ضمن المسار"
+               : variance >= -10 ? "تحت المتابعة"
+               : variance >= -20 ? "يحتاج تدخل"
+               : "حرج";
     }else{ t.progress=0; t.status="تحت المتابعة"; }
     return t;
   });
