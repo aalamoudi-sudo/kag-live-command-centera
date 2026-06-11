@@ -24,6 +24,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { generateReport } = require("./report-generator");
+const { generatePptx }   = require("./report-pptx");
 
 /* ============ Google Sheets API — كتابة البيانات ============ */
 const GSERVICE = (() => {
@@ -164,13 +165,13 @@ const TRACK_CONFIG = [
     sub:"الحوكمة · الجدول الزمني · المخرجات · الاعتمادات · التصاريح · المخاطر · التغيير",
     lead:"مدير مسار التخطيط والتنسيق", focus:"التنسيق والمتابعة مع أصحاب المصلحة",
     accent:"#7E6BFF", planned:88 },
-  { id:"ب", slug:"track-b", name:"التواصل والتسويق", ar:"Communication & Marketing",
+  { id:"ب", slug:"track-b", name:"الإعلام والتغطية", ar:"Communication & Marketing",
     sub:"الخطة الإعلامية · التغطية · التوثيق · الرسائل الإعلامية · المركز الإعلامي · المحتوى",
-    lead:"مدير مسار التواصل والتسويق", focus:"التنسيق الإعلامي وإعداد التقارير والعروض",
+    lead:"مدير مسار الإعلام والتغطية", focus:"التنسيق الإعلامي وإعداد التقارير والعروض",
     accent:"#A98BFF", planned:66 },
-  { id:"ج", slug:"track-c", name:"الفعاليات والأنشطة المصاحبة", ar:"Events & Supporting Activities",
+  { id:"ج", slug:"track-c", name:"الحفل الرسمي وفعالياته المصاحبة", ar:"Events & Supporting Activities",
     sub:"الضيافة · الإنتاج التقني · العروض الفنية · إدارة الحضور · VIP · البروتوكول",
-    lead:"مدير مسار الفعاليات والأنشطة المصاحبة", focus:"ضبط تجربة الفعالية والبروتوكول",
+    lead:"مدير مسار الحفل الرسمي وفعالياته المصاحبة", focus:"ضبط تجربة الفعالية والبروتوكول",
     accent:"#D9B86C", planned:55 },
   { id:"د", slug:"track-d", name:"تجهيز وتفعيل الحديقة", ar:"Garden Setup & Activation",
     sub:"الحديقة · المسارات · النقل · السلامة والطوارئ · الاستدامة · الجاهزية · التشغيل الميداني",
@@ -183,8 +184,8 @@ const VALID_TRACKS = TRACK_CONFIG.map(t=>t.id);
 const SEED_ITEMS = [
   {track:"أ",type:"tasks",title:"تثبيت الجدول الزمني وخطة الاعتمادات",owner:"PMC",status:"مكتملة",due:"2026-08-20"},
   {track:"أ",type:"milestones",title:"اعتماد سجل المخرجات والمخاطر",owner:"PMC",status:"مكتملة",due:"2026-08-22"},
-  {track:"ب",type:"tasks",title:"إعداد خطة التواصل والتغطية الإعلامية",owner:"التواصل والتسويق",status:"قيد التنفيذ",due:"2026-08-29"},
-  {track:"ب",type:"risks",title:"تأخر اعتماد المحتوى الإعلامي",owner:"التواصل والتسويق",status:"تحت المتابعة",due:"2026-08-29"},
+  {track:"ب",type:"tasks",title:"إعداد خطة التواصل والتغطية الإعلامية",owner:"الإعلام والتغطية",status:"قيد التنفيذ",due:"2026-08-29"},
+  {track:"ب",type:"risks",title:"تأخر اعتماد المحتوى الإعلامي",owner:"الإعلام والتغطية",status:"تحت المتابعة",due:"2026-08-29"},
   {track:"ج",type:"tasks",title:"تجهيز خطة الضيافة والبروتوكول و VIP",owner:"الفعاليات",status:"قيد التنفيذ",due:"2026-09-10"},
   {track:"ج",type:"milestones",title:"اعتماد برنامج الأنشطة المصاحبة",owner:"الفعاليات",status:"تحت المتابعة",due:"2026-09-18"},
   {track:"د",type:"tasks",title:"جاهزية مسارات الحديقة والتشغيل الميداني",owner:"التشغيل الميداني",status:"معرضة للخطر",due:"2026-09-24"},
@@ -667,23 +668,36 @@ const server=http.createServer(async (req,res)=>{
     if(req.method==="GET" && url==="/api/admin-check")
       return sendJson(res,200,{authed:isAuthed(req), isAdmin:isAdmin(req)});
 
-    // ===== توليد التقارير =====
+    // ===== توليد التقارير (PDF أو PPTX) =====
     if(url.startsWith("/api/report") && req.method==="POST"){
       if(!isAuthed(req)) return sendJson(res,401,{error:"غير مصرّح"});
       let body={};
       const raw=await readBody(req);
       try{ body=raw?JSON.parse(raw):{}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
-      const reportType = body.type || "comprehensive";
-      // اسحب أحدث بيانات من الشيت قبل التوليد — يضمن ظهور أي عنصر جديد في التقرير
+      const reportType   = body.type   || "comprehensive";
+      const reportFormat = body.format || "pdf";
       await refreshFromSheet();
       if(!liveState) return sendJson(res,503,{error:"البيانات غير متاحة بعد"});
+      const dateStr = new Date().toISOString().slice(0,10);
+      const trackLabel = reportType==="comprehensive"?"Comprehensive":reportType;
+      const fileName = `KAGA-${trackLabel}-${dateStr}`;
       try{
-        const buf = await generateReport(reportType, liveState);
-        res.writeHead(200,{
-          "Content-Type":"text/html; charset=utf-8",
-          "Cache-Control":"no-store, no-cache"
-        });
-        return res.end(buf);
+        if(reportFormat === "pptx"){
+          const buf = await generatePptx(reportType, liveState);
+          res.writeHead(200,{
+            "Content-Type":"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "Content-Disposition":`attachment; filename="${fileName}.pptx"`,
+            "Cache-Control":"no-store, no-cache"
+          });
+          return res.end(buf);
+        } else {
+          const buf = await generateReport(reportType, liveState);
+          res.writeHead(200,{
+            "Content-Type":"text/html; charset=utf-8",
+            "Cache-Control":"no-store, no-cache"
+          });
+          return res.end(buf);
+        }
       }catch(e){
         console.error("خطأ في توليد التقرير:", e);
         return sendJson(res,500,{error:"فشل توليد التقرير: "+e.message});
