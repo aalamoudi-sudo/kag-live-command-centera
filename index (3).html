@@ -60,10 +60,10 @@
       <button class="nav-btn active" data-page="overview">الرئيسية</button>
       <button class="nav-btn" data-page="intelligence">المؤشرات الذكية</button>
       <button class="nav-btn" data-page="timeline">الجدول الزمني</button>
-      <button class="nav-btn" data-page="track-a">أ · التخطيط</button>
-      <button class="nav-btn" data-page="track-b">ب · التواصل</button>
-      <button class="nav-btn" data-page="track-c">ج · الفعاليات</button>
-      <button class="nav-btn" data-page="track-d">د · تجهيز الحديقة</button>
+      <button class="nav-btn" data-page="track-a">التخطيط · أ</button>
+      <button class="nav-btn" data-page="track-b">الإعلام والتغطية · ب</button>
+      <button class="nav-btn" data-page="track-c">الفعاليات · ج</button>
+      <button class="nav-btn" data-page="track-d">تجهيز الحديقة · د</button>
       <button class="nav-btn broadcast-nav" data-page="live-broadcast">نافذة البث</button>
       <button class="nav-btn admin" data-page="broadcast-settings" data-protected="true">إعدادات البث</button>
       <button class="nav-btn admin" data-page="bulk" data-protected="true">مصدر البيانات</button>
@@ -203,10 +203,10 @@
 
       <section class="timeline-track-tabs glass">
         <button class="timeline-track-tab active" data-track-filter="all">الجدول الزمني الموحد</button>
-        <button class="timeline-track-tab" data-track-filter="أ">أ · التخطيط</button>
-        <button class="timeline-track-tab" data-track-filter="ب">ب · التواصل</button>
-        <button class="timeline-track-tab" data-track-filter="ج">ج · الفعاليات</button>
-        <button class="timeline-track-tab" data-track-filter="د">د · تجهيز الحديقة</button>
+        <button class="timeline-track-tab" data-track-filter="أ">التخطيط · أ</button>
+        <button class="timeline-track-tab" data-track-filter="ب">الإعلام والتغطية · ب</button>
+        <button class="timeline-track-tab" data-track-filter="ج">الفعاليات · ج</button>
+        <button class="timeline-track-tab" data-track-filter="د">تجهيز الحديقة · د</button>
       </section>
 
       <section class="timeline-filter-bar glass">
@@ -441,13 +441,13 @@
         <div class="glass panel">
           <div class="panel-title"><b></b><h3>ألوان المسارات</h3></div>
           <form id="uiTrackColorsForm" class="form">
-            <label>لون مسار أ · التخطيط والتنسيق</label>
+            <label>لون مسار التخطيط · أ والتنسيق</label>
             <input id="colorA" type="color" />
 
-            <label>لون مسار ب · التواصل والتسويق</label>
+            <label>لون مسار الإعلام والتغطية · ب والتسويق</label>
             <input id="colorB" type="color" />
 
-            <label>لون مسار ج · الفعاليات والأنشطة المصاحبة</label>
+            <label>لون مسار الفعاليات · ج والأنشطة المصاحبة</label>
             <input id="colorC" type="color" />
 
             <label>لون مسار د · تجهيز وتفعيل الحديقة</label>
@@ -600,12 +600,12 @@
         <button class="ghost" id="copyReport">نسخ التقرير</button>
       </div>
 
-      <!-- تصدير التقارير -->
+      <!-- تصدير PPTX -->
       <section class="report-layout" style="margin-bottom:1.2rem;">
         <div class="glass panel" style="grid-column:1/-1;">
-          <div class="panel-title"><b>📊</b><h3>تصدير التقارير اليومية</h3></div>
+          <div class="panel-title"><b>📊</b><h3>تصدير تقرير PowerPoint</h3></div>
           <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;text-align:right;">
-            اختر نوع التقرير — سيُفتح في نافذة جديدة جاهز للطباعة أو الحفظ كـ PDF
+            اختر نوع التقرير وسيتم توليد ملف PPTX كامل من بيانات اللوحة الحالية
           </p>
           <div id="reportExportBtns" style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:flex-end;">
             <button class="control" data-report-type="comprehensive" id="exportComprehensive">
