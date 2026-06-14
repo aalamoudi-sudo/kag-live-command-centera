@@ -1,7 +1,7 @@
-const defaultState={project:{title:"حدائق الملك عبدالله",phase:"مرحلة ما قبل الإطلاق",openingDate:"2026-09-27"},tracks:[{id:"أ",slug:"track-a",name:"التخطيط والتنسيق",ar:"Planning & Coordination",sub:"الحوكمة · الجدول الزمني · المخرجات · الاعتمادات · التصاريح · المخاطر · التغيير",status:"ضمن المسار",progress:83,tasks:18,done:15,active:3,risk:0,lead:"مدير مسار التخطيط والتنسيق",focus:"التنسيق والمتابعة مع أصحاب المصلحة",accent:"#7E6BFF"},{id:"ب",slug:"track-b",name:"التواصل والتسويق",ar:"Communication & Marketing",sub:"الخطة الإعلامية · التغطية · التوثيق · الرسائل الإعلامية · المركز الإعلامي · المحتوى",status:"ضمن المسار",progress:58,tasks:24,done:14,active:7,risk:2,lead:"مدير مسار التواصل والتسويق",focus:"إعداد التقارير والعروض المرتبطة بالمسار والتنسيق الإعلامي",accent:"#A98BFF"},{id:"ج",slug:"track-c",name:"الفعاليات والأنشطة المصاحبة",ar:"Events & Supporting Activities",sub:"الضيافة · الإنتاج التقني · العروض الفنية · إدارة الحضور · VIP · البروتوكول",status:"تحت المتابعة",progress:41,tasks:21,done:9,active:8,risk:2,lead:"مدير مسار الفعاليات والأنشطة المصاحبة",focus:"ضبط تجربة الفعالية والأنشطة المصاحبة والبروتوكول",accent:"#D9B86C"},{id:"د",slug:"track-d",name:"تجهيز وتفعيل الحديقة",ar:"Garden Setup & Activation",sub:"الحديقة · المسارات · النقل · السلامة والطوارئ · الاستدامة · البيئة · الجاهزية · التشغيل الميداني",status:"معرض للخطر",progress:47,tasks:24,done:8,active:5,risk:3,lead:"مدير مسار تجهيز وتفعيل الحديقة",focus:"جاهزية الحديقة والتشغيل الميداني وتفعيل الموقع",accent:"#6454C8"}],items:[{track:"أ",type:"tasks",title:"تثبيت الجدول الزمني وخطة الاعتمادات",owner:"PMC",status:"مكتملة",due:"2026-08-20"},{track:"أ",type:"milestones",title:"اعتماد سجل المخرجات والمخاطر",owner:"PMC",status:"مكتملة",due:"2026-08-22"},{track:"ب",type:"tasks",title:"إعداد خطة التواصل والتغطية الإعلامية",owner:"التواصل والتسويق",status:"قيد التنفيذ",due:"2026-08-29"},{track:"ب",type:"risks",title:"تأخر اعتماد المحتوى الإعلامي",owner:"التواصل والتسويق",status:"تحت المتابعة",due:"2026-08-29"},{track:"ج",type:"tasks",title:"تجهيز خطة الضيافة والبروتوكول و VIP",owner:"الفعاليات",status:"قيد التنفيذ",due:"2026-09-10"},{track:"ج",type:"milestones",title:"اعتماد برنامج الأنشطة المصاحبة",owner:"الفعاليات",status:"تحت المتابعة",due:"2026-09-18"},{track:"د",type:"tasks",title:"جاهزية مسارات الحديقة والتشغيل الميداني",owner:"التشغيل الميداني",status:"معرضة للخطر",due:"2026-09-24"},{track:"د",type:"risks",title:"اختبار السلامة والطوارئ والاستدامة",owner:"السلامة",status:"معرضة للخطر",due:"2026-09-12"}],feed:[],dailyLogs:[],decisions:[],snapshots:[]};
+const defaultState={project:{title:"حدائق الملك عبدالله",phase:"مرحلة ما قبل الإطلاق",openingDate:"2026-09-27"},tracks:[{id:"أ",slug:"track-a",name:"التخطيط والتنسيق",ar:"Planning & Coordination",sub:"الحوكمة · الجدول الزمني · المخرجات · الاعتمادات · التصاريح · المخاطر · التغيير",status:"ضمن المسار",progress:83,tasks:18,done:15,active:3,risk:0,lead:"مدير مسار التخطيط والتنسيق",focus:"التنسيق والمتابعة مع أصحاب المصلحة",accent:"#7E6BFF"},{id:"ب",slug:"track-b",name:"الإعلام والتغطية",ar:"Media & Coverage",sub:"الخطة الإعلامية · التغطية · التوثيق · الرسائل الإعلامية · المركز الإعلامي · المحتوى",status:"ضمن المسار",progress:58,tasks:24,done:14,active:7,risk:2,lead:"مدير مسار الإعلام والتغطية",focus:"إعداد التقارير والعروض المرتبطة بالمسار والتنسيق الإعلامي",accent:"#A98BFF"},{id:"ج",slug:"track-c",name:"الفعاليات والأنشطة المصاحبة",ar:"Events & Supporting Activities",sub:"الضيافة · الإنتاج التقني · العروض الفنية · إدارة الحضور · VIP · البروتوكول",status:"تحت المتابعة",progress:41,tasks:21,done:9,active:8,risk:2,lead:"مدير مسار الفعاليات والأنشطة المصاحبة",focus:"ضبط تجربة الفعالية والأنشطة المصاحبة والبروتوكول",accent:"#D9B86C"},{id:"د",slug:"track-d",name:"تجهيز وتفعيل الحديقة",ar:"Garden Setup & Activation",sub:"الحديقة · المسارات · النقل · السلامة والطوارئ · الاستدامة · البيئة · الجاهزية · التشغيل الميداني",status:"معرض للخطر",progress:47,tasks:24,done:8,active:5,risk:3,lead:"مدير مسار تجهيز وتفعيل الحديقة",focus:"جاهزية الحديقة والتشغيل الميداني وتفعيل الموقع",accent:"#6454C8"}],items:[{track:"أ",type:"tasks",title:"تثبيت الجدول الزمني وخطة الاعتمادات",owner:"PMC",status:"مكتملة",due:"2026-08-20"},{track:"أ",type:"milestones",title:"اعتماد سجل المخرجات والمخاطر",owner:"PMC",status:"مكتملة",due:"2026-08-22"},{track:"ب",type:"tasks",title:"إعداد خطة التواصل والتغطية الإعلامية",owner:"الإعلام والتغطية",status:"قيد التنفيذ",due:"2026-08-29"},{track:"ب",type:"risks",title:"تأخر اعتماد المحتوى الإعلامي",owner:"الإعلام والتغطية",status:"تحت المتابعة",due:"2026-08-29"},{track:"ج",type:"tasks",title:"تجهيز خطة الضيافة والبروتوكول و VIP",owner:"الفعاليات",status:"قيد التنفيذ",due:"2026-09-10"},{track:"ج",type:"milestones",title:"اعتماد برنامج الأنشطة المصاحبة",owner:"الفعاليات",status:"تحت المتابعة",due:"2026-09-18"},{track:"د",type:"tasks",title:"جاهزية مسارات الحديقة والتشغيل الميداني",owner:"التشغيل الميداني",status:"معرضة للخطر",due:"2026-09-24"},{track:"د",type:"risks",title:"اختبار السلامة والطوارئ والاستدامة",owner:"السلامة",status:"معرضة للخطر",due:"2026-09-12"}],feed:[],dailyLogs:[],decisions:[],snapshots:[]};
 let state=JSON.parse(localStorage.getItem("kagV6BulkImport")||"null")||structuredClone(defaultState);
 function escH(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
-const feedTemplates=[["تحديث PMO","تم تحديث النظرة العامة للمسارات الأربعة","cyan"],["تحديث مسار","تم تحديث جاهزية مسار تجهيز وتفعيل الحديقة","amber"],["تحديث تصريح","تم اعتماد تصريح الدفاع المدني","green"],["تصعيد مخاطرة","اختبار الكهرباء الاحتياطية يحتاج متابعة عاجلة","red"],["تحديث إعلامي","تم رفع خطة التواصل والتسويق للمراجعة","cyan"],["معلم رئيسي","تم اعتماد خط الأساس للحوكمة","green"]];
+const feedTemplates=[["تحديث PMO","تم تحديث النظرة العامة للمسارات الأربعة","cyan"],["تحديث مسار","تم تحديث جاهزية مسار تجهيز وتفعيل الحديقة","amber"],["تحديث تصريح","تم اعتماد تصريح الدفاع المدني","green"],["تصعيد مخاطرة","اختبار الكهرباء الاحتياطية يحتاج متابعة عاجلة","red"],["تحديث إعلامي","تم رفع خطة الإعلام والتغطية للمراجعة","cyan"],["معلم رئيسي","تم اعتماد خط الأساس للحوكمة","green"]];
 function save(){localStorage.setItem("kagV6BulkImport",JSON.stringify(state))}function now(){return new Date().toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}
 function normalizeTrack(v){v=(v||"").trim();const map={A:"أ",B:"ب",C:"ج",D:"د",E:"هـ","ه":"هـ","هـ":"هـ","ا":"أ","أ":"أ","ب":"ب","ج":"ج","د":"د"};return map[v.toUpperCase?.()||v]||map[v]||v}
 function normalizeType(v){v=(v||"").trim().toLowerCase();if(["task","tasks","مهمة","مهام"].includes(v))return"tasks";if(["risk","risks","مخاطرة","مخاطر"].includes(v))return"risks";if(["permit","permits","approval","approvals","تصريح","تصاريح","اعتماد","اعتمادات"].includes(v))return"permits";if(["milestone","milestones","معلم","معلم رئيسي","معالم"].includes(v))return"milestones";return v||"tasks"}
@@ -616,29 +616,7 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
 // تمت إزالة الاستيراد المحلي (لصق/CSV) — البيانات تُسحب الآن من Google Sheet عبر الخادم.
 trackSelect.onchange=()=>{const t=state.tracks.find(x=>x.id===trackSelect.value);progressInput.value=t.progress;tasksInput.value=t.tasks;doneInput.value=t.done;activeInput.value=t.active;riskInput.value=t.risk;leadInput.value=t.lead;focusInput.value=t.focus}
 trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;t.status=t.progress>=70?"ضمن المسار":t.progress>=45?"تحت المتابعة":"معرض للخطر";addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
-itemForm.onsubmit=async function(e){
-  e.preventDefault();
-  const newItem={track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value};
-  // 1) أضف فوراً في الواجهة للاستجابة السريعة
-  state.items.push(newItem);
-  if(typeof recalcTrackCountersFromItems==="function")recalcTrackCountersFromItems();
-  addFeed(["إضافة عنصر",`تمت إضافة ${newItem.title} إلى المسار ${newItem.track}`,colorByStatus(newItem.status)]);
-  itemForm.reset();
-  save();
-  renderAll();
-  // 2) اكتب في Google Sheet عبر الخادم
-  try{
-    const res=await fetch("/api/items",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify(newItem)});
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||res.status);
-    addFeed(["✅ حُفظ في الشيت",`${newItem.title} — تم الحفظ في Google Sheet`,"green"]);
-    // بعد 4 ثوان: اسحب آخر نسخة من الخادم لتحديث liveState
-    setTimeout(()=>{ if(typeof backendSyncNow==="function") backendSyncNow(); },4000);
-  }catch(err){
-    addFeed(["⚠️ تحذير","لم يتم الحفظ في Google Sheet: "+err.message,"red"]);
-    console.error("[itemForm] sheet write error:",err);
-  }
-}
+itemForm.onsubmit=e=>{e.preventDefault();state.items.push({track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value});if(typeof recalcTrackCountersFromItems==="function")recalcTrackCountersFromItems();addFeed(["إضافة عنصر",`تمت إضافة ${itemTitle.value} إلى المسار ${itemTrack.value}`,colorByStatus(itemStatus.value)]);itemForm.reset();save();renderAll()}
 simulate.onclick=()=>{const t=state.tracks[Math.floor(Math.random()*state.tracks.length)];t.done=Math.min(t.tasks,t.done+1);t.active=Math.max(0,t.active-1);t.progress=t.tasks?Math.round(t.done/t.tasks*100):t.progress;addFeed(["تحديث حي",`تغيرت نسبة إنجاز مسار ${t.name} إلى ${t.progress}%`,colorByStatus(t.status)]);save();renderAll()}
 if(typeof exportJson!=="undefined"&&exportJson){exportJson.onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kag-command-center-data.json";a.click()}}
 
@@ -1823,7 +1801,6 @@ setTimeout(function(){
         remoteVersion = v;
         localStorage.setItem("kagRemoteVersion", String(remoteVersion));
         localStorage.setItem("kagV6BulkImport", JSON.stringify(state));
-        if(typeof recalcTrackCountersFromItems === "function") recalcTrackCountersFromItems();
         if(typeof renderAll === "function") renderAll();
         isApplyingRemote = false;
       }
@@ -1913,7 +1890,7 @@ setTimeout(function(){
             method:"POST",
             headers:{"Content-Type":"application/json"},
             credentials:"include",
-            body:JSON.stringify({ type, state })
+            body:JSON.stringify({ type })
           });
 
           if(!res.ok){
