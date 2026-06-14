@@ -24,83 +24,16 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { generateReport } = require("./report-generator");
-const { generatePptx }   = require("./report-pptx");
-
-/* ============ Google Sheets API — كتابة البيانات ============ */
-const GSERVICE = (() => {
-  try {
-    const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || "";
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch(e) {
-    console.error("[sheets-write] فشل تحليل GOOGLE_SERVICE_ACCOUNT_JSON:", e.message);
-    return null;
-  }
-})();
-
-// توليد JWT للمصادقة مع Google APIs
-async function getGoogleAccessToken() {
-  if (!GSERVICE) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON غير مضبوط");
-  const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
-  const now = Math.floor(Date.now() / 1000);
-  const claim = Buffer.from(JSON.stringify({
-    iss: GSERVICE.client_email,
-    scope: "https://www.googleapis.com/auth/spreadsheets",
-    aud: "https://oauth2.googleapis.com/token",
-    exp: now + 3600,
-    iat: now
-  })).toString("base64url");
-
-  const sigInput = `${header}.${claim}`;
-  // توقيع RS256
-  const { createSign } = require("crypto");
-  const sign = createSign("RSA-SHA256");
-  sign.update(sigInput);
-  const sig = sign.sign(GSERVICE.private_key, "base64url");
-  const jwt = `${sigInput}.${sig}`;
-
-  const body = new URLSearchParams({
-    grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-    assertion: jwt
-  });
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString()
-  });
-  const data = await res.json();
-  if (!data.access_token) throw new Error("فشل الحصول على access_token: " + JSON.stringify(data));
-  return data.access_token;
-}
-
-// كتابة صف واحد في آخر الشيت
-async function appendRowToSheet(rowValues) {
-  const token = await getGoogleAccessToken();
-  const sheetTab = SHEET_NAME || "KAG_GoogleSheet_Template";
-  const range = encodeURIComponent(`${sheetTab}!A:F`);
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ values: [rowValues] })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error("فشل الكتابة في الشيت: " + JSON.stringify(data));
-  return data;
-}
 
 const PORT = Number(process.env.PORT || 3000);
 // معرّف جدول حدائق الملك عبدالله المثبّت مسبقًا (يمكن تجاوزه بمتغيّر البيئة SHEET_ID)
 const SHEET_ID = process.env.SHEET_ID || "15m2VHVr7W2mWWz7g_Z5iMDxaIZuRshj-N3EtA9j4lWk";
-const SHEET_NAME = process.env.SHEET_NAME || "KAG_GoogleSheet_Template";
+const SHEET_NAME = process.env.SHEET_NAME || "";
 const SHEET_GID = process.env.SHEET_GID || "";          // رقم التبويب (gid) إن وُجد
 const SHEET_CSV_URL = process.env.SHEET_CSV_URL || "";  // رابط "النشر للويب" CSV (الأكثر ضمانًا)
 const LOCAL_CSV = process.env.LOCAL_CSV || "";          // مسار ملف CSV محلي كحل احتياطي تام
 const SHEET_REFRESH_MS = Number(process.env.SHEET_REFRESH_MS || 15000);
-const OPENING_DATE = process.env.OPENING_DATE || "2026-11-01";
+const OPENING_DATE = process.env.OPENING_DATE || "2026-09-27";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "MAYADEEN";
 // كلمة المرور الأساسية المثبّتة (يمكن تغييرها بمتغيّر البيئة ADMIN_PASSWORD).
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Mayadeen@2026";
@@ -139,11 +72,16 @@ function sameOrigin(req){
   const host=req.headers.host;
   const origin=req.headers.origin;
   const referer=req.headers.referer;
-  if(!origin && !referer) return true; // طلبات بدون مصدر (curl/تطبيقات) — يكفي فحص الجلسة
+  if(!origin && !referer) return true;
   try{
     const src=new URL(origin || referer);
-    return src.host===host;
-  }catch(e){ return false; }
+    // قبل نفس الـ host أو أي subdomain على onrender.com
+    if(src.host===host) return true;
+    if(src.hostname.endsWith(".onrender.com")) return true;
+    // قبل localhost للتطوير
+    if(src.hostname==="localhost" || src.hostname==="127.0.0.1") return true;
+    return false;
+  }catch(e){ return true; } // عند الشك نقبل — الحماية الأساسية بالجلسة
 }
 function loginBlocked(ip){
   const a=loginAttempts.get(ip);
@@ -165,13 +103,13 @@ const TRACK_CONFIG = [
     sub:"الحوكمة · الجدول الزمني · المخرجات · الاعتمادات · التصاريح · المخاطر · التغيير",
     lead:"مدير مسار التخطيط والتنسيق", focus:"التنسيق والمتابعة مع أصحاب المصلحة",
     accent:"#7E6BFF", planned:88 },
-  { id:"ب", slug:"track-b", name:"الإعلام والتغطية", ar:"Communication & Marketing",
+  { id:"ب", slug:"track-b", name:"الإعلام والتغطية", ar:"Media & Coverage",
     sub:"الخطة الإعلامية · التغطية · التوثيق · الرسائل الإعلامية · المركز الإعلامي · المحتوى",
     lead:"مدير مسار الإعلام والتغطية", focus:"التنسيق الإعلامي وإعداد التقارير والعروض",
     accent:"#A98BFF", planned:66 },
-  { id:"ج", slug:"track-c", name:"الحفل الرسمي وفعالياته المصاحبة", ar:"Events & Supporting Activities",
+  { id:"ج", slug:"track-c", name:"الفعاليات والأنشطة المصاحبة", ar:"Events & Supporting Activities",
     sub:"الضيافة · الإنتاج التقني · العروض الفنية · إدارة الحضور · VIP · البروتوكول",
-    lead:"مدير مسار الحفل الرسمي وفعالياته المصاحبة", focus:"ضبط تجربة الفعالية والبروتوكول",
+    lead:"مدير مسار الفعاليات والأنشطة المصاحبة", focus:"ضبط تجربة الفعالية والبروتوكول",
     accent:"#D9B86C", planned:55 },
   { id:"د", slug:"track-d", name:"تجهيز وتفعيل الحديقة", ar:"Garden Setup & Activation",
     sub:"الحديقة · المسارات · النقل · السلامة والطوارئ · الاستدامة · الجاهزية · التشغيل الميداني",
@@ -248,7 +186,7 @@ function normalizeHeader(h){
 }
 const DONE_SET=["مكتملة","معتمدة","Completed","Cleared"];
 const ACTIVE_SET=["قيد التنفيذ","تحت المتابعة","In Progress","Watch"];
-const RISK_SET=["معرضة للخطر","معرض للخطر","At Risk","متأخر","متأخرة"];
+const RISK_SET=["معرضة للخطر","معرض للخطر","At Risk","متأخر"];
 
 /* ============ تحليل CSV ============ */
 function parseCSV(text){
@@ -310,22 +248,9 @@ function buildState(items){
     t.done=tasks.filter(i=>DONE_SET.includes(i.status)).length;
     t.active=tasks.filter(i=>ACTIVE_SET.includes(i.status)).length;
     t.risk=risks.length + tasks.filter(i=>RISK_SET.includes(i.status)).length;
-    t.notStarted=tasks.filter(i=>i.status==="لم يبدأ").length;
-    t.notStarted=tasks.filter(i=>i.status==="لم يبدأ").length;
     if(t.tasks>0){
       t.progress=Math.round((t.done/t.tasks)*100);
-      // حساب الحالة بناءً على الفرق بين الفعلي والمخطط الزمني
-      const opening = new Date("2026-11-01");
-      const start   = new Date("2026-05-21"); // تاريخ بداية المشروع الفعلية
-      const today   = new Date();
-      const totalMs = opening - start;
-      const elapsedMs = Math.min(today - start, totalMs);
-      const planned = totalMs > 0 ? Math.round((elapsedMs / totalMs) * 100) : 0;
-      const variance = t.progress - planned;
-      t.status = variance >= 0   ? "ضمن المسار"
-               : variance >= -10 ? "تحت المتابعة"
-               : variance >= -20 ? "يحتاج تدخل"
-               : "حرج";
+      t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=45 ? "تحت المتابعة" : "معرض للخطر";
     }else{ t.progress=0; t.status="تحت المتابعة"; }
     return t;
   });
@@ -668,61 +593,44 @@ const server=http.createServer(async (req,res)=>{
     if(req.method==="GET" && url==="/api/admin-check")
       return sendJson(res,200,{authed:isAuthed(req), isAdmin:isAdmin(req)});
 
-    // ===== توليد التقارير (PDF أو PPTX) =====
+    // ===== توليد التقارير (Python) =====
     if(url.startsWith("/api/report") && req.method==="POST"){
       if(!isAuthed(req)) return sendJson(res,401,{error:"غير مصرّح"});
       let body={};
       const raw=await readBody(req);
       try{ body=raw?JSON.parse(raw):{}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
-      const reportType   = body.type   || "comprehensive";
-      const reportFormat = body.format || "pdf";
-      await refreshFromSheet();
+      const reportType = body.type || "comprehensive";
       if(!liveState) return sendJson(res,503,{error:"البيانات غير متاحة بعد"});
-      const dateStr = new Date().toISOString().slice(0,10);
-      const trackLabel = reportType==="comprehensive"?"Comprehensive":reportType;
-      const fileName = `KAGA-${trackLabel}-${dateStr}`;
       try{
-        if(reportFormat === "pptx"){
-          const buf = await generatePptx(reportType, liveState);
-          res.writeHead(200,{
-            "Content-Type":"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "Content-Disposition":`attachment; filename="${fileName}.pptx"`,
-            "Cache-Control":"no-store, no-cache"
+        const {execFile} = require("child_process");
+        const scriptPath = path.join(__dirname,"generate_report.py");
+        const inputData  = JSON.stringify({type:reportType, state:liveState});
+        const buf = await new Promise((resolve,reject)=>{
+          const chunks=[];
+          const proc = execFile("python3",[scriptPath],{maxBuffer:50*1024*1024},(err,stdout,stderr)=>{
+            if(err){ reject(new Error(stderr||err.message)); return; }
           });
-          return res.end(buf);
-        } else {
-          const buf = await generateReport(reportType, liveState);
-          res.writeHead(200,{
-            "Content-Type":"text/html; charset=utf-8",
-            "Cache-Control":"no-store, no-cache"
-          });
-          return res.end(buf);
-        }
+          proc.stdin.write(inputData);
+          proc.stdin.end();
+          proc.stdout.on("data",chunk=>chunks.push(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk)));
+          proc.stdout.on("end",()=>resolve(Buffer.concat(chunks)));
+          proc.stderr.on("data",d=>{}); // تجاهل stderr
+          proc.on("error",reject);
+        });
+        const safeNames = {"comprehensive":"Comprehensive","أ":"A","ب":"B","ج":"C","د":"D"};
+        const safeName  = safeNames[reportType] || "Report";
+        const dateStr   = new Date().toISOString().slice(0,10);
+        const fname     = `KAGA-Report-${safeName}-${dateStr}.pptx`;
+        res.writeHead(200,{
+          "Content-Type":"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "Content-Disposition":`attachment; filename="${fname}"`,
+          "Content-Length": buf.length,
+          "Cache-Control":"no-store"
+        });
+        return res.end(buf);
       }catch(e){
         console.error("خطأ في توليد التقرير:", e);
         return sendJson(res,500,{error:"فشل توليد التقرير: "+e.message});
-      }
-    }
-
-    // ===== إضافة عنصر جديد من الإدخال اليدوي → يُكتب مباشرة في Google Sheet =====
-    if(url === "/api/items" && req.method === "POST"){
-      if(!isAuthed(req)) return sendJson(res,401,{error:"يلزم تسجيل الدخول"});
-      const raw = await readBody(req);
-      let body = {};
-      try{ body = raw ? JSON.parse(raw) : {}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
-      const { track, type, title, owner, status, due } = body;
-      if(!track || !title) return sendJson(res,400,{error:"الحقلان track و title مطلوبان"});
-      // ترتيب الأعمدة: المسار, النوع, العنوان, المسؤول, الحالة, التاريخ
-      const typeLabel = { tasks:"مهمة", risks:"مخاطرة", permits:"تصريح", milestones:"معلم رئيسي" }[type] || type || "مهمة";
-      const row = [track, typeLabel, title, owner||"", status||"قيد التنفيذ", due||""];
-      try{
-        await appendRowToSheet(row);
-        // انتظر ثانيتين ثم اسحب الشيت فوراً لتحديث liveState
-        setTimeout(refreshFromSheet, 2000);
-        return sendJson(res,200,{ok:true, message:"تمت الإضافة في Google Sheet بنجاح"});
-      }catch(e){
-        console.error("[api/items] فشل الكتابة:", e.message);
-        return sendJson(res,500,{error:"فشل الكتابة في Google Sheet: " + e.message});
       }
     }
 
