@@ -861,7 +861,8 @@ const defaultCountdownSettings = {
   time: "00:00",
   label: "حتى موعد الافتتاح الرسمي"
 };
-let countdownSettings = JSON.parse(localStorage.getItem("kagV27CountdownSettings") || "null") || structuredClone(defaultCountdownSettings);
+localStorage.removeItem("kagV27CountdownSettings");
+let countdownSettings = structuredClone(defaultCountdownSettings);
 
 function saveCountdownSettings(){
   localStorage.setItem("kagV27CountdownSettings", JSON.stringify(countdownSettings));

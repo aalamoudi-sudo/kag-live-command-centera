@@ -18,7 +18,7 @@
         <img id="mayadeenLogoImg" src="assets/mayadeen-official.png" alt="شعار ميادين">
       </div>
       <div class="brand">
-        <div class="seal" id="logoText">KA</div>
+        <div class="seal" id="logoText">KAGA</div>
         <div>
           <h1><span id="mainTitleText">حدائق الملك عبدالله</span> <span id="systemNameText">مركز القيادة المباشر</span></h1>
           <div id="mainSubtitleText" class="header-countdown-wrap">
@@ -432,7 +432,7 @@
             <input id="uiSystemName" placeholder="مركز القيادة المباشر" />
 
             <label>شعار مختصر داخل الدائرة</label>
-            <input id="uiLogoText" maxlength="4" placeholder="KA" />
+            <input id="uiLogoText" maxlength="4" placeholder="KAGA" />
 
             <button type="submit">حفظ هوية الواجهة</button>
           </form>
@@ -444,10 +444,10 @@
             <label>لون مسار أ · التخطيط والتنسيق</label>
             <input id="colorA" type="color" />
 
-            <label>لون مسار ب · التواصل والتسويق</label>
+            <label>لون مسار ب · الإعلام والتغطية</label>
             <input id="colorB" type="color" />
 
-            <label>لون مسار ج · الفعاليات والأنشطة المصاحبة</label>
+            <label>لون مسار ج · الحفل الرسمي وفعالياته المصاحبة</label>
             <input id="colorC" type="color" />
 
             <label>لون مسار د · تجهيز وتفعيل الحديقة</label>
@@ -594,34 +594,34 @@
     <section id="reports" class="page">
       <div class="page-title">
         <div>
-          <h2>مركز التقارير</h2>
-          <p>تقارير PDF احترافية جاهزة للطباعة والعرض الرسمي — مسحوبة مباشرة من بيانات اللوحة</p>
+          <h2>مولّد التقرير اليومي</h2>
+          <p>تقرير تنفيذي جاهز للنسخ أو الطباعة بناءً على بيانات اللوحة الحالية</p>
         </div>
         <button class="ghost" id="copyReport">نسخ التقرير</button>
       </div>
 
-      <!-- تصدير PDF -->
+      <!-- تصدير PPTX -->
       <section class="report-layout" style="margin-bottom:1.2rem;">
         <div class="glass panel" style="grid-column:1/-1;">
-          <div class="panel-title"><b>📥</b><h3>تصدير تقرير PDF</h3></div>
+          <div class="panel-title"><b>📊</b><h3>تصدير تقرير PowerPoint</h3></div>
           <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;text-align:right;">
-            اختر نوع التقرير لفتحه في نافذة جديدة — ثم اضغط «تصدير PDF / طباعة» داخل التقرير
+            اختر نوع التقرير وسيتم توليد ملف PPTX كامل من بيانات اللوحة الحالية
           </p>
           <div id="reportExportBtns" style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:flex-end;">
             <button class="control" data-report-type="comprehensive" id="exportComprehensive">
               📄 التقرير الشامل
             </button>
             <button class="control" data-report-type="أ" id="exportTrackA">
-              PDF — مسار أ: التخطيط والتنسيق
+              التقرير اليومي — مسار أ
             </button>
             <button class="control" data-report-type="ب" id="exportTrackB">
-              PDF — مسار ب: التواصل والتسويق
+              التقرير اليومي — مسار ب
             </button>
             <button class="control" data-report-type="ج" id="exportTrackC">
-              PDF — مسار ج: الفعاليات والأنشطة
+              التقرير اليومي — مسار ج
             </button>
             <button class="control" data-report-type="د" id="exportTrackD">
-              PDF — مسار د: تجهيز وتفعيل الحديقة
+              التقرير اليومي — مسار د
             </button>
           </div>
           <div id="reportExportStatus" style="margin-top:0.75rem;font-size:0.85rem;color:var(--text-muted);text-align:right;display:none;"></div>
