@@ -1,5 +1,6 @@
 const defaultState={project:{title:"حدائق الملك عبدالله",phase:"مرحلة ما قبل الإطلاق",openingDate:"2026-11-01"},tracks:[{id:"أ",slug:"track-a",name:"التخطيط والتنسيق",ar:"Planning & Coordination",sub:"الحوكمة · الجدول الزمني · المخرجات · الاعتمادات · التصاريح · المخاطر · التغيير",status:"ضمن المسار",progress:83,tasks:18,done:15,active:3,risk:0,lead:"مدير مسار التخطيط والتنسيق",focus:"التنسيق والمتابعة مع أصحاب المصلحة",accent:"#7E6BFF"},{id:"ب",slug:"track-b",name:"الإعلام والتغطية",ar:"Communication & Marketing",sub:"الخطة الإعلامية · التغطية · التوثيق · الرسائل الإعلامية · المركز الإعلامي · المحتوى",status:"ضمن المسار",progress:58,tasks:24,done:14,active:7,risk:2,lead:"مدير مسار الإعلام والتغطية",focus:"إعداد التقارير والعروض المرتبطة بالمسار والتنسيق الإعلامي",accent:"#A98BFF"},{id:"ج",slug:"track-c",name:"الحفل الرسمي وفعالياته المصاحبة",ar:"Events & Supporting Activities",sub:"الضيافة · الإنتاج التقني · العروض الفنية · إدارة الحضور · VIP · البروتوكول",status:"تحت المتابعة",progress:41,tasks:21,done:9,active:8,risk:2,lead:"مدير مسار الحفل الرسمي وفعالياته المصاحبة",focus:"ضبط تجربة الفعالية والأنشطة المصاحبة والبروتوكول",accent:"#D9B86C"},{id:"د",slug:"track-d",name:"تجهيز وتفعيل الحديقة",ar:"Garden Setup & Activation",sub:"الحديقة · المسارات · النقل · السلامة والطوارئ · الاستدامة · البيئة · الجاهزية · التشغيل الميداني",status:"معرض للخطر",progress:47,tasks:24,done:8,active:5,risk:3,lead:"مدير مسار تجهيز وتفعيل الحديقة",focus:"جاهزية الحديقة والتشغيل الميداني وتفعيل الموقع",accent:"#6454C8"}],items:[{track:"أ",type:"tasks",title:"تثبيت الجدول الزمني وخطة الاعتمادات",owner:"PMC",status:"مكتملة",due:"2026-08-20"},{track:"أ",type:"milestones",title:"اعتماد سجل المخرجات والمخاطر",owner:"PMC",status:"مكتملة",due:"2026-08-22"},{track:"ب",type:"tasks",title:"إعداد خطة التواصل والتغطية الإعلامية",owner:"الإعلام والتغطية",status:"قيد التنفيذ",due:"2026-08-29"},{track:"ب",type:"risks",title:"تأخر اعتماد المحتوى الإعلامي",owner:"الإعلام والتغطية",status:"تحت المتابعة",due:"2026-08-29"},{track:"ج",type:"tasks",title:"تجهيز خطة الضيافة والبروتوكول و VIP",owner:"الفعاليات",status:"قيد التنفيذ",due:"2026-09-10"},{track:"ج",type:"milestones",title:"اعتماد برنامج الأنشطة المصاحبة",owner:"الفعاليات",status:"تحت المتابعة",due:"2026-09-18"},{track:"د",type:"tasks",title:"جاهزية مسارات الحديقة والتشغيل الميداني",owner:"التشغيل الميداني",status:"معرضة للخطر",due:"2026-09-24"},{track:"د",type:"risks",title:"اختبار السلامة والطوارئ والاستدامة",owner:"السلامة",status:"معرضة للخطر",due:"2026-09-12"}],feed:[],dailyLogs:[],decisions:[],snapshots:[]};
 let state=JSON.parse(localStorage.getItem("kagV6BulkImport")||"null")||structuredClone(defaultState);
+if(state&&state.project)state.project.openingDate="2026-11-01";
 function escH(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
 const feedTemplates=[["تحديث PMO","تم تحديث النظرة العامة للمسارات الأربعة","cyan"],["تحديث مسار","تم تحديث جاهزية مسار تجهيز وتفعيل الحديقة","amber"],["تحديث تصريح","تم اعتماد تصريح الدفاع المدني","green"],["تصعيد مخاطرة","اختبار الكهرباء الاحتياطية يحتاج متابعة عاجلة","red"],["تحديث إعلامي","تم رفع خطة الإعلام والتغطية للمراجعة","cyan"],["معلم رئيسي","تم اعتماد خط الأساس للحوكمة","green"]];
 function save(){localStorage.setItem("kagV6BulkImport",JSON.stringify(state))}function now(){return new Date().toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}
@@ -495,13 +496,14 @@ function v22UpdateLiveCountdown(){
   const totalMinutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 
-  // حساب تقريبي فخم للعرض التنفيذي:
-  // الشهر = 30 يوم، الأسبوع = 7 أيام، ثم الأيام المتبقية
-  const totalDays = Math.floor(diffMs / (1000*60*60*24));
-  const months = Math.floor(totalDays / 30);
-  const daysAfterMonths = totalDays % 30;
-  const weeks = Math.floor(daysAfterMonths / 7);
-  const days = daysAfterMonths % 7;
+
+  const _n=new Date(),_e=new Date(target);
+  _n.setHours(0,0,0,0);_e.setHours(0,0,0,0);
+  let months=(_e.getFullYear()-_n.getFullYear())*12+(_e.getMonth()-_n.getMonth());
+  if(new Date(_n.getFullYear(),_n.getMonth()+months,_n.getDate())>_e)months--;
+  const _b=new Date(_n.getFullYear(),_n.getMonth()+months,_n.getDate());
+  const _rd=Math.round((_e-_b)/(864e5));
+  const weeks=Math.floor(_rd/7),days=_rd%7;
 
   // الدقائق المتبقية داخل الساعة الحالية
   const minutes = totalMinutes % 60;
@@ -865,9 +867,9 @@ localStorage.removeItem("kagV27CountdownSettings");
 let countdownSettings = structuredClone(defaultCountdownSettings);
 
 function saveCountdownSettings(){
-  localStorage.setItem("kagV27CountdownSettings", JSON.stringify(countdownSettings));
+  // لا نحفظ في localStorage — التاريخ دائماً من المصدر الرسمي
   if(state && state.project) {
-    state.project.openingDate = countdownSettings.date;
+    state.project.openingDate = "2026-11-01";
     save();
   }
 }
@@ -885,14 +887,17 @@ function v27GetCountdownParts(){
   const totalSeconds = Math.floor(diff / 1000);
   const totalMinutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  const totalDays = Math.floor(diff / (1000*60*60*24));
-
-  const months = Math.floor(totalDays / 30);
-  const afterMonths = totalDays % 30;
-  const weeks = Math.floor(afterMonths / 7);
-  const days = afterMonths % 7;
   const minutes = totalMinutes % 60;
 
+
+
+  var _n=new Date(),_e=new Date(target);
+  _n.setHours(0,0,0,0);_e.setHours(0,0,0,0);
+  let months=(_e.getFullYear()-_n.getFullYear())*12+(_e.getMonth()-_n.getMonth());
+  if(new Date(_n.getFullYear(),_n.getMonth()+months,_n.getDate())>_e)months--;
+  const _b=new Date(_n.getFullYear(),_n.getMonth()+months,_n.getDate());
+  const _rd=Math.round((_e-_b)/(864e5));
+  const weeks=Math.floor(_rd/7),days=_rd%7;
   return {months, weeks, days, minutes, seconds, target};
 }
 function setCountdownText(prefix, parts){
@@ -1575,11 +1580,16 @@ const defaultUiSettings = {
   title: "حدائق الملك عبدالله",
   subtitle: "صفحة عامة تنفيذية + لوحة مستقلة للمسارات الأربعة المعتمدة + استيراد جماعي من Excel/CSV",
   systemName: "مركز القيادة المباشر",
-  logoText: "KA",
+  logoText: "KAGA",
   theme: { cyan:"#A98BFF", sand:"#D9CCFF", bg:"#0B1020" },
   visibility: { feed:true, risks:true, sparks:true, english:true },
   logos: { amanah:"assets/riyadh-amanah-official.png", mayadeen:"assets/mayadeen-official.png" }
 };
+// إعادة ضبط logoText إذا كان محفوظاً بالقيمة القديمة
+(()=>{
+  const saved = JSON.parse(localStorage.getItem("kagV8UiSettings") || "null");
+  if(saved && saved.logoText === "KA") { saved.logoText = "KAGA"; localStorage.setItem("kagV8UiSettings", JSON.stringify(saved)); }
+})();
 let uiSettings = JSON.parse(localStorage.getItem("kagV8UiSettings") || "null") || structuredClone(defaultUiSettings);
 
 function saveUiSettings(){
@@ -1740,11 +1750,9 @@ bindMobileUX();bindMobileMenuV17();bindDetailView();v20BindIntelligence();bindTi
 // ===== V26 HARD FIX: Luxury Countdown Independent Runner =====
 (function(){
   function getOpeningTarget(){
+    // دائماً من المصدر الرسمي — تجاهل localStorage
+    localStorage.removeItem("kagV27CountdownSettings");
     try{
-      const saved = JSON.parse(localStorage.getItem("kagV27CountdownSettings") || "null");
-      if(saved && saved.date){
-        return new Date(String(saved.date) + "T" + String(saved.time || "00:00") + ":00");
-      }
       if(window.state && state.project && state.project.openingDate){
         return new Date(String(state.project.openingDate) + "T00:00:00");
       }
@@ -1769,13 +1777,17 @@ bindMobileUX();bindMobileMenuV17();bindDetailView();v20BindIntelligence();bindTi
     var totalSeconds = Math.floor(diff / 1000);
     var totalMinutes = Math.floor(totalSeconds / 60);
     var seconds = totalSeconds % 60;
-
-    var totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
-    var months = Math.floor(totalDays / 30);
-    var daysAfterMonths = totalDays % 30;
-    var weeks = Math.floor(daysAfterMonths / 7);
-    var days = daysAfterMonths % 7;
     var minutes = totalMinutes % 60;
+
+    // حساب دقيق بالتقويم
+    var _now=new Date();_now.setHours(0,0,0,0);
+    var _end=new Date(target);_end.setHours(0,0,0,0);
+    var months=(_end.getFullYear()-_now.getFullYear())*12+(_end.getMonth()-_now.getMonth());
+    if(new Date(_now.getFullYear(),_now.getMonth()+months,_now.getDate())>_end) months--;
+    var _base=new Date(_now.getFullYear(),_now.getMonth()+months,_now.getDate());
+    var _rd=Math.round((_end-_base)/(1000*60*60*24));
+    var weeks=Math.floor(_rd/7);
+    var days=_rd%7;
 
     ["count","headerCount","settingsCount"].forEach(function(prefix){
       setText(prefix + "Months", String(months));

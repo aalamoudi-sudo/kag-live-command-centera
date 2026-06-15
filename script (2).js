@@ -1,4 +1,4 @@
-const defaultState={project:{title:"حدائق الملك عبدالله",phase:"مرحلة ما قبل الإطلاق",openingDate:"2026-09-27"},tracks:[{id:"أ",slug:"track-a",name:"التخطيط والتنسيق",ar:"Planning & Coordination",sub:"الحوكمة · الجدول الزمني · المخرجات · الاعتمادات · التصاريح · المخاطر · التغيير",status:"ضمن المسار",progress:83,tasks:18,done:15,active:3,risk:0,lead:"مدير مسار التخطيط والتنسيق",focus:"التنسيق والمتابعة مع أصحاب المصلحة",accent:"#7E6BFF"},{id:"ب",slug:"track-b",name:"الإعلام والتغطية",ar:"Media & Coverage",sub:"الخطة الإعلامية · التغطية · التوثيق · الرسائل الإعلامية · المركز الإعلامي · المحتوى",status:"ضمن المسار",progress:58,tasks:24,done:14,active:7,risk:2,lead:"مدير مسار الإعلام والتغطية",focus:"إعداد التقارير والعروض المرتبطة بالمسار والتنسيق الإعلامي",accent:"#A98BFF"},{id:"ج",slug:"track-c",name:"الفعاليات والأنشطة المصاحبة",ar:"Events & Supporting Activities",sub:"الضيافة · الإنتاج التقني · العروض الفنية · إدارة الحضور · VIP · البروتوكول",status:"تحت المتابعة",progress:41,tasks:21,done:9,active:8,risk:2,lead:"مدير مسار الفعاليات والأنشطة المصاحبة",focus:"ضبط تجربة الفعالية والأنشطة المصاحبة والبروتوكول",accent:"#D9B86C"},{id:"د",slug:"track-d",name:"تجهيز وتفعيل الحديقة",ar:"Garden Setup & Activation",sub:"الحديقة · المسارات · النقل · السلامة والطوارئ · الاستدامة · البيئة · الجاهزية · التشغيل الميداني",status:"معرض للخطر",progress:47,tasks:24,done:8,active:5,risk:3,lead:"مدير مسار تجهيز وتفعيل الحديقة",focus:"جاهزية الحديقة والتشغيل الميداني وتفعيل الموقع",accent:"#6454C8"}],items:[{track:"أ",type:"tasks",title:"تثبيت الجدول الزمني وخطة الاعتمادات",owner:"PMC",status:"مكتملة",due:"2026-08-20"},{track:"أ",type:"milestones",title:"اعتماد سجل المخرجات والمخاطر",owner:"PMC",status:"مكتملة",due:"2026-08-22"},{track:"ب",type:"tasks",title:"إعداد خطة التواصل والتغطية الإعلامية",owner:"الإعلام والتغطية",status:"قيد التنفيذ",due:"2026-08-29"},{track:"ب",type:"risks",title:"تأخر اعتماد المحتوى الإعلامي",owner:"الإعلام والتغطية",status:"تحت المتابعة",due:"2026-08-29"},{track:"ج",type:"tasks",title:"تجهيز خطة الضيافة والبروتوكول و VIP",owner:"الفعاليات",status:"قيد التنفيذ",due:"2026-09-10"},{track:"ج",type:"milestones",title:"اعتماد برنامج الأنشطة المصاحبة",owner:"الفعاليات",status:"تحت المتابعة",due:"2026-09-18"},{track:"د",type:"tasks",title:"جاهزية مسارات الحديقة والتشغيل الميداني",owner:"التشغيل الميداني",status:"معرضة للخطر",due:"2026-09-24"},{track:"د",type:"risks",title:"اختبار السلامة والطوارئ والاستدامة",owner:"السلامة",status:"معرضة للخطر",due:"2026-09-12"}],feed:[],dailyLogs:[],decisions:[],snapshots:[]};
+const defaultState={project:{title:"حدائق الملك عبدالله",phase:"مرحلة ما قبل الإطلاق",openingDate:"2026-11-01"},tracks:[{id:"أ",slug:"track-a",name:"التخطيط والتنسيق",ar:"Planning & Coordination",sub:"الحوكمة · الجدول الزمني · المخرجات · الاعتمادات · التصاريح · المخاطر · التغيير",status:"ضمن المسار",progress:83,tasks:18,done:15,active:3,risk:0,lead:"مدير مسار التخطيط والتنسيق",focus:"التنسيق والمتابعة مع أصحاب المصلحة",accent:"#7E6BFF"},{id:"ب",slug:"track-b",name:"الإعلام والتغطية",ar:"Communication & Marketing",sub:"الخطة الإعلامية · التغطية · التوثيق · الرسائل الإعلامية · المركز الإعلامي · المحتوى",status:"ضمن المسار",progress:58,tasks:24,done:14,active:7,risk:2,lead:"مدير مسار الإعلام والتغطية",focus:"إعداد التقارير والعروض المرتبطة بالمسار والتنسيق الإعلامي",accent:"#A98BFF"},{id:"ج",slug:"track-c",name:"الحفل الرسمي وفعالياته المصاحبة",ar:"Events & Supporting Activities",sub:"الضيافة · الإنتاج التقني · العروض الفنية · إدارة الحضور · VIP · البروتوكول",status:"تحت المتابعة",progress:41,tasks:21,done:9,active:8,risk:2,lead:"مدير مسار الحفل الرسمي وفعالياته المصاحبة",focus:"ضبط تجربة الفعالية والأنشطة المصاحبة والبروتوكول",accent:"#D9B86C"},{id:"د",slug:"track-d",name:"تجهيز وتفعيل الحديقة",ar:"Garden Setup & Activation",sub:"الحديقة · المسارات · النقل · السلامة والطوارئ · الاستدامة · البيئة · الجاهزية · التشغيل الميداني",status:"معرض للخطر",progress:47,tasks:24,done:8,active:5,risk:3,lead:"مدير مسار تجهيز وتفعيل الحديقة",focus:"جاهزية الحديقة والتشغيل الميداني وتفعيل الموقع",accent:"#6454C8"}],items:[{track:"أ",type:"tasks",title:"تثبيت الجدول الزمني وخطة الاعتمادات",owner:"PMC",status:"مكتملة",due:"2026-08-20"},{track:"أ",type:"milestones",title:"اعتماد سجل المخرجات والمخاطر",owner:"PMC",status:"مكتملة",due:"2026-08-22"},{track:"ب",type:"tasks",title:"إعداد خطة التواصل والتغطية الإعلامية",owner:"الإعلام والتغطية",status:"قيد التنفيذ",due:"2026-08-29"},{track:"ب",type:"risks",title:"تأخر اعتماد المحتوى الإعلامي",owner:"الإعلام والتغطية",status:"تحت المتابعة",due:"2026-08-29"},{track:"ج",type:"tasks",title:"تجهيز خطة الضيافة والبروتوكول و VIP",owner:"الفعاليات",status:"قيد التنفيذ",due:"2026-09-10"},{track:"ج",type:"milestones",title:"اعتماد برنامج الأنشطة المصاحبة",owner:"الفعاليات",status:"تحت المتابعة",due:"2026-09-18"},{track:"د",type:"tasks",title:"جاهزية مسارات الحديقة والتشغيل الميداني",owner:"التشغيل الميداني",status:"معرضة للخطر",due:"2026-09-24"},{track:"د",type:"risks",title:"اختبار السلامة والطوارئ والاستدامة",owner:"السلامة",status:"معرضة للخطر",due:"2026-09-12"}],feed:[],dailyLogs:[],decisions:[],snapshots:[]};
 let state=JSON.parse(localStorage.getItem("kagV6BulkImport")||"null")||structuredClone(defaultState);
 function escH(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
 const feedTemplates=[["تحديث PMO","تم تحديث النظرة العامة للمسارات الأربعة","cyan"],["تحديث مسار","تم تحديث جاهزية مسار تجهيز وتفعيل الحديقة","amber"],["تحديث تصريح","تم اعتماد تصريح الدفاع المدني","green"],["تصعيد مخاطرة","اختبار الكهرباء الاحتياطية يحتاج متابعة عاجلة","red"],["تحديث إعلامي","تم رفع خطة الإعلام والتغطية للمراجعة","cyan"],["معلم رئيسي","تم اعتماد خط الأساس للحوكمة","green"]];
@@ -7,8 +7,8 @@ function normalizeTrack(v){v=(v||"").trim();const map={A:"أ",B:"ب",C:"ج",D:"�
 function normalizeType(v){v=(v||"").trim().toLowerCase();if(["task","tasks","مهمة","مهام"].includes(v))return"tasks";if(["risk","risks","مخاطرة","مخاطر"].includes(v))return"risks";if(["permit","permits","approval","approvals","تصريح","تصاريح","اعتماد","اعتمادات"].includes(v))return"permits";if(["milestone","milestones","معلم","معلم رئيسي","معالم"].includes(v))return"milestones";return v||"tasks"}
 function colorByStatus(s){if(["مكتملة","معتمدة","ضمن المسار","Completed","Cleared"].includes(s))return"green";if(["تحت المتابعة","قيد التنفيذ","Watch","In Progress"].includes(s))return"amber";if(["معرضة للخطر","معرض للخطر","مرفوضة","At Risk"].includes(s))return"red";return"cyan"}
 function daysToOpen(){const d=new Date(state.project.openingDate),n=new Date();return Math.max(0,Math.ceil((d-n)/(1000*60*60*24)))}
-function kpis(){const total=state.tracks.reduce((s,t)=>s+Number(t.tasks||0),0);const done=state.tracks.reduce((s,t)=>s+Number(t.done||0),0);const active=state.tracks.reduce((s,t)=>s+Number(t.active||0),0);const risk=state.tracks.reduce((s,t)=>s+Number(t.risk||0),0)+state.items.filter(i=>i.type==="risks"&&i.status!=="مغلقة").length;return{total,done,active,risk,overall:total?Math.round(done/total*100):0,days:daysToOpen()}}
-function renderKpis(){const k=kpis();overviewKpis.innerHTML=[["cyan",k.total,"إجمالي المهام"],["green",k.done,"المهام المنجزة"],["amber",k.active,"مهام نشطة"],["red",k.risk,"مخاطر مفتوحة"],["sand",k.overall+"%","الإنجاز العام"],["cyan",k.days,"يوم على الافتتاح"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("")}
+function kpis(){const total=state.tracks.reduce((s,t)=>s+Number(t.tasks||0),0);const done=state.tracks.reduce((s,t)=>s+Number(t.done||0),0);const active=state.tracks.reduce((s,t)=>s+Number(t.active||0),0);const risk=state.tracks.reduce((s,t)=>s+Number(t.risk||0),0)+state.items.filter(i=>i.type==="risks"&&i.status!=="مغلقة").length;const notStarted=state.items.filter(i=>i.type==="tasks"&&i.status==="لم يبدأ").length;return{total,done,active,risk,notStarted,overall:total?Math.round(done/total*100):0,days:daysToOpen()}}
+function renderKpis(){const k=kpis();overviewKpis.innerHTML=[["cyan",k.total,"إجمالي المهام"],["green",k.done,"المهام المنجزة"],["amber",k.active,"مهام نشطة"],["gray",k.notStarted,"لم تبدأ"],["red",k.risk,"مخاطر مفتوحة"],["sand",k.overall+"%","الإنجاز العام"],["cyan",k.days,"يوم على الافتتاح"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("")}
 function trackCard(t){return`<article class="track-card glass" style="--accent:${t.accent};--value:${t.progress}"><div class="track-head"><div class="track-title"><div class="badge">${t.id}</div><div><h3>${t.name}</h3><h4>${t.ar}</h4></div></div><div class="status">${t.status}</div></div><div class="track-body"><div class="ring"><b>${t.progress}%</b></div><div class="mini-grid"><div class="mini"><b>${t.tasks}</b><small>المهام</small></div><div class="mini"><b style="color:#8E7BFF">${t.done}</b><small>منجزة</small></div><div class="mini"><b style="color:#D8CCFF">${t.active}</b><small>نشطة</small></div><div class="mini"><b style="color:#C17CFF">${t.risk}</b><small>خطر</small></div></div></div><div class="spark"></div><div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div></article>`}
 function renderOverview(){tracksSummary.innerHTML=state.tracks.map(trackCard).join("");const risks=state.items.filter(i=>i.type==="risks");riskSnapshot.innerHTML=risks.length?risks.map(r=>`<div class="risk-row"><span>${r.title}</span><strong class="${colorByStatus(r.status)}">${r.status}</strong></div>`).join(""):`<p>لا توجد مخاطر مسجلة.</p>`}
 function renderTrackPages(){state.tracks.forEach(t=>{const el=document.getElementById(t.slug);const items=type=>state.items.filter(i=>i.track===t.id&&i.type===type);const table=(title,rows)=>`<div class="glass panel"><div class="panel-title"><b></b><h3>${title}</h3></div><div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span>الاستحقاق</span></div>${rows.length?rows.map(i=>`<div class="data-row"><span>${i.title}</span><span>${i.owner}</span><strong class="${colorByStatus(i.status)}">${i.status}</strong><span>${i.due||"-"}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}"><div class="track-hero glass"><div class="track-hero-inner"><div><h2>${t.id} · ${t.name}</h2><p>${t.ar} · ${t.sub}</p></div><div class="ring"><b>${t.progress}%</b></div></div><div class="track-kpis"><div class="track-kpi"><b>${t.tasks}</b><small>إجمالي المهام</small></div><div class="track-kpi"><b>${t.done}</b><small>المهام المنجزة</small></div><div class="track-kpi"><b>${t.active}</b><small>المهام النشطة</small></div><div class="track-kpi"><b>${t.risk}</b><small>المهام المعرضة للخطر</small></div></div></div>${table("المهام",items("tasks"))}${table("المخاطر",items("risks"))}${table("التصاريح والاعتمادات",items("permits"))}${table("المعالم الرئيسية",items("milestones"))}</div>`})}
@@ -18,17 +18,30 @@ function renderForms(){const opts=state.tracks.map(t=>`<option value="${t.id}">$
 
 // ===== V18 DIWAN + PLANNED VS ACTUAL + CLICKABLE DETAILS =====
 function plannedForTrack(t){
+  // يحسب المخطط تلقائياً من تواريخ الاستحقاق
+  const today = new Date(); today.setHours(0,0,0,0);
+  const trackItems = (state&&state.items||[]).filter(i=>i.track===t.id && i.type==="tasks");
+  if(trackItems.length){
+    const due = trackItems.filter(i=>{ if(!i.due) return false; const d=new Date(i.due); return !isNaN(d) && d<=today; }).length;
+    return Math.round((due/trackItems.length)*100);
+  }
   if(t && typeof t.planned === "number") return t.planned;
   const base = { "أ":88, "ب":66, "ج":55, "د":60, "هـ":58 };
   return base[t.id] || Math.min(100, Number(t.progress||0) + 10);
 }
 function projectPlanned(){
-  if(!state.tracks.length) return 0;
-  return Math.round(state.tracks.reduce((s,t)=>s+plannedForTrack(t),0)/state.tracks.length);
+  if(!state||!state.tracks||!state.tracks.length) return 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
+  if(!allTasks.length) return 0;
+  const due = allTasks.filter(i=>{ if(!i.due) return false; const d=new Date(i.due); return !isNaN(d) && d<=today; }).length;
+  return Math.round((due/allTasks.length)*100);
 }
 function projectActual(){
   if(!state.tracks.length) return 0;
-  return Math.round(state.tracks.reduce((s,t)=>s+Number(t.progress||0),0)/state.tracks.length);
+  let totalTasks=0, weightedSum=0;
+  state.tracks.forEach(t=>{ const n=Number(t.tasks||0); totalTasks+=n; weightedSum+=Number(t.progress||0)*n; });
+  return totalTasks>0 ? Math.round(weightedSum/totalTasks) : 0;
 }
 function paHtml(planned, actual){
   const variance = actual - planned;
@@ -219,15 +232,31 @@ function v20TodayISO(){
 }
 function v20ProjectActual(){
   if(!state.tracks || !state.tracks.length) return 0;
-  return v20Clamp(state.tracks.reduce((sum,t)=>sum+Number(t.progress||0),0)/state.tracks.length);
+  // مرجّح بعدد المهام الفعلية لكل مسار
+  let totalTasks = 0, weightedSum = 0;
+  state.tracks.forEach(t=>{
+    const tasks = Number(t.tasks||0);
+    totalTasks += tasks;
+    weightedSum += Number(t.progress||0) * tasks;
+  });
+  return totalTasks > 0 ? v20Clamp(Math.round(weightedSum/totalTasks)) : 0;
 }
 function v20PlannedTrack(t){
-  const planned = {"أ":88,"ب":66,"ج":55,"د":60,"هـ":58};
-  return planned[t.id] || v20Clamp(Number(t.progress||0)+10);
+  // يحسب المخطط تلقائياً: المهام التي حان استحقاقها حتى اليوم ÷ إجمالي مهام المسار
+  const today = new Date(); today.setHours(0,0,0,0);
+  const trackItems = (state.items||[]).filter(i=>i.track===t.id && i.type==="tasks");
+  if(!trackItems.length) return 0;
+  const due = trackItems.filter(i=>{ if(!i.due) return false; const d=new Date(i.due); return !isNaN(d) && d<=today; }).length;
+  return Math.round((due/trackItems.length)*100);
 }
 function v20ProjectPlanned(){
   if(!state.tracks || !state.tracks.length) return 0;
-  return v20Clamp(state.tracks.reduce((sum,t)=>sum+v20PlannedTrack(t),0)/state.tracks.length);
+  // مرجّح بعدد المهام الفعلية لكل مسار
+  const today = new Date(); today.setHours(0,0,0,0);
+  const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
+  if(!allTasks.length) return 0;
+  const dueTasks = allTasks.filter(i=>{ if(!i.due) return false; const d=new Date(i.due); return !isNaN(d) && d<=today; }).length;
+  return Math.round((dueTasks/allTasks.length)*100);
 }
 function v20Items(type){
   return (state.items||[]).filter(i=>i.type===type);
@@ -236,12 +265,10 @@ function v20OpenDecisions(){
   return (state.decisions||[]).filter(d=>d.status!=="معتمد");
 }
 function v20OverdueItems(){
-  const today = new Date(); today.setHours(0,0,0,0);
-  return (state.items||[]).filter(i=>{
-    if(!i.due) return false;
-    const d = new Date(i.due);
-    return !isNaN(d) && d < today && !["مكتملة","معتمدة","Completed","Cleared"].includes(i.status);
-  });
+  // فقط المهام المصنّفة صراحةً كـ "متأخرة" في الشيت
+  return (state.items||[]).filter(i=>
+    ["متأخرة","متأخر","Overdue"].includes(i.status)
+  );
 }
 function v20DueTodayItems(){
   const today = v20TodayISO();
@@ -269,36 +296,88 @@ function v20UpdateCompliance(){
   return v20Clamp((updated.size/state.tracks.length)*100);
 }
 function v20TrackHealth(t){
-  const variance = Number(t.progress||0) - v20PlannedTrack(t);
-  const risks = v20Items("risks").filter(i=>i.track===t.id).length;
+  const w = v20DynamicWeights();
+
+  // 1. الإنجاز مقابل المخطط
+  const actual = Number(t.progress||0);
+  const planned = v20PlannedTrack(t);
+  const variance = actual - planned;
+  const progressScore = variance >= 0 ? 100 : Math.max(0, 100 + variance * 2);
+
+  // 2. المخاطر المفتوحة
+  const openRisks = v20Items("risks").filter(i=>i.track===t.id&&i.status!=="مغلقة"&&i.status!=="مكتملة"&&i.status!=="معتمدة").length;
+  const riskScore = Math.max(0, 100 - openRisks * 15);
+
+  // 3. المهام المتأخرة
+  const overdueCount = v20OverdueItems().filter(i=>i.track===t.id).length;
+  const overdueScore = Math.max(0, 100 - overdueCount * 20);
+
+  // 4. القرارات المعلقة
   const decisions = v20OpenDecisions().filter(d=>d.track===t.id).length;
-  return v20Clamp(100 + variance - (risks*8) - (decisions*6) - (Number(t.risk||0)*4));
+  const decisionScore = Math.max(0, 100 - decisions * 10);
+
+  return v20Clamp(Math.round(
+    progressScore * w.progress +
+    riskScore     * w.risk +
+    overdueScore  * w.overdue +
+    decisionScore * w.decision
+  ));
 }
 function v20HealthLabel(score){
-  if(score >= 80) return ["مطمئن","green","#43ee8d"];
-  if(score >= 60) return ["تحت المتابعة","amber","#ffc247"];
-  if(score >= 40) return ["يحتاج تدخل","red","#ff5e6b"];
+  if(score >= 85) return ["ضمن المسار","green","#43ee8d"];
+  if(score >= 65) return ["تحت المتابعة","amber","#ffc247"];
+  if(score >= 45) return ["يحتاج تدخل","red","#ff5e6b"];
   return ["حرج","red","#ff5e6b"];
+}
+function v20DynamicWeights(){
+  // أوزان ديناميكية حسب المرحلة الزمنية
+  const opening = new Date("2026-11-01T23:59:59");
+  const daysLeft = Math.max(0, Math.round((opening - new Date()) / 86400000));
+  if(daysLeft > 120) return {progress:0.20, risk:0.35, overdue:0.35, decision:0.10}; // تخطيط
+  if(daysLeft > 60)  return {progress:0.35, risk:0.30, overdue:0.25, decision:0.10}; // تنفيذ
+  return                    {progress:0.50, risk:0.25, overdue:0.15, decision:0.10}; // إطلاق
 }
 function v20ProjectHealth(){
   const actual = v20ProjectActual();
   const planned = v20ProjectPlanned();
-  const variancePenalty = Math.max(0, planned-actual) * 1.1;
-  const riskPenalty = Math.min(35, v20RiskIndex()*0.28);
-  const decisionPenalty = Math.min(18, v20OpenDecisions().length*3);
-  const overduePenalty = Math.min(18, v20OverdueItems().length*4);
-  const approvalBonus = v20ApprovalsRate()*0.06;
-  return v20Clamp(100 - variancePenalty - riskPenalty - decisionPenalty - overduePenalty + approvalBonus);
+  const w = v20DynamicWeights();
+
+  // 1. الإنجاز مقابل المخطط
+  const variance = actual - planned;
+  const progressScore = variance >= 0 ? 100 : Math.max(0, 100 + variance * 2);
+
+  // 2. المخاطر المفتوحة
+  const openRisks = v20Items("risks").filter(i=>i.status!=="مغلقة"&&i.status!=="مكتملة"&&i.status!=="معتمدة").length;
+  const riskScore = Math.max(0, 100 - openRisks * 15);
+
+  // 3. المهام المتأخرة
+  const overdueCount = v20OverdueItems().length;
+  const overdueScore = Math.max(0, 100 - overdueCount * 20);
+
+  // 4. القرارات المعلقة
+  const openDecisions = v20OpenDecisions().length;
+  const decisionScore = Math.max(0, 100 - openDecisions * 10);
+
+  return v20Clamp(Math.round(
+    progressScore * w.progress +
+    riskScore     * w.risk +
+    overdueScore  * w.overdue +
+    decisionScore * w.decision
+  ));
 }
 function v20OpeningReadiness(){
-  const weights = {"د":0.30,"ج":0.22,"هـ":0.18,"ب":0.15,"أ":0.15};
-  let total = 0, score = 0;
-  (state.tracks||[]).forEach(t=>{
-    const w = weights[t.id] || 0.1;
-    total += w;
-    score += Number(t.progress||0)*w;
+  // جاهزية الافتتاح = المهام المكتملة التي تاريخها ≤ تاريخ الافتتاح ÷ إجمالي المهام الحرجة
+  const opening = new Date("2026-11-01T23:59:59");
+  const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
+  const criticalTasks = allTasks.filter(i=>{
+    if(!i.due) return false;
+    const d = new Date(i.due);
+    return !isNaN(d) && d <= opening;
   });
-  return total ? v20Clamp(score/total) : 0;
+  if(!criticalTasks.length) return 0;
+  const DONE_SET=["مكتملة","معتمدة","Completed","Cleared"];
+  const doneCritical = criticalTasks.filter(i=>DONE_SET.includes(i.status)).length;
+  return v20Clamp(Math.round((doneCritical/criticalTasks.length)*100));
 }
 function v20MostCriticalTrack(){
   const ranked = (state.tracks||[]).map(t=>({track:t, health:v20TrackHealth(t)}));
@@ -389,7 +468,7 @@ function v22OpeningDate(){
   try{
     if(state && state.project && state.project.openingDate) return new Date(state.project.openingDate + "T00:00:00");
   }catch(e){}
-  return new Date("2026-09-27T00:00:00");
+  return new Date("2026-11-01T00:00:00");
 }
 function v22OpeningReadiness(){
   if(typeof v20OpeningReadiness === "function") return v20OpeningReadiness();
@@ -416,13 +495,14 @@ function v22UpdateLiveCountdown(){
   const totalMinutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 
-  // حساب تقريبي فخم للعرض التنفيذي:
-  // الشهر = 30 يوم، الأسبوع = 7 أيام، ثم الأيام المتبقية
-  const totalDays = Math.floor(diffMs / (1000*60*60*24));
-  const months = Math.floor(totalDays / 30);
-  const daysAfterMonths = totalDays % 30;
-  const weeks = Math.floor(daysAfterMonths / 7);
-  const days = daysAfterMonths % 7;
+
+  const _n=new Date(),_e=new Date(target);
+  _n.setHours(0,0,0,0);_e.setHours(0,0,0,0);
+  let months=(_e.getFullYear()-_n.getFullYear())*12+(_e.getMonth()-_n.getMonth());
+  if(new Date(_n.getFullYear(),_n.getMonth()+months,_n.getDate())>_e)months--;
+  const _b=new Date(_n.getFullYear(),_n.getMonth()+months,_n.getDate());
+  const _rd=Math.round((_e-_b)/(864e5));
+  const weeks=Math.floor(_rd/7),days=_rd%7;
 
   // الدقائق المتبقية داخل الساعة الحالية
   const minutes = totalMinutes % 60;
@@ -488,6 +568,7 @@ function renderKpis(){
     ["cyan",k.total,"إجمالي المهام","tasks"],
     ["green",k.done,"المهام المنجزة","tasks"],
     ["amber",k.active,"مهام نشطة","tasks"],
+    ["gray",k.notStarted,"لم تبدأ","tasks"],
     ["red",k.risk,"مخاطر مفتوحة","risks"],
     ["sand",k.overall+"%","الإنجاز العام","track"],
     ["cyan",readiness+"%","جاهزية الافتتاح","milestones"]
@@ -615,8 +696,30 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
 })
 // تمت إزالة الاستيراد المحلي (لصق/CSV) — البيانات تُسحب الآن من Google Sheet عبر الخادم.
 trackSelect.onchange=()=>{const t=state.tracks.find(x=>x.id===trackSelect.value);progressInput.value=t.progress;tasksInput.value=t.tasks;doneInput.value=t.done;activeInput.value=t.active;riskInput.value=t.risk;leadInput.value=t.lead;focusInput.value=t.focus}
-trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;t.status=t.progress>=70?"ضمن المسار":t.progress>=45?"تحت المتابعة":"معرض للخطر";addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
-itemForm.onsubmit=e=>{e.preventDefault();state.items.push({track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value});if(typeof recalcTrackCountersFromItems==="function")recalcTrackCountersFromItems();addFeed(["إضافة عنصر",`تمت إضافة ${itemTitle.value} إلى المسار ${itemTrack.value}`,colorByStatus(itemStatus.value)]);itemForm.reset();save();renderAll()}
+trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;{ const h=v20TrackHealth(t); t.status=h>=85?"ضمن المسار":h>=65?"تحت المتابعة":h>=45?"يحتاج تدخل":"حرج"; }addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
+itemForm.onsubmit=async function(e){
+  e.preventDefault();
+  const newItem={track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value};
+  // 1) أضف فوراً في الواجهة للاستجابة السريعة
+  state.items.push(newItem);
+  if(typeof recalcTrackCountersFromItems==="function")recalcTrackCountersFromItems();
+  addFeed(["إضافة عنصر",`تمت إضافة ${newItem.title} إلى المسار ${newItem.track}`,colorByStatus(newItem.status)]);
+  itemForm.reset();
+  save();
+  renderAll();
+  // 2) اكتب في Google Sheet عبر الخادم
+  try{
+    const res=await fetch("/api/items",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify(newItem)});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||res.status);
+    addFeed(["✅ حُفظ في الشيت",`${newItem.title} — تم الحفظ في Google Sheet`,"green"]);
+    // بعد 4 ثوان: اسحب آخر نسخة من الخادم لتحديث liveState
+    setTimeout(()=>{ if(typeof backendSyncNow==="function") backendSyncNow(); },4000);
+  }catch(err){
+    addFeed(["⚠️ تحذير","لم يتم الحفظ في Google Sheet: "+err.message,"red"]);
+    console.error("[itemForm] sheet write error:",err);
+  }
+}
 simulate.onclick=()=>{const t=state.tracks[Math.floor(Math.random()*state.tracks.length)];t.done=Math.min(t.tasks,t.done+1);t.active=Math.max(0,t.active-1);t.progress=t.tasks?Math.round(t.done/t.tasks*100):t.progress;addFeed(["تحديث حي",`تغيرت نسبة إنجاز مسار ${t.name} إلى ${t.progress}%`,colorByStatus(t.status)]);save();renderAll()}
 if(typeof exportJson!=="undefined"&&exportJson){exportJson.onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kag-command-center-data.json";a.click()}}
 
@@ -755,11 +858,12 @@ function v28RenderHomeAction(){
 
 // ===== V27 COUNTDOWN SETTINGS MODULE =====
 const defaultCountdownSettings = {
-  date: (state && state.project && state.project.openingDate) ? state.project.openingDate : "2026-09-27",
+  date: (state && state.project && state.project.openingDate) ? state.project.openingDate : "2026-11-01",
   time: "00:00",
   label: "حتى موعد الافتتاح الرسمي"
 };
-let countdownSettings = JSON.parse(localStorage.getItem("kagV27CountdownSettings") || "null") || structuredClone(defaultCountdownSettings);
+localStorage.removeItem("kagV27CountdownSettings");
+let countdownSettings = structuredClone(defaultCountdownSettings);
 
 function saveCountdownSettings(){
   localStorage.setItem("kagV27CountdownSettings", JSON.stringify(countdownSettings));
@@ -782,14 +886,17 @@ function v27GetCountdownParts(){
   const totalSeconds = Math.floor(diff / 1000);
   const totalMinutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  const totalDays = Math.floor(diff / (1000*60*60*24));
-
-  const months = Math.floor(totalDays / 30);
-  const afterMonths = totalDays % 30;
-  const weeks = Math.floor(afterMonths / 7);
-  const days = afterMonths % 7;
   const minutes = totalMinutes % 60;
 
+
+
+  var _n=new Date(),_e=new Date(target);
+  _n.setHours(0,0,0,0);_e.setHours(0,0,0,0);
+  let months=(_e.getFullYear()-_n.getFullYear())*12+(_e.getMonth()-_n.getMonth());
+  if(new Date(_n.getFullYear(),_n.getMonth()+months,_n.getDate())>_e)months--;
+  const _b=new Date(_n.getFullYear(),_n.getMonth()+months,_n.getDate());
+  const _rd=Math.round((_e-_b)/(864e5));
+  const weeks=Math.floor(_rd/7),days=_rd%7;
   return {months, weeks, days, minutes, seconds, target};
 }
 function setCountdownText(prefix, parts){
@@ -1472,11 +1579,16 @@ const defaultUiSettings = {
   title: "حدائق الملك عبدالله",
   subtitle: "صفحة عامة تنفيذية + لوحة مستقلة للمسارات الأربعة المعتمدة + استيراد جماعي من Excel/CSV",
   systemName: "مركز القيادة المباشر",
-  logoText: "KA",
+  logoText: "KAGA",
   theme: { cyan:"#A98BFF", sand:"#D9CCFF", bg:"#0B1020" },
   visibility: { feed:true, risks:true, sparks:true, english:true },
   logos: { amanah:"assets/riyadh-amanah-official.png", mayadeen:"assets/mayadeen-official.png" }
 };
+// إعادة ضبط logoText إذا كان محفوظاً بالقيمة القديمة
+(()=>{
+  const saved = JSON.parse(localStorage.getItem("kagV8UiSettings") || "null");
+  if(saved && saved.logoText === "KA") { saved.logoText = "KAGA"; localStorage.setItem("kagV8UiSettings", JSON.stringify(saved)); }
+})();
 let uiSettings = JSON.parse(localStorage.getItem("kagV8UiSettings") || "null") || structuredClone(defaultUiSettings);
 
 function saveUiSettings(){
@@ -1637,16 +1749,14 @@ bindMobileUX();bindMobileMenuV17();bindDetailView();v20BindIntelligence();bindTi
 // ===== V26 HARD FIX: Luxury Countdown Independent Runner =====
 (function(){
   function getOpeningTarget(){
+    // دائماً من المصدر الرسمي — تجاهل localStorage
+    localStorage.removeItem("kagV27CountdownSettings");
     try{
-      const saved = JSON.parse(localStorage.getItem("kagV27CountdownSettings") || "null");
-      if(saved && saved.date){
-        return new Date(String(saved.date) + "T" + String(saved.time || "00:00") + ":00");
-      }
       if(window.state && state.project && state.project.openingDate){
         return new Date(String(state.project.openingDate) + "T00:00:00");
       }
     }catch(e){}
-    return new Date("2026-09-27T00:00:00");
+    return new Date("2026-11-01T00:00:00");
   }
 
   function setText(id, value){
@@ -1666,13 +1776,17 @@ bindMobileUX();bindMobileMenuV17();bindDetailView();v20BindIntelligence();bindTi
     var totalSeconds = Math.floor(diff / 1000);
     var totalMinutes = Math.floor(totalSeconds / 60);
     var seconds = totalSeconds % 60;
-
-    var totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
-    var months = Math.floor(totalDays / 30);
-    var daysAfterMonths = totalDays % 30;
-    var weeks = Math.floor(daysAfterMonths / 7);
-    var days = daysAfterMonths % 7;
     var minutes = totalMinutes % 60;
+
+    // حساب دقيق بالتقويم
+    var _now=new Date();_now.setHours(0,0,0,0);
+    var _end=new Date(target);_end.setHours(0,0,0,0);
+    var months=(_end.getFullYear()-_now.getFullYear())*12+(_end.getMonth()-_now.getMonth());
+    if(new Date(_now.getFullYear(),_now.getMonth()+months,_now.getDate())>_end) months--;
+    var _base=new Date(_now.getFullYear(),_now.getMonth()+months,_now.getDate());
+    var _rd=Math.round((_end-_base)/(1000*60*60*24));
+    var weeks=Math.floor(_rd/7);
+    var days=_rd%7;
 
     ["count","headerCount","settingsCount"].forEach(function(prefix){
       setText(prefix + "Months", String(months));
@@ -1868,60 +1982,195 @@ setTimeout(function(){
 })();
 
 // ============================================================
-// تصدير التقارير PPTX
+// تصدير التقارير — PDF و PPTX
 // ============================================================
 (function(){
+
+  // نافذة اختيار نوع التقرير والصيغة
+  function showReportModal(){
+    let overlay = document.getElementById("reportModal");
+    if(overlay){ overlay.style.display="flex"; return; }
+
+    overlay = document.createElement("div");
+    overlay.id = "reportModal";
+    overlay.style.cssText = "display:flex;position:fixed;inset:0;z-index:9999;background:rgba(5,12,24,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;direction:rtl";
+
+    overlay.innerHTML = `
+<div style="width:min(560px,94vw);background:#0D1B2A;border:1px solid rgba(201,168,76,.4);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.5);padding:26px;font-family:inherit;color:#EAF0F7">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h3 style="font-size:1.05rem;font-weight:800;color:#C9A84C;margin:0">📊 تصدير التقرير</h3>
+    <button id="reportModalClose" style="background:transparent;border:none;color:rgba(255,255,255,.5);font-size:1.2rem;cursor:pointer;line-height:1">✕</button>
+  </div>
+
+  <p style="font-size:.82rem;color:rgba(255,255,255,.6);margin-bottom:18px">اختر نوع التقرير والصيغة</p>
+
+  <!-- نوع التقرير -->
+  <div style="margin-bottom:18px">
+    <div style="font-size:.75rem;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:10px;letter-spacing:.3px">نوع التقرير</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="reportTypeGrid">
+      ${[
+        {v:"comprehensive",l:"شامل",sub:"المسارات الأربعة"},
+        {v:"أ",l:"مسار أ",sub:"التخطيط والتنسيق"},
+        {v:"ب",l:"مسار ب",sub:"الإعلام والتغطية"},
+        {v:"ج",l:"مسار ج",sub:"الفعاليات"},
+        {v:"د",l:"مسار د",sub:"تجهيز الحديقة"},
+      ].map(t=>`
+        <button class="rtype-btn" data-val="${t.v}" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:10px 8px;cursor:pointer;color:#EAF0F7;font-family:inherit;text-align:center;transition:.15s">
+          <div style="font-size:.85rem;font-weight:700">${t.l}</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.45);margin-top:2px">${t.sub}</div>
+        </button>`).join("")}
+    </div>
+  </div>
+
+  <!-- صيغة التصدير -->
+  <div style="margin-bottom:22px">
+    <div style="font-size:.75rem;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:10px;letter-spacing:.3px">صيغة التصدير</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="reportFmtGrid">
+      <button class="rfmt-btn" data-val="pdf" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:12px 8px;cursor:pointer;color:#EAF0F7;font-family:inherit;text-align:center;transition:.15s">
+        <div style="font-size:1.2rem;margin-bottom:4px">📄</div>
+        <div style="font-size:.85rem;font-weight:700">PDF</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.45);margin-top:2px">يُطبع من المتصفح</div>
+      </button>
+      <button class="rfmt-btn" data-val="pptx" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:12px 8px;cursor:pointer;color:#EAF0F7;font-family:inherit;text-align:center;transition:.15s">
+        <div style="font-size:1.2rem;margin-bottom:4px">📊</div>
+        <div style="font-size:.85rem;font-weight:700">PowerPoint</div>
+        <div style="font-size:.65rem;color:rgba(255,255,255,.45);margin-top:2px">تنزيل مباشر .pptx</div>
+      </button>
+    </div>
+  </div>
+
+  <div id="reportModalStatus" style="display:none;margin-bottom:14px;padding:10px 12px;border-radius:8px;font-size:.8rem;font-weight:600;background:rgba(201,168,76,.1);color:#C9A84C"></div>
+
+  <button id="reportModalExport" style="width:100%;background:#C9A84C;color:#0D1B2A;border:none;border-radius:9px;padding:12px;font-size:.9rem;font-weight:800;cursor:pointer;font-family:inherit;transition:.15s" disabled>
+    اختر النوع والصيغة أولاً
+  </button>
+</div>`;
+
+    document.body.appendChild(overlay);
+
+    // حالة الاختيار
+    let selType = null, selFmt = null;
+
+    function updateState(){
+      const allTypeBtns = overlay.querySelectorAll(".rtype-btn");
+      const allFmtBtns  = overlay.querySelectorAll(".rfmt-btn");
+      allTypeBtns.forEach(b=>{
+        const active = b.dataset.val === selType;
+        b.style.background = active ? "rgba(201,168,76,.2)" : "rgba(255,255,255,.06)";
+        b.style.borderColor = active ? "rgba(201,168,76,.7)" : "rgba(255,255,255,.12)";
+        b.style.color = active ? "#C9A84C" : "#EAF0F7";
+      });
+      allFmtBtns.forEach(b=>{
+        const active = b.dataset.val === selFmt;
+        b.style.background = active ? "rgba(201,168,76,.2)" : "rgba(255,255,255,.06)";
+        b.style.borderColor = active ? "rgba(201,168,76,.7)" : "rgba(255,255,255,.12)";
+        b.style.color = active ? "#C9A84C" : "#EAF0F7";
+      });
+      const exportBtn = overlay.querySelector("#reportModalExport");
+      if(selType && selFmt){
+        const typeLabel = selType==="comprehensive"?"الشامل":`مسار ${selType}`;
+        const fmtLabel  = selFmt==="pdf"?"PDF":"PowerPoint";
+        exportBtn.disabled = false;
+        exportBtn.textContent = `⬇ تصدير ${typeLabel} — ${fmtLabel}`;
+      } else {
+        exportBtn.disabled = true;
+        exportBtn.textContent = "اختر النوع والصيغة أولاً";
+      }
+    }
+
+    overlay.querySelectorAll(".rtype-btn").forEach(b=>{
+      b.onclick = ()=>{ selType = b.dataset.val; updateState(); };
+    });
+    overlay.querySelectorAll(".rfmt-btn").forEach(b=>{
+      b.onclick = ()=>{ selFmt = b.dataset.val; updateState(); };
+    });
+
+    overlay.querySelector("#reportModalClose").onclick = ()=>{ overlay.style.display="none"; };
+    overlay.onclick = e=>{ if(e.target===overlay) overlay.style.display="none"; };
+
+    overlay.querySelector("#reportModalExport").onclick = async function(){
+      if(!selType || !selFmt) return;
+      const statusEl = overlay.querySelector("#reportModalStatus");
+      const exportBtn = overlay.querySelector("#reportModalExport");
+      exportBtn.disabled = true;
+      exportBtn.textContent = "⏳ جارٍ التوليد...";
+      statusEl.style.display = "block";
+      statusEl.textContent = "⏳ جارٍ توليد التقرير من أحدث البيانات...";
+
+      try{
+        const res = await fetch("/api/report", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          credentials:"include",
+          body:JSON.stringify({ type:selType, format:selFmt })
+        });
+        if(!res.ok){
+          const err = await res.json().catch(()=>({error:"خطأ غير معروف"}));
+          throw new Error(err.error || res.status);
+        }
+
+        const dateStr = new Date().toISOString().slice(0,10);
+        const trackLabel = selType==="comprehensive"?"Comprehensive":selType;
+
+        if(selFmt === "pptx"){
+          const blob = await res.blob();
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement("a");
+          a.href = url; a.download = `KAGA-${trackLabel}-${dateStr}.pptx`;
+          document.body.appendChild(a); a.click();
+          setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 2000);
+          statusEl.textContent = "✅ تم تنزيل ملف PowerPoint";
+        } else {
+          const html = await res.text();
+          const blob = new Blob([html],{type:"text/html;charset=utf-8"});
+          const url  = URL.createObjectURL(blob);
+          const win  = window.open(url,"_blank");
+          if(!win){
+            const a = document.createElement("a");
+            a.href=url; a.download=`KAGA-${trackLabel}-${dateStr}.html`;
+            document.body.appendChild(a); a.click();
+            setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },2000);
+          } else {
+            setTimeout(()=>URL.revokeObjectURL(url), 10000);
+          }
+          statusEl.textContent = "✅ تم فتح التقرير — اضغط «تصدير PDF» داخل الصفحة";
+        }
+
+        addFeed(["التقارير", `تم تصدير: ${selType==="comprehensive"?"الشامل":"مسار "+selType} (${selFmt.toUpperCase()})`, "green"]);
+        setTimeout(()=>{ overlay.style.display="none"; }, 3000);
+
+      }catch(e){
+        statusEl.style.color="#ff5e6b";
+        statusEl.textContent = "❌ فشل التوليد: " + e.message;
+        addFeed(["التقارير", "فشل: " + e.message, "red"]);
+      }finally{
+        exportBtn.disabled = false;
+        if(selType && selFmt){
+          const typeLabel = selType==="comprehensive"?"الشامل":`مسار ${selType}`;
+          exportBtn.textContent = `⬇ تصدير ${typeLabel} — ${selFmt==="pdf"?"PDF":"PowerPoint"}`;
+        }
+      }
+    };
+  }
+
   function bindReportExport(){
     const btns = document.querySelectorAll("[data-report-type]");
     const statusEl = document.getElementById("reportExportStatus");
     if(!btns.length) return;
+    // كل الأزرار القديمة تفتح النافذة الجديدة
+    btns.forEach(btn => btn.addEventListener("click", showReportModal));
 
-    btns.forEach(function(btn){
-      btn.addEventListener("click", async function(){
-        const type = btn.dataset.reportType;
-        const label = btn.textContent.trim();
-
-        // تعطيل الأزرار أثناء التوليد
-        btns.forEach(b => b.disabled = true);
-        if(statusEl){ statusEl.style.display="block"; statusEl.textContent = "⏳ جارٍ توليد التقرير..."; }
-
-        try{
-          const res = await fetch("/api/report", {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            credentials:"include",
-            body:JSON.stringify({ type })
-          });
-
-          if(!res.ok){
-            const err = await res.json().catch(()=>({error:"خطأ غير معروف"}));
-            throw new Error(err.error || res.status);
-          }
-
-          // تنزيل الملف
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          const dateStr = new Date().toISOString().slice(0,10);
-          a.href = url;
-          a.download = `KAGA-Report-${type}-${dateStr}.pptx`;
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 2000);
-
-          if(statusEl){ statusEl.textContent = "✅ تم توليد التقرير بنجاح — جارٍ التنزيل"; }
-          addFeed(["التقارير", `تم تصدير: ${label}`, "green"]);
-
-        }catch(e){
-          if(statusEl){ statusEl.textContent = "❌ فشل التوليد: " + e.message; }
-          addFeed(["التقارير", "فشل تصدير التقرير: " + e.message, "red"]);
-        }finally{
-          btns.forEach(b => b.disabled = false);
-          setTimeout(()=>{ if(statusEl) statusEl.style.display="none"; }, 5000);
-        }
-      });
-    });
+    // زر تقرير عام إن وجد
+    const mainBtn = document.getElementById("openReportModal");
+    if(mainBtn) mainBtn.addEventListener("click", showReportModal);
   }
+
+  // كشف زر التقرير في أي مكان
+  document.addEventListener("click", function(e){
+    if(e.target && (e.target.id==="openReportModal" || e.target.closest("[data-open-report]"))){
+      showReportModal();
+    }
+  });
 
   if(document.readyState === "loading"){
     document.addEventListener("DOMContentLoaded", bindReportExport);

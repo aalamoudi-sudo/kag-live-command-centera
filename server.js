@@ -24,6 +24,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const { generateReport } = require("./report-generator");
+const { generatePptx }   = require("./pptx-generator");
 
 const PORT = Number(process.env.PORT || 3000);
 // معرّف جدول حدائق الملك عبدالله المثبّت مسبقًا (يمكن تجاوزه بمتغيّر البيئة SHEET_ID)
@@ -599,35 +600,41 @@ const server=http.createServer(async (req,res)=>{
       let body={};
       const raw=await readBody(req);
       try{ body=raw?JSON.parse(raw):{}; }catch(e){ return sendJson(res,400,{error:"طلب غير صالح"}); }
-      const reportType = body.type || "comprehensive";
+      const reportType   = body.type   || "comprehensive";
+      const reportFormat = body.format || "html";
       if(!liveState) return sendJson(res,503,{error:"البيانات غير متاحة بعد"});
       try{
-        const {execFile} = require("child_process");
-        const scriptPath = path.join(__dirname,"generate_report.py");
-        const inputData  = JSON.stringify({type:reportType, state:liveState});
-        const buf = await new Promise((resolve,reject)=>{
-          const chunks=[];
-          const proc = execFile("python3",[scriptPath],{maxBuffer:50*1024*1024},(err,stdout,stderr)=>{
-            if(err){ reject(new Error(stderr||err.message)); return; }
-          });
-          proc.stdin.write(inputData);
-          proc.stdin.end();
-          proc.stdout.on("data",chunk=>chunks.push(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk)));
-          proc.stdout.on("end",()=>resolve(Buffer.concat(chunks)));
-          proc.stderr.on("data",d=>{}); // تجاهل stderr
-          proc.on("error",reject);
-        });
         const safeNames = {"comprehensive":"Comprehensive","أ":"A","ب":"B","ج":"C","د":"D"};
         const safeName  = safeNames[reportType] || "Report";
         const dateStr   = new Date().toISOString().slice(0,10);
-        const fname     = `KAGA-Report-${safeName}-${dateStr}.pptx`;
-        res.writeHead(200,{
-          "Content-Type":"application/vnd.openxmlformats-officedocument.presentationml.presentation",
-          "Content-Disposition":`attachment; filename="${fname}"`,
-          "Content-Length": buf.length,
-          "Cache-Control":"no-store"
-        });
-        return res.end(buf);
+
+        if(reportFormat === "pptx"){
+          // توليد PPTX بـ pptxgenjs
+          const stream = await generatePptx(reportType, liveState);
+          const chunks = [];
+          stream.on("data", chunk => chunks.push(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk)));
+          await new Promise((resolve,reject)=>{ stream.on("end",resolve); stream.on("error",reject); });
+          const buf = Buffer.concat(chunks);
+          const fname = `KAGA-${safeName}-${dateStr}.pptx`;
+          res.writeHead(200,{
+            "Content-Type":"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "Content-Disposition":`attachment; filename="${fname}"`,
+            "Content-Length": buf.length,
+            "Cache-Control":"no-store"
+          });
+          return res.end(buf);
+        } else {
+          // توليد HTML/PDF
+          const buf = await generateReport(reportType, liveState);
+          const fname = `KAGA-${safeName}-${dateStr}.html`;
+          res.writeHead(200,{
+            "Content-Type":"text/html; charset=utf-8",
+            "Content-Disposition":`inline; filename="${fname}"`,
+            "Content-Length": buf.length,
+            "Cache-Control":"no-store"
+          });
+          return res.end(buf);
+        }
       }catch(e){
         console.error("خطأ في توليد التقرير:", e);
         return sendJson(res,500,{error:"فشل توليد التقرير: "+e.message});
