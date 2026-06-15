@@ -332,7 +332,7 @@ function v20HealthLabel(score){
 }
 function v20DynamicWeights(){
   // أوزان ديناميكية حسب المرحلة الزمنية
-  const opening = new Date("2026-11-01T23:59:59");
+  const opening = new Date("2026-11-01T00:00:00+03:00");
   const daysLeft = Math.max(0, Math.round((opening - new Date()) / 86400000));
   if(daysLeft > 120) return {progress:0.20, risk:0.35, overdue:0.35, decision:0.10}; // تخطيط
   if(daysLeft > 60)  return {progress:0.35, risk:0.30, overdue:0.25, decision:0.10}; // تنفيذ
@@ -368,7 +368,7 @@ function v20ProjectHealth(){
 }
 function v20OpeningReadiness(){
   // جاهزية الافتتاح = المهام المكتملة التي تاريخها ≤ تاريخ الافتتاح ÷ إجمالي المهام الحرجة
-  const opening = new Date("2026-11-01T23:59:59");
+  const opening = new Date("2026-11-01T00:00:00+03:00");
   const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
   const criticalTasks = allTasks.filter(i=>{
     if(!i.due) return false;
@@ -467,9 +467,9 @@ function v20BindIntelligence(){
 // ===== V22 OPENING READINESS + LIVE COUNTDOWN =====
 function v22OpeningDate(){
   try{
-    if(state && state.project && state.project.openingDate) return new Date(state.project.openingDate + "T00:00:00");
+    if(state && state.project && state.project.openingDate) return new Date(state.project.openingDate + "T00:00:00+03:00");
   }catch(e){}
-  return new Date("2026-11-01T00:00:00");
+  return new Date("2026-11-01T00:00:00+03:00");
 }
 function v22OpeningReadiness(){
   if(typeof v20OpeningReadiness === "function") return v20OpeningReadiness();
@@ -1754,10 +1754,10 @@ bindMobileUX();bindMobileMenuV17();bindDetailView();v20BindIntelligence();bindTi
     localStorage.removeItem("kagV27CountdownSettings");
     try{
       if(window.state && state.project && state.project.openingDate){
-        return new Date(String(state.project.openingDate) + "T00:00:00");
+        return new Date(String(state.project.openingDate) + "T00:00:00+03:00");
       }
     }catch(e){}
-    return new Date("2026-11-01T00:00:00");
+    return new Date("2026-11-01T00:00:00+03:00");
   }
 
   function setText(id, value){
