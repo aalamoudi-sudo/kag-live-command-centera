@@ -8,7 +8,7 @@ function normalizeTrack(v){v=(v||"").trim();const map={A:"أ",B:"ب",C:"ج",D:"�
 function normalizeType(v){v=(v||"").trim().toLowerCase();if(["task","tasks","مهمة","مهام"].includes(v))return"tasks";if(["risk","risks","مخاطرة","مخاطر"].includes(v))return"risks";if(["permit","permits","approval","approvals","تصريح","تصاريح","اعتماد","اعتمادات"].includes(v))return"permits";if(["milestone","milestones","معلم","معلم رئيسي","معالم"].includes(v))return"milestones";return v||"tasks"}
 function colorByStatus(s){if(["مكتملة","معتمدة","ضمن المسار","Completed","Cleared"].includes(s))return"green";if(["تحت المتابعة","قيد التنفيذ","Watch","In Progress"].includes(s))return"amber";if(["معرضة للخطر","معرض للخطر","مرفوضة","At Risk"].includes(s))return"red";return"cyan"}
 function daysToOpen(){const d=new Date(state.project.openingDate),n=new Date();return Math.max(0,Math.ceil((d-n)/(1000*60*60*24)))}
-function kpis(){const total=state.tracks.reduce((s,t)=>s+Number(t.tasks||0),0);const done=state.tracks.reduce((s,t)=>s+Number(t.done||0),0);const active=state.tracks.reduce((s,t)=>s+Number(t.active||0),0);const risk=state.tracks.reduce((s,t)=>s+Number(t.risk||0),0)+state.items.filter(i=>i.type==="risks"&&i.status!=="مغلقة").length;const notStarted=state.items.filter(i=>i.type==="tasks"&&i.status==="لم يبدأ").length;return{total,done,active,risk,notStarted,overall:total?Math.round(done/total*100):0,days:daysToOpen()}}
+function kpis(){const total=state.tracks.reduce((s,t)=>s+Number(t.tasks||0),0);const done=state.tracks.reduce((s,t)=>s+Number(t.done||0),0);const active=state.tracks.reduce((s,t)=>s+Number(t.active||0),0);const risk=state.items.filter(i=>i.type==="risks"&&!["مغلقة","مكتملة","معتمدة"].includes(i.status)).length;const notStarted=state.items.filter(i=>i.type==="tasks"&&i.status==="لم يبدأ").length;return{total,done,active,risk,notStarted,overall:total?Math.round(done/total*100):0,days:daysToOpen()}}
 function renderKpis(){const k=kpis();overviewKpis.innerHTML=[["cyan",k.total,"إجمالي المهام"],["green",k.done,"المهام المنجزة"],["amber",k.active,"مهام نشطة"],["gray",k.notStarted,"لم تبدأ"],["red",k.risk,"مخاطر مفتوحة"],["sand",k.overall+"%","الإنجاز العام"],["cyan",k.days,"يوم على الافتتاح"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("")}
 function trackCard(t){return`<article class="track-card glass" style="--accent:${t.accent};--value:${t.progress}"><div class="track-head"><div class="track-title"><div class="badge">${t.id}</div><div><h3>${t.name}</h3><h4>${t.ar}</h4></div></div><div class="status">${t.status}</div></div><div class="track-body"><div class="ring"><b>${t.progress}%</b></div><div class="mini-grid"><div class="mini"><b>${t.tasks}</b><small>المهام</small></div><div class="mini"><b style="color:#8E7BFF">${t.done}</b><small>منجزة</small></div><div class="mini"><b style="color:#D8CCFF">${t.active}</b><small>نشطة</small></div><div class="mini"><b style="color:#C17CFF">${t.risk}</b><small>خطر</small></div></div></div><div class="spark"></div><div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div></article>`}
 function renderOverview(){tracksSummary.innerHTML=state.tracks.map(trackCard).join("");const risks=state.items.filter(i=>i.type==="risks");riskSnapshot.innerHTML=risks.length?risks.map(r=>`<div class="risk-row"><span>${r.title}</span><strong class="${colorByStatus(r.status)}">${r.status}</strong></div>`).join(""):`<p>لا توجد مخاطر مسجلة.</p>`}
@@ -265,11 +265,24 @@ function v20Items(type){
 function v20OpenDecisions(){
   return (state.decisions||[]).filter(d=>d.status!=="معتمد");
 }
+function parseItemDate(str){
+  if(!str) return null;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str)) return new Date(str+"T00:00:00");
+  const dm = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(dm) return new Date(`${dm[3]}-${dm[2].padStart(2,"0")}-${dm[1].padStart(2,"0")}T00:00:00`);
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
+}
 function v20OverdueItems(){
-  // فقط المهام المصنّفة صراحةً كـ "متأخرة" في الشيت
-  return (state.items||[]).filter(i=>
-    ["متأخرة","متأخر","Overdue"].includes(i.status)
-  );
+  const DONE = ["مكتملة","معتمدة","Completed","Cleared","مغلقة"];
+  const now = new Date(); now.setHours(0,0,0,0);
+  return (state.items||[]).filter(i=>{
+    if(DONE.includes(i.status)) return false;
+    if(["متأخرة","متأخر","Overdue"].includes(i.status)) return true;
+    if(!i.due || ["مستمرة","ongoing","—","-"].includes(String(i.due).trim())) return false;
+    const d = parseItemDate(String(i.due).trim());
+    return d && d < now;
+  });
 }
 function v20DueTodayItems(){
   const today = v20TodayISO();
