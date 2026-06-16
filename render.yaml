@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: kaga-command-center
+    runtime: node
+    plan: free
+    buildCommand: npm install && pip install python-pptx
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: REQUIRE_LOGIN
+        value: "true"
+      - key: ADMIN_USERNAME
+        value: MAYADEEN
+      - key: ADMIN_PASSWORD
+        value: Mayadeen@2026
