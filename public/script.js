@@ -44,11 +44,19 @@ function projectActual(){
   state.tracks.forEach(t=>{ const n=Number(t.tasks||0); totalTasks+=n; weightedSum+=Number(t.progress||0)*n; });
   return totalTasks>0 ? Math.round(weightedSum/totalTasks) : 0;
 }
+// معادلة مستوى المشروع (Planned vs Actual): نسبة الالتزام بالخطة = (الفعلي ÷ المخطط) × 100
+function paCompliance(planned, actual){
+  const p = Number(planned)||0;
+  const a = Number(actual)||0;
+  const compliance = p > 0 ? Math.round((a/p)*100) : (a > 0 ? 100 : 0);
+  const variance = compliance - 100;
+  return {compliance, variance};
+}
 function paHtml(planned, actual){
-  const variance = actual - planned;
+  const {compliance, variance} = paCompliance(planned, actual);
   return `<div class="planned-actual-box">
     <div class="pa-row"><span>المخطط</span><div class="pa-bar planned"><i style="width:${Math.max(0,Math.min(100,planned))}%"></i></div><b>${planned}%</b></div>
-    <div class="pa-row"><span>الفعلي</span><div class="pa-bar actual"><i style="width:${Math.max(0,Math.min(100,actual))}%"></i></div><b>${actual}%</b></div>
+    <div class="pa-row"><span>الفعلي</span><div class="pa-bar actual"><i style="width:${Math.max(0,Math.min(100,compliance))}%"></i></div><b>${compliance}%</b></div>
     <div class="pa-row"><span>الفرق</span><div class="pa-bar"><i style="width:${Math.max(0,Math.min(100,Math.abs(variance)))}%;background:${variance>=0?'#43ee8d':'#ff5e6b'}"></i></div><b class="${variance>=0?'green':'red'}">${variance>0?'+':''}${variance}%</b></div>
   </div>`;
 }
@@ -198,17 +206,17 @@ function trackCard(t){
 }
 function renderOverview(){
   const planned = projectPlanned();
-  const actual = projectActual();
-  const variance = actual - planned;
+  const actualRaw = projectActual();
+  const {compliance, variance} = paCompliance(planned, actualRaw);
   tracksSummary.innerHTML = `
     <div class="glass panel project-pa-card">
       <div class="panel-title"><b></b><h3>Planned vs Actual — مستوى المشروع</h3></div>
       <div class="project-pa-grid">
         <div class="project-pa-metric"><b>${planned}%</b><span>المخطط</span></div>
-        <div class="project-pa-metric"><b>${actual}%</b><span>الفعلي</span></div>
+        <div class="project-pa-metric"><b>${compliance}%</b><span>الفعلي</span></div>
         <div class="project-pa-metric"><b class="${variance>=0?'green':'red'}">${variance>0?'+':''}${variance}%</b><span>الفرق</span></div>
       </div>
-      ${paHtml(planned, actual)}
+      ${paHtml(planned, actualRaw)}
     </div>
     ${state.tracks.map(trackCard).join("")}
     ${crossTrackDependencyHtml()}`;
@@ -555,12 +563,12 @@ function v20RenderIntelligence(){
   const readiness = v20OpeningReadiness();
   const [rLabel,rClass,rColor] = v20HealthLabel(readiness);
   const planned = v20ProjectPlanned();
-  const actual = v20ProjectActual();
-  const variance = actual-planned;
+  const actualRaw = v20ProjectActual();
+  const {compliance: planCompliance, variance} = paCompliance(planned, actualRaw);
 
   projectHealthScore.textContent = health;
   projectHealthLabel.textContent = hLabel;
-  projectHealthText.textContent = `المخطط ${planned}%، الفعلي ${actual}%، الانحراف ${variance>0?"+":""}${variance}%، المخاطر ${v20Items("risks").length}، القرارات المفتوحة ${v20OpenDecisions().length}.`;
+  projectHealthText.textContent = `المخطط ${planned}%، الفعلي ${planCompliance}%، الانحراف ${variance>0?"+":""}${variance}%، المخاطر ${v20Items("risks").length}، القرارات المفتوحة ${v20OpenDecisions().length}.`;
   v20SetRing(projectHealthRing, health, hColor);
 
   readinessScore.textContent = readiness;
@@ -703,18 +711,18 @@ function v21RenderHomeSummary(){
   if(typeof homeOverallNumber === "undefined") return;
   const actual = v21SafeProjectActual();
   const planned = v21SafeProjectPlanned();
-  const variance = actual - planned;
+  const {compliance, variance} = paCompliance(planned, actual);
   const health = typeof v20ProjectHealth === "function" ? v20ProjectHealth() : actual;
   const status = v21HomeStatusLabel(health);
 
   homeOverallNumber.textContent = actual + "%";
   homeStatusLabel.textContent = status[0];
-  homeStatusText.textContent = status[1] + ` المخطط ${planned}%، الفعلي ${actual}%، الفرق ${variance>0?"+":""}${variance}%.`;
+  homeStatusText.textContent = status[1] + ` المخطط ${planned}%، الفعلي ${compliance}%، الفرق ${variance>0?"+":""}${variance}%.`;
   v22UpdateLiveCountdown();
 
   homePlannedActualBox.innerHTML = `<div class="home-pa-bars">
     <div class="home-pa-line"><span>المخطط</span><div class="home-pa-track planned"><i style="width:${Math.max(0,Math.min(100,planned))}%"></i></div><b>${planned}%</b></div>
-    <div class="home-pa-line"><span>الفعلي</span><div class="home-pa-track actual"><i style="width:${Math.max(0,Math.min(100,actual))}%"></i></div><b>${actual}%</b></div>
+    <div class="home-pa-line"><span>الفعلي</span><div class="home-pa-track actual"><i style="width:${Math.max(0,Math.min(100,compliance))}%"></i></div><b>${compliance}%</b></div>
     <div class="home-pa-line"><span>الفرق</span><div class="home-pa-track variance"><i style="width:${Math.max(0,Math.min(100,Math.abs(variance)))}%;background:${variance>=0?'#43ee8d':'#ff5e6b'}"></i></div><b class="${variance>=0?'green':'red'}">${variance>0?'+':''}${variance}%</b></div>
   </div>`;
 }
