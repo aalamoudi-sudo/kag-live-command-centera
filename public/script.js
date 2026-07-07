@@ -44,20 +44,20 @@ function projectActual(){
   state.tracks.forEach(t=>{ const n=Number(t.tasks||0); totalTasks+=n; weightedSum+=Number(t.progress||0)*n; });
   return totalTasks>0 ? Math.round(weightedSum/totalTasks) : 0;
 }
-// معادلة مستوى المشروع (Planned vs Actual): نسبة الالتزام بالخطة = (الفعلي ÷ المخطط) × 100
+// معادلة الفرق / نسبة الالتزام بالخطة = (الفعلي ÷ المخطط) × 100
+// ملاحظة: قيمة "الفعلي" تبقى نسبة الإنجاز الخام كما هي، والمعادلة الجديدة تُستخدم فقط لحساب "الفرق"
 function paCompliance(planned, actual){
   const p = Number(planned)||0;
   const a = Number(actual)||0;
-  const compliance = p > 0 ? Math.round((a/p)*100) : (a > 0 ? 100 : 0);
-  const variance = compliance - 100;
-  return {compliance, variance};
+  const ratio = p > 0 ? Math.round((a/p)*100) : (a > 0 ? 100 : 0);
+  return {actual: a, ratio};
 }
 function paHtml(planned, actual){
-  const {compliance, variance} = paCompliance(planned, actual);
+  const {actual: actualVal, ratio} = paCompliance(planned, actual);
   return `<div class="planned-actual-box">
     <div class="pa-row"><span>المخطط</span><div class="pa-bar planned"><i style="width:${Math.max(0,Math.min(100,planned))}%"></i></div><b>${planned}%</b></div>
-    <div class="pa-row"><span>الفعلي</span><div class="pa-bar actual"><i style="width:${Math.max(0,Math.min(100,compliance))}%"></i></div><b>${compliance}%</b></div>
-    <div class="pa-row"><span>الفرق</span><div class="pa-bar"><i style="width:${Math.max(0,Math.min(100,Math.abs(variance)))}%;background:${variance>=0?'#43ee8d':'#ff5e6b'}"></i></div><b class="${variance>=0?'green':'red'}">${variance>0?'+':''}${variance}%</b></div>
+    <div class="pa-row"><span>الفعلي</span><div class="pa-bar actual"><i style="width:${Math.max(0,Math.min(100,actualVal))}%"></i></div><b>${actualVal}%</b></div>
+    <div class="pa-row"><span>الفرق</span><div class="pa-bar"><i style="width:${Math.max(0,Math.min(100,ratio))}%;background:${ratio>=100?'#43ee8d':'#ff5e6b'}"></i></div><b class="${ratio>=100?'green':'red'}">${ratio}%</b></div>
   </div>`;
 }
 function showDetails(type, trackId=null){
@@ -207,14 +207,14 @@ function trackCard(t){
 function renderOverview(){
   const planned = projectPlanned();
   const actualRaw = projectActual();
-  const {compliance, variance} = paCompliance(planned, actualRaw);
+  const {actual: actualVal, ratio} = paCompliance(planned, actualRaw);
   tracksSummary.innerHTML = `
     <div class="glass panel project-pa-card">
       <div class="panel-title"><b></b><h3>Planned vs Actual — مستوى المشروع</h3></div>
       <div class="project-pa-grid">
         <div class="project-pa-metric"><b>${planned}%</b><span>المخطط</span></div>
-        <div class="project-pa-metric"><b>${compliance}%</b><span>الفعلي</span></div>
-        <div class="project-pa-metric"><b class="${variance>=0?'green':'red'}">${variance>0?'+':''}${variance}%</b><span>الفرق</span></div>
+        <div class="project-pa-metric"><b>${actualVal}%</b><span>الفعلي</span></div>
+        <div class="project-pa-metric"><b class="${ratio>=100?'green':'red'}">${ratio}%</b><span>الفرق</span></div>
       </div>
       ${paHtml(planned, actualRaw)}
     </div>
@@ -564,11 +564,11 @@ function v20RenderIntelligence(){
   const [rLabel,rClass,rColor] = v20HealthLabel(readiness);
   const planned = v20ProjectPlanned();
   const actualRaw = v20ProjectActual();
-  const {compliance: planCompliance, variance} = paCompliance(planned, actualRaw);
+  const {actual: actualVal, ratio: planRatio} = paCompliance(planned, actualRaw);
 
   projectHealthScore.textContent = health;
   projectHealthLabel.textContent = hLabel;
-  projectHealthText.textContent = `المخطط ${planned}%، الفعلي ${planCompliance}%، الانحراف ${variance>0?"+":""}${variance}%، المخاطر ${v20Items("risks").length}، القرارات المفتوحة ${v20OpenDecisions().length}.`;
+  projectHealthText.textContent = `المخطط ${planned}%، الفعلي ${actualVal}%، نسبة الالتزام بالخطة ${planRatio}%، المخاطر ${v20Items("risks").length}، القرارات المفتوحة ${v20OpenDecisions().length}.`;
   v20SetRing(projectHealthRing, health, hColor);
 
   readinessScore.textContent = readiness;
@@ -581,7 +581,7 @@ function v20RenderIntelligence(){
   const overdue = v20OverdueItems().length;
 
   const cards = [
-    {v:`${variance>0?"+":""}${variance}%`,t:"انحراف الخطة",s:"Planned vs Actual",c:variance<0?"red":"green",action:"showDetails('track')"},
+    {v:`${planRatio}%`,t:"انحراف الخطة",s:"Planned vs Actual",c:planRatio<100?"red":"green",action:"showDetails('track')"},
     {v:v20OpenDecisions().length,t:"قرارات عالقة",s:"Pending Decisions",c:v20OpenDecisions().length>3?"red":"amber",action:"activatePage('decisions')"},
     {v:`${approvals}%`,t:"إغلاق الاعتمادات",s:"Approvals Clearance",c:approvals<60?"red":approvals<85?"amber":"green",action:"showDetails('permits')"},
     {v:riskIndex,t:"مؤشر المخاطر",s:"Critical Risk Index",c:riskIndex>60?"red":riskIndex>30?"amber":"green",action:"showDetails('risks')"},
@@ -612,7 +612,7 @@ function v20RenderIntelligence(){
   </div>`).join("") : `<div class="hint">لا توجد عناصر مستحقة اليوم أو متأخرة.</div>`;
 
   const alerts = [];
-  if(variance < -10) alerts.push(["انحراف عن الخطة",`الفعلي أقل من المخطط بـ ${Math.abs(variance)}%.`,"red"]);
+  if(planRatio < 90) alerts.push(["انحراف عن الخطة",`نسبة الالتزام بالخطة ${planRatio}%.`,"red"]);
   if(v20OpenDecisions().length > 0) alerts.push(["قرارات مفتوحة",`يوجد ${v20OpenDecisions().length} قرار يحتاج متابعة.`,"amber"]);
   if(riskIndex > 50) alerts.push(["مخاطر مرتفعة",`مؤشر المخاطر وصل إلى ${riskIndex}.`,"red"]);
   if(approvals < 80) alerts.push(["الاعتمادات تحتاج متابعة",`نسبة إغلاق الاعتمادات ${approvals}%.`,"amber"]);
@@ -711,19 +711,19 @@ function v21RenderHomeSummary(){
   if(typeof homeOverallNumber === "undefined") return;
   const actual = v21SafeProjectActual();
   const planned = v21SafeProjectPlanned();
-  const {compliance, variance} = paCompliance(planned, actual);
+  const {actual: actualVal, ratio} = paCompliance(planned, actual);
   const health = typeof v20ProjectHealth === "function" ? v20ProjectHealth() : actual;
   const status = v21HomeStatusLabel(health);
 
   homeOverallNumber.textContent = actual + "%";
   homeStatusLabel.textContent = status[0];
-  homeStatusText.textContent = status[1] + ` المخطط ${planned}%، الفعلي ${compliance}%، الفرق ${variance>0?"+":""}${variance}%.`;
+  homeStatusText.textContent = status[1] + ` المخطط ${planned}%، الفعلي ${actualVal}%، الفرق ${ratio}%.`;
   v22UpdateLiveCountdown();
 
   homePlannedActualBox.innerHTML = `<div class="home-pa-bars">
     <div class="home-pa-line"><span>المخطط</span><div class="home-pa-track planned"><i style="width:${Math.max(0,Math.min(100,planned))}%"></i></div><b>${planned}%</b></div>
-    <div class="home-pa-line"><span>الفعلي</span><div class="home-pa-track actual"><i style="width:${Math.max(0,Math.min(100,compliance))}%"></i></div><b>${compliance}%</b></div>
-    <div class="home-pa-line"><span>الفرق</span><div class="home-pa-track variance"><i style="width:${Math.max(0,Math.min(100,Math.abs(variance)))}%;background:${variance>=0?'#43ee8d':'#ff5e6b'}"></i></div><b class="${variance>=0?'green':'red'}">${variance>0?'+':''}${variance}%</b></div>
+    <div class="home-pa-line"><span>الفعلي</span><div class="home-pa-track actual"><i style="width:${Math.max(0,Math.min(100,actualVal))}%"></i></div><b>${actualVal}%</b></div>
+    <div class="home-pa-line"><span>الفرق</span><div class="home-pa-track variance"><i style="width:${Math.max(0,Math.min(100,ratio))}%;background:${ratio>=100?'#43ee8d':'#ff5e6b'}"></i></div><b class="${ratio>=100?'green':'red'}">${ratio}%</b></div>
   </div>`;
 }
 
