@@ -31,7 +31,7 @@ const GRAY   = "6B7280";
 
 const DONE_SET   = ["مكتملة","معتمدة","Completed","Cleared","مكتمل","معتمد"];
 const ACTIVE_SET = ["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"];
-const RISK_SET   = ["معرضة للخطر","معرض للخطر","At Risk","متأخر","متأخرة","متاخرة","Overdue"];
+const RISK_SET   = ["معرضة للخطر","معرض للخطر","At Risk"];
 const isDone   = s => DONE_SET.includes(s);
 const isActive = s => ACTIVE_SET.includes(s);
 const isRiskS  = s => RISK_SET.includes(s);

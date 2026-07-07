@@ -189,7 +189,7 @@ function normalizeHeader(h){
 }
 const DONE_SET=["مكتملة","معتمدة","Completed","Cleared"];
 const ACTIVE_SET=["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"];
-const RISK_SET=["معرضة للخطر","معرض للخطر","At Risk","متأخرة","متاخرة","متأخر","Overdue"];
+const RISK_SET=["معرضة للخطر","معرض للخطر","At Risk"];
 
 /* ============ تحليل CSV ============ */
 function parseCSV(text){
