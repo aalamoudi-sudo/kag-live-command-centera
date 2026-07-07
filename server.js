@@ -188,8 +188,8 @@ function normalizeHeader(h){
     .replace("تاريخالاستحقاق","due");
 }
 const DONE_SET=["مكتملة","معتمدة","Completed","Cleared"];
-const ACTIVE_SET=["قيد التنفيذ","تحت المتابعة","In Progress","Watch"];
-const RISK_SET=["معرضة للخطر","معرض للخطر","At Risk","متأخر"];
+const ACTIVE_SET=["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"];
+const RISK_SET=["معرضة للخطر","معرض للخطر","At Risk","متأخرة","متاخرة","متأخر","Overdue"];
 
 /* ============ تحليل CSV ============ */
 function parseCSV(text){
