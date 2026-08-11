@@ -341,7 +341,7 @@ function dependencyConflicts(){
   const out=[];
   (state.items||[]).forEach(me=>{
     if(!me.dependsOn) return;
-    me.dependsOn.split(",").map(s=>s.trim()).filter(Boolean).forEach(depId=>{
+    me.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(depId=>{
       const pred = itemById(depId);
       if(!pred) return;
       if(ACTIVE_STATUSES_DEP.includes(me.status) && !DONE_STATUSES_DEP.includes(pred.status)){
@@ -356,7 +356,7 @@ function dependencyConflictsForTrack(trackId){
 }
 function dependsOnBadgeHtml(item){
   if(!item.dependsOn) return "";
-  const ids = item.dependsOn.split(",").map(s=>s.trim()).filter(Boolean);
+  const ids = item.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean);
   const titles = ids.map(id=>{ const p=itemById(id); return p ? p.title : id; });
   return `<span class="dep-badge" title="${escH(titles.join('، '))}">🔗 يعتمد على: ${escH(titles.join('، '))}</span>`;
 }
@@ -388,7 +388,7 @@ function crossTrackDependencyMatrix(){
   const matrix = {};
   (state.items||[]).forEach(me=>{
     if(!me.dependsOn) return;
-    me.dependsOn.split(",").map(s=>s.trim()).filter(Boolean).forEach(depId=>{
+    me.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(depId=>{
       const pred = itemById(depId);
       if(!pred || !pred.track || pred.track===me.track) return; // نتجاهل الاعتماديات داخل المسار نفسه
       matrix[me.track] = matrix[me.track] || {};
@@ -402,7 +402,7 @@ function intraTrackDependencyCounts(){
   const counts = {};
   (state.items||[]).forEach(me=>{
     if(!me.dependsOn) return;
-    me.dependsOn.split(",").map(s=>s.trim()).filter(Boolean).forEach(depId=>{
+    me.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(depId=>{
       const pred = itemById(depId);
       if(!pred || !pred.track || pred.track!==me.track) return; // نحسب فقط الاعتماديات الداخلية لنفس المسار
       counts[me.track] = counts[me.track] || new Set();
@@ -421,7 +421,7 @@ function crossTrackDependencyHtml(){
   const crossItemIds = new Set();
   (state.items||[]).forEach(me=>{
     if(!me.dependsOn) return;
-    me.dependsOn.split(",").map(s=>s.trim()).filter(Boolean).forEach(depId=>{
+    me.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(depId=>{
       const pred = itemById(depId);
       if(pred && pred.track && pred.track!==me.track) crossItemIds.add(me.id || `${me.track}:${me.title}`);
     });
