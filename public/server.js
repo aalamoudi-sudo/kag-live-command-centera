@@ -234,7 +234,7 @@ function rowsToItems(rows){
       status: clean(r[map.status]||"قيد التنفيذ", 60),
       due: clean(r[map.due], 40),
       id: map.id>=0 ? clean(r[map.id], 20) : "",
-      dependsOn: map.dependson>=0 ? clean(r[map.dependson], 20) : "",
+      dependsOn: map.dependson>=0 ? clean(r[map.dependson], 500) : "",
       startDate: map.startdate>=0 ? clean(r[map.startdate], 40) : ""
     };
     if(!VALID_TRACKS.includes(item.track) || !item.title) return;
