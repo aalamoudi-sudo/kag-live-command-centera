@@ -2825,3 +2825,83 @@ footer{display:none!important;}
 .next-deadline span{font-size:14px;color:var(--sand,#e8bd98);font-weight:900}
 .next-deadline.empty{color:var(--muted,#9ab8c1);font-size:14px;text-align:center;justify-content:center}
 
+/* ===== Dashboard layout alignment (presentation only) ===== */
+/* Keep the urgent action compact; its content and click target remain unchanged. */
+#overview .home-action-card{
+  min-height:0;
+  padding:14px 16px;
+}
+#overview .home-action-content{
+  grid-template-columns:58px minmax(0,1fr);
+  gap:12px;
+  margin-top:10px;
+}
+#overview .home-action-icon{
+  width:54px;
+  height:54px;
+  border-radius:16px;
+  font-size:34px;
+}
+#overview .home-action-content h3{margin-bottom:4px;font-size:24px}
+#overview .home-action-content p{margin-top:0;line-height:1.35}
+#overview .home-action-chip{margin-top:5px;padding:3px 10px}
+
+/* Six equal KPI columns followed by three equal, double-column cards. */
+#overview .home-kpi-grid{
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  grid-auto-flow:row;
+  gap:10px;
+  margin-bottom:14px!important;
+}
+#overview .home-kpi-grid .kpi{
+  min-width:0;
+  min-height:104px;
+  height:104px;
+  padding:13px 10px;
+}
+#overview .home-kpi-grid .kpi:before{margin-bottom:10px}
+#overview .home-kpi-grid .kpi h3{font-size:38px}
+#overview .home-kpi-grid .kpi small{font-size:17px;line-height:1.15}
+#overview .home-kpi-grid .kpi:nth-child(6){order:1} /* المهام المتأخرة */
+#overview .home-kpi-grid .kpi:nth-child(5){order:2} /* مخاطر مفتوحة */
+#overview .home-kpi-grid .kpi:nth-child(4){order:3} /* لم تبدأ */
+#overview .home-kpi-grid .kpi:nth-child(3){order:4} /* مهام نشطة */
+#overview .home-kpi-grid .kpi:nth-child(2){order:5} /* المهام المنجزة */
+#overview .home-kpi-grid .kpi:nth-child(1){order:6} /* إجمالي المهام */
+#overview .home-kpi-grid .kpi:nth-child(9){order:7;grid-column:span 2} /* جاهزية الافتتاح */
+#overview .home-kpi-grid .kpi:nth-child(8){order:8;grid-column:span 2} /* الإنجاز العام */
+#overview .home-kpi-grid .kpi:nth-child(7){order:9;grid-column:span 2} /* مهام اعتمادية */
+
+/* Project comparison spans the row; the four existing tracks align beneath it. */
+#overview .home-tracks-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+#overview .home-tracks-grid .project-pa-card{grid-column:1/-1;padding:14px 16px}
+#overview .home-tracks-grid .track-card{
+  min-width:0;
+  min-height:0;
+  padding:14px;
+}
+#overview .home-tracks-grid .track-head{gap:10px}
+#overview .home-tracks-grid .track-title{gap:9px;min-width:0}
+#overview .home-tracks-grid .badge{width:40px;height:40px;font-size:20px;flex:0 0 auto}
+#overview .home-tracks-grid .track-card h3{font-size:21px;line-height:1.15}
+#overview .home-tracks-grid .track-card h4{font-size:15px}
+#overview .home-tracks-grid .track-body{margin-top:14px;gap:10px 12px}
+#overview .home-tracks-grid .planned-actual-box{margin-top:9px}
+#overview .home-tracks-grid .spark{margin-top:10px}
+#overview .home-tracks-grid .track-foot{margin-top:8px;font-size:15px;gap:8px}
+#overview .home-tracks-grid .cross-track-panel{grid-column:1/-1;min-height:0}
+
+@media(max-width:1500px){
+  #overview .home-tracks-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:1100px){
+  #overview .home-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  #overview .home-kpi-grid .kpi{grid-column:span 1!important}
+  #overview .home-tracks-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  #overview .home-kpi-grid{grid-template-columns:1fr!important}
+}
