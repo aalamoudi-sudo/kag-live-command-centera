@@ -2805,6 +2805,81 @@ footer{display:none!important;}
 .cross-track-stat.muted{color:var(--muted);font-weight:700;font-size:14px}
 .cross-track-stat.muted b{color:var(--sand)}
 
+/* Keep dependency rows visually balanced without changing their generated content. */
+.cross-track-targets{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(290px,340px));
+  justify-content:start;
+}
+.cross-track-chip{
+  width:100%;
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.cross-track-targets:not(:has(.cross-track-chip:not(.intra-chip)))::after{
+  content:"لا يوجد اعتماد خارجي";
+  box-sizing:border-box;
+  min-height:38px;
+  padding:6px 12px;
+  border:1px solid rgba(159,176,195,.24);
+  border-radius:7px;
+  background:rgba(159,176,195,.07);
+  color:#9FAFC0;
+  font-size:15px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+/* Give both dashboard streams one viewport and consistent item rhythm. */
+.home-bottom-panel{
+  height:366px;
+  min-height:366px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.home-bottom-panel > .panel-title{
+  flex:0 0 auto;
+}
+.home-bottom-panel > .home-feed,
+.home-bottom-panel > .home-risk-list{
+  height:auto!important;
+  max-height:none;
+  min-height:0;
+  flex:1 1 auto;
+  overflow-y:auto;
+  padding-inline-end:2px;
+}
+.home-bottom-panel > .home-feed,
+.home-bottom-panel > .home-risk-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.home-bottom-panel .feed-item,
+.home-bottom-panel .risk-row{
+  flex:0 0 auto;
+  margin:0;
+  padding:11px;
+}
+.home-bottom-panel .risk-row{
+  border:1px solid rgba(130,168,179,.13);
+  border-radius:8px;
+}
+
+@media(max-width:780px){
+  .cross-track-targets{
+    width:100%;
+    grid-template-columns:1fr;
+  }
+}
+
 /* ============ ألوان إضافية لخانات KPI ============ */
 .kpi.gray{color:#9ab8c1}
 .kpi.purple{color:#C17CFF}
