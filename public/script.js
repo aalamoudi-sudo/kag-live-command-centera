@@ -756,12 +756,12 @@ function renderKpis(){
   const k = kpis();
   const readiness = v22OpeningReadiness();
   overviewKpis.innerHTML=[
-    ["cyan",k.total,"إجمالي المهام","tasks"],
-    ["green",k.done,"المهام المنجزة","tasks-done"],
-    ["amber",k.active,"مهام نشطة","tasks-active"],
-    ["gray",k.notStarted,"لم تبدأ","tasks-notstarted"],
-    ["red",k.risk,"مخاطر مفتوحة","risks"],
     ["red",k.lateTasks,"المهام المتأخرة","tasks-late"],
+    ["red",k.risk,"مخاطر مفتوحة","risks"],
+    ["gray",k.notStarted,"لم تبدأ","tasks-notstarted"],
+    ["amber",k.active,"مهام نشطة","tasks-active"],
+    ["green",k.done,"المهام المنجزة","tasks-done"],
+    ["cyan",k.total,"إجمالي المهام","tasks"],
     ["purple",k.dependentTasks,"مهام اعتمادية","dependent"],
     ["sand",k.overall+"%","الإنجاز العام","track"],
     ["cyan",readiness+"%","جاهزية الافتتاح","milestones"]
