@@ -6,6 +6,7 @@
  */
 
 const PptxGenJS = require("pptxgenjs");
+const {isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
 
 const TRACK_NAMES = {
   "أ": "التخطيط والتنسيق",
@@ -31,7 +32,7 @@ const GRAY   = "6B7280";
 
 const DONE_SET   = ["مكتملة","معتمدة","Completed","Cleared","مكتمل","معتمد"];
 const ACTIVE_SET = ["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"];
-const RISK_SET   = ["معرضة للخطر","معرض للخطر","At Risk"];
+const RISK_SET   = ["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","معرضة للخطر","معرض للخطر","At Risk"];
 const isDone   = s => DONE_SET.includes(s);
 const isActive = s => ACTIVE_SET.includes(s);
 const isRiskS  = s => RISK_SET.includes(s);
@@ -355,7 +356,7 @@ function addTasksSlide(pptx, tasks, title, trackId) {
     { label:"المهمة",   w:4.0, get:t=>t.title },
     { label:"المسؤول", w:2.0, get:t=>t.owner||"—" },
     { label:"الموعد",  w:1.2, get:t=>fmtDate(t.due) },
-    { label:"الحالة",  w:1.5, get:t=>t.status||"—", colorFn:t=>statusColor(t.status) }
+    { label:"الحالة",  w:1.5, get:t=>getTaskDisplayStatus(t)||"—", colorFn:t=>statusColor(getTaskDisplayStatus(t)) }
   ] : [
     { label:"المسار",   w:1.4, get:t=>t.track||"—" },
     { label:"المهمة",   w:3.4, get:t=>t.title },
@@ -383,7 +384,7 @@ async function buildComprehensivePptx(state) {
   const risks   = items.filter(i=>isRisk(i)&&!isDone(i.status));
   const totDone = tasks.filter(i=>isDone(i.status)).length;
   const totAct  = tasks.filter(i=>isActive(i.status)).length;
-  const totLate = tasks.filter(i=>isRiskS(i.status)).length;
+  const totLate = tasks.filter(isTaskOverdue).length;
   const ovr     = tracks.length ? Math.round(tracks.reduce((s,t)=>s+(t.progress||0),0)/tracks.length) : 0;
   const days    = daysToOpen(state.project?.openingDate);
 
@@ -409,7 +410,7 @@ async function buildComprehensivePptx(state) {
   addTracksSlide(pptx, tracks);
 
   // 4. المهام الجارية والمتأخرة
-  const criticals = tasks.filter(i=>isRiskS(i.status)||isActive(i.status)).slice(0,30);
+  const criticals = tasks.filter(i=>isTaskOverdue(i)||isActive(i.status)).slice(0,30);
   if (criticals.length) addTasksSlide(pptx, criticals, "المهام الجارية والمتأخرة", null);
 
   // 5. المخاطر
@@ -449,7 +450,7 @@ async function buildTrackPptx(state, tid) {
   const tRisks  = ti.filter(i=>isRisk(i)&&!isDone(i.status));
   const tDone   = tTasks.filter(i=>isDone(i.status)).length;
   const tAct    = tTasks.filter(i=>isActive(i.status)).length;
-  const tLate   = tTasks.filter(i=>isRiskS(i.status)).length;
+  const tLate   = tTasks.filter(isTaskOverdue).length;
   const days    = daysToOpen(state.project?.openingDate);
 
   // 1. الغلاف
@@ -471,7 +472,7 @@ async function buildTrackPptx(state, tid) {
   ], `مؤشرات مسار ${tid}: ${nm}`);
 
   // 3. المهام الجارية
-  const activeTasks = tTasks.filter(i=>isActive(i.status)||isRiskS(i.status));
+  const activeTasks = tTasks.filter(i=>isActive(i.status)||isTaskOverdue(i));
   if (activeTasks.length) addTasksSlide(pptx, activeTasks, "المهام الجارية والمتأخرة", tid);
 
   // 4. سجل المهام الكامل
