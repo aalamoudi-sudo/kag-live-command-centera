@@ -1,4 +1,5 @@
 "use strict";
+const {isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
 /**
  * report-generator.js — v6 Executive Edition
  * تصميم حكومي رسمي راقٍ: كحلي عميق / ذهبي / أبيض
@@ -20,7 +21,7 @@ const TRACK_COLORS = {
 };
 const DONE_SET   = ["مكتملة","معتمدة","Completed","Cleared","مكتمل","معتمد"];
 const ACTIVE_SET = ["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"];
-const RISK_SET   = ["معرضة للخطر","معرض للخطر","At Risk"];
+const RISK_SET   = ["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","معرضة للخطر","معرض للخطر","At Risk"];
 
 const isDone     = s => DONE_SET.includes(s);
 const isActive   = s => ACTIVE_SET.includes(s);
@@ -503,7 +504,7 @@ function tlRows(arr, showTrack){
         ${showTrack&&i.track?`<span>📌 ${TRACK_NAMES[i.track]||i.track}</span>`:""}
         ${i.owner?`<span>👤 ${i.owner}</span>`:""}
         ${i.due?`<span>📅 ${fmtDate(i.due)}</span>`:""}
-        ${statusBadge(i.status)}
+        ${statusBadge(isRiskItem(i)?i.status:getTaskDisplayStatus(i))}
       </div>
     </div>`).join("");
 }
@@ -525,7 +526,7 @@ function taskTable(tasks, showTrack){
         <td class="col-title">${t.title||"—"}</td>
         <td class="col-meta">${t.owner||"—"}</td>
         <td class="col-date">${fmtDate(t.due)}</td>
-        <td>${statusBadge(t.status)}</td>
+        <td>${statusBadge(getTaskDisplayStatus(t))}</td>
       </tr>`).join("")}
     </tbody>
   </table>`;
@@ -582,12 +583,12 @@ function buildComprehensive(state, reportDate){
   const risks    = items.filter(i=>isRiskItem(i)&&!isDone(i.status));
   const totDone  = tasks.filter(i=>isDone(i.status)).length;
   const totAct   = tasks.filter(i=>isActive(i.status)).length;
-  const totLate  = tasks.filter(i=>isRiskS(i.status)).length;
+  const totLate  = tasks.filter(isTaskOverdue).length;
   const ovr      = tracks.length
     ? Math.round(tracks.reduce((s,t)=>s+(t.progress||0),0)/tracks.length) : 0;
 
   const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(tasks,buckets);
-  const criticals = tasks.filter(i=>isRiskS(i.status)).slice(0,20);
+  const criticals = tasks.filter(isTaskOverdue).slice(0,20);
 
   // بطاقات المسارات
   const trackCards = tracks.map(t=>{
@@ -597,7 +598,7 @@ function buildComprehensive(state, reportDate){
     const tR  = ti.filter(i=>isRiskItem(i)&&!isDone(i.status));
     const tD  = tT.filter(i=>isDone(i.status)).length;
     const tA  = tT.filter(i=>isActive(i.status)).length;
-    const tLt = tT.filter(i=>isRiskS(i.status)).length;
+    const tLt = tT.filter(isTaskOverdue).length;
     return `<div class="track-card">
       <div class="track-head" style="background:${tc.bg}">
         <div class="track-letter">${t.id||""}</div>
@@ -795,10 +796,10 @@ function buildTrack(state, tid, reportDate){
   const tR       = ti.filter(i=>isRiskItem(i)&&!isDone(i.status));
   const tDone    = tT.filter(i=>isDone(i.status)).length;
   const tActive  = tT.filter(i=>isActive(i.status)).length;
-  const tLate    = tT.filter(i=>isRiskS(i.status)).length;
+  const tLate    = tT.filter(isTaskOverdue).length;
 
   const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(tT,buckets);
-  const activeTasks = tT.filter(i=>isActive(i.status)||isRiskS(i.status)).slice(0,20);
+  const activeTasks = tT.filter(i=>isActive(i.status)||isTaskOverdue(i)).slice(0,20);
   const allTasks    = tT.slice(0,40);
 
   const execGrid = latestLog ? `

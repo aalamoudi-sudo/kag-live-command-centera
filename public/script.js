@@ -1,18 +1,20 @@
 const defaultState={project:{title:"حدائق الملك عبدالله",phase:"مرحلة ما قبل الإطلاق",openingDate:"2026-11-01"},tracks:[{id:"أ",slug:"track-a",name:"التخطيط والتنسيق",ar:"Planning & Coordination",sub:"الحوكمة · الجدول الزمني · المخرجات · الاعتمادات · التصاريح · المخاطر · التغيير",status:"ضمن المسار",progress:83,tasks:18,done:15,active:3,risk:0,lead:"قائد مسار التخطيط والتنسيق",focus:"التنسيق والمتابعة مع أصحاب المصلحة",accent:"#7E6BFF"},{id:"ب",slug:"track-b",name:"الإعلام والتغطية",ar:"Communication & Marketing",sub:"الخطة الإعلامية · التغطية · التوثيق · الرسائل الإعلامية · المركز الإعلامي · المحتوى",status:"ضمن المسار",progress:58,tasks:24,done:14,active:7,risk:2,lead:"قائد مسار الإعلام والتغطية",focus:"إعداد التقارير والعروض المرتبطة بالمسار والتنسيق الإعلامي",accent:"#A98BFF"},{id:"ج",slug:"track-c",name:"الحفل الرسمي وفعالياته المصاحبة",ar:"Events & Supporting Activities",sub:"الضيافة · الإنتاج التقني · العروض الفنية · إدارة الحضور · VIP · البروتوكول",status:"تحت المتابعة",progress:41,tasks:21,done:9,active:8,risk:2,lead:"قائد مسار الحفل الرسمي وفعالياته المصاحبة",focus:"ضبط تجربة الفعالية والأنشطة المصاحبة والبروتوكول",accent:"#D9B86C"},{id:"د",slug:"track-d",name:"تجهيز وتفعيل الحديقة",ar:"Garden Setup & Activation",sub:"الحديقة · المسارات · النقل · السلامة والطوارئ · الاستدامة · البيئة · الجاهزية · التشغيل الميداني",status:"معرض للخطر",progress:47,tasks:24,done:8,active:5,risk:3,lead:"قائد مسار تجهيز وتفعيل الحديقة",focus:"جاهزية الحديقة والتشغيل الميداني وتفعيل الموقع",accent:"#6454C8"}],items:[{track:"أ",type:"tasks",title:"تثبيت الجدول الزمني وخطة الاعتمادات",owner:"PMC",status:"مكتملة",due:"2026-08-20"},{track:"أ",type:"milestones",title:"اعتماد سجل المخرجات والمخاطر",owner:"PMC",status:"مكتملة",due:"2026-08-22"},{track:"ب",type:"tasks",title:"إعداد خطة التواصل والتغطية الإعلامية",owner:"الإعلام والتغطية",status:"قيد التنفيذ",due:"2026-08-29"},{track:"ب",type:"risks",title:"تأخر اعتماد المحتوى الإعلامي",owner:"الإعلام والتغطية",status:"تحت المتابعة",due:"2026-08-29"},{track:"ج",type:"tasks",title:"تجهيز خطة الضيافة والبروتوكول و VIP",owner:"الفعاليات",status:"قيد التنفيذ",due:"2026-09-10"},{track:"ج",type:"milestones",title:"اعتماد برنامج الأنشطة المصاحبة",owner:"الفعاليات",status:"تحت المتابعة",due:"2026-09-18"},{track:"د",type:"tasks",title:"جاهزية مسارات الحديقة والتشغيل الميداني",owner:"التشغيل الميداني",status:"معرضة للخطر",due:"2026-09-24"},{track:"د",type:"risks",title:"اختبار السلامة والطوارئ والاستدامة",owner:"السلامة",status:"معرضة للخطر",due:"2026-09-12"}],feed:[],dailyLogs:[],decisions:[],snapshots:[]};
 let state=JSON.parse(localStorage.getItem("kagV6BulkImport")||"null")||structuredClone(defaultState);
 if(state&&state.project)state.project.openingDate="2026-11-01";
+const {isTaskOverdue,getTaskDisplayStatus}=PMCTaskStatus;
+function displayStatus(item){return item&&item.type==="tasks"?getTaskDisplayStatus(item):String(item&&item.status||"");}
 function escH(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
 const feedTemplates=[["تحديث PMO","تم تحديث النظرة العامة للمسارات الأربعة","cyan"],["تحديث مسار","تم تحديث جاهزية مسار تجهيز وتفعيل الحديقة","amber"],["تحديث تصريح","تم اعتماد تصريح الدفاع المدني","green"],["تصعيد مخاطرة","اختبار الكهرباء الاحتياطية يحتاج متابعة عاجلة","red"],["تحديث إعلامي","تم رفع خطة الإعلام والتغطية للمراجعة","cyan"],["معلم رئيسي","تم اعتماد خط الأساس للحوكمة","green"]];
 function save(){localStorage.setItem("kagV6BulkImport",JSON.stringify(state))}function now(){return new Date().toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}
 function normalizeTrack(v){v=(v||"").trim();const map={A:"أ",B:"ب",C:"ج",D:"د",E:"هـ","ه":"هـ","هـ":"هـ","ا":"أ","أ":"أ","ب":"ب","ج":"ج","د":"د"};return map[v.toUpperCase?.()||v]||map[v]||v}
 function normalizeType(v){v=(v||"").trim().toLowerCase();if(["task","tasks","مهمة","مهام"].includes(v))return"tasks";if(["risk","risks","مخاطرة","مخاطر"].includes(v))return"risks";if(["permit","permits","approval","approvals","تصريح","تصاريح","اعتماد","اعتمادات"].includes(v))return"permits";if(["milestone","milestones","معلم","معلم رئيسي","معالم"].includes(v))return"milestones";return v||"tasks"}
-function colorByStatus(s){if(["مكتملة","معتمدة","ضمن المسار","Completed","Cleared"].includes(s))return"green";if(["تحت المتابعة","قيد التنفيذ","Watch","In Progress"].includes(s))return"amber";if(["معرضة للخطر","معرض للخطر","مرفوضة","At Risk"].includes(s))return"red";return"cyan"}
+function colorByStatus(s){if(["مكتملة","معتمدة","ضمن المسار","Completed","Cleared"].includes(s))return"green";if(["تحت المتابعة","قيد التنفيذ","Watch","In Progress"].includes(s))return"amber";if(["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","معرضة للخطر","معرض للخطر","مرفوضة","At Risk"].includes(s))return"red";return"cyan"}
 function daysToOpen(){const d=new Date(state.project.openingDate),n=new Date();return Math.max(0,Math.ceil((d-n)/(1000*60*60*24)))}
-function kpis(){const total=state.tracks.reduce((s,t)=>s+Number(t.tasks||0),0);const done=state.tracks.reduce((s,t)=>s+Number(t.done||0),0);const active=state.tracks.reduce((s,t)=>s+Number(t.active||0),0);const risk=state.items.filter(i=>i.type==="risks"&&!["مغلقة","مكتملة","معتمدة"].includes(i.status)).length;const lateTasks=state.items.filter(i=>i.type==="tasks"&&["متأخرة","متاخرة","متأخر","Overdue"].includes(i.status)).length;const notStarted=state.items.filter(i=>i.type==="tasks"&&i.status==="لم يبدأ").length;const dependentTasks=(state.items||[]).filter(i=>i.dependsOn&&String(i.dependsOn).trim()!=="").length;return{total,done,active,risk,lateTasks,notStarted,dependentTasks,overall:total?Math.round(done/total*100):0,days:daysToOpen()}}
+function kpis(){const total=state.tracks.reduce((s,t)=>s+Number(t.tasks||0),0);const done=state.tracks.reduce((s,t)=>s+Number(t.done||0),0);const active=state.tracks.reduce((s,t)=>s+Number(t.active||0),0);const risk=state.items.filter(i=>i.type==="risks"&&!["مغلقة","مكتملة","معتمدة"].includes(i.status)).length;const lateTasks=state.items.filter(i=>i.type==="tasks"&&isTaskOverdue(i)).length;const notStarted=state.items.filter(i=>i.type==="tasks"&&i.status==="لم يبدأ").length;const dependentTasks=(state.items||[]).filter(i=>i.dependsOn&&String(i.dependsOn).trim()!=="").length;return{total,done,active,risk,lateTasks,notStarted,dependentTasks,overall:total?Math.round(done/total*100):0,days:daysToOpen()}}
 function renderKpis(){const k=kpis();overviewKpis.innerHTML=[["cyan",k.total,"إجمالي المهام"],["green",k.done,"المهام المنجزة"],["amber",k.active,"مهام نشطة"],["gray",k.notStarted,"لم تبدأ"],["red",k.risk,"مخاطر مفتوحة"],["sand",k.overall+"%","الإنجاز العام"],["cyan",k.days,"يوم على الافتتاح"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("")}
 function trackCard(t){return`<article class="track-card glass" style="--accent:${t.accent};--value:${t.progress}"><div class="track-head"><div class="track-title"><div class="badge">${t.id}</div><div><h3>${t.name}</h3><h4>${t.ar}</h4></div></div><div class="status">${t.status}</div></div><div class="track-body"><div class="ring"><b>${t.progress}%</b></div><div class="mini-grid"><div class="mini"><b>${t.tasks}</b><small>المهام</small></div><div class="mini"><b style="color:#8E7BFF">${t.done}</b><small>منجزة</small></div><div class="mini"><b style="color:#D8CCFF">${t.active}</b><small>نشطة</small></div><div class="mini"><b style="color:#C17CFF">${t.risk}</b><small>خطر</small></div></div></div><div class="spark"></div><div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div></article>`}
 function renderOverview(){tracksSummary.innerHTML=state.tracks.map(trackCard).join("");const risks=state.items.filter(i=>i.type==="risks");riskSnapshot.innerHTML=risks.length?risks.map(r=>`<div class="risk-row"><span>${r.title}</span><strong class="${colorByStatus(r.status)}">${r.status}</strong></div>`).join(""):`<p>لا توجد مخاطر مسجلة.</p>`}
-function renderTrackPages(){state.tracks.forEach(t=>{const el=document.getElementById(t.slug);const items=type=>state.items.filter(i=>i.track===t.id&&i.type===type);const table=(title,rows)=>`<div class="glass panel"><div class="panel-title"><b></b><h3>${title}</h3></div><div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span>الاستحقاق</span></div>${rows.length?rows.map(i=>`<div class="data-row"><span>${i.title}</span><span>${i.owner}</span><strong class="${colorByStatus(i.status)}">${i.status}</strong><span>${i.due||"-"}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}"><div class="track-hero glass"><div class="track-hero-inner"><div><h2>${t.id} · ${t.name}</h2><p>${t.ar} · ${t.sub}</p></div><div class="ring"><b>${t.progress}%</b></div></div><div class="track-kpis"><div class="track-kpi"><b>${t.tasks}</b><small>إجمالي المهام</small></div><div class="track-kpi"><b>${t.done}</b><small>المهام المنجزة</small></div><div class="track-kpi"><b>${t.active}</b><small>المهام النشطة</small></div><div class="track-kpi"><b>${t.risk}</b><small>المهام المعرضة للخطر</small></div></div></div>${table("المهام",items("tasks"))}${table("المخاطر",items("risks"))}${table("التصاريح والاعتمادات",items("permits"))}${table("المعالم الرئيسية",items("milestones"))}</div>`})}
+function renderTrackPages(){state.tracks.forEach(t=>{const el=document.getElementById(t.slug);const items=type=>state.items.filter(i=>i.track===t.id&&i.type===type);const table=(title,rows)=>`<div class="glass panel"><div class="panel-title"><b></b><h3>${title}</h3></div><div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span>الاستحقاق</span></div>${rows.length?rows.map(i=>`<div class="data-row"><span>${i.title}</span><span>${i.owner}</span><strong class="${colorByStatus(displayStatus(i))}">${displayStatus(i)}</strong><span>${i.due||"-"}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}"><div class="track-hero glass"><div class="track-hero-inner"><div><h2>${t.id} · ${t.name}</h2><p>${t.ar} · ${t.sub}</p></div><div class="ring"><b>${t.progress}%</b></div></div><div class="track-kpis"><div class="track-kpi"><b>${t.tasks}</b><small>إجمالي المهام</small></div><div class="track-kpi"><b>${t.done}</b><small>المهام المنجزة</small></div><div class="track-kpi"><b>${t.active}</b><small>المهام النشطة</small></div><div class="track-kpi"><b>${t.risk}</b><small>المهام المعرضة للخطر</small></div></div></div>${table("المهام",items("tasks"))}${table("المخاطر",items("risks"))}${table("التصاريح والاعتمادات",items("permits"))}${table("المعالم الرئيسية",items("milestones"))}</div>`})}
 function addFeed(item){const p=item||feedTemplates[Math.floor(Math.random()*feedTemplates.length)];state.feed.unshift({time:now(),title:p[0],msg:p[1],level:p[2]});state.feed=state.feed.slice(0,25);save();renderFeed()}
 function renderFeed(){liveFeed.innerHTML=state.feed.slice(0,10).map(f=>`<div class="feed-item"><div class="feed-time">${escH(f.time)}</div><div><strong class="${f.level}">${escH(f.title)}</strong><span>${escH(f.msg)}</span></div></div>`).join("")}
 function renderForms(){const opts=state.tracks.map(t=>`<option value="${t.id}">${t.id} · ${t.name}</option>`).join("");trackSelect.innerHTML=opts;itemTrack.innerHTML=opts;if(typeof dailyTrack!=="undefined") dailyTrack.innerHTML=opts;if(typeof decisionTrack!=="undefined") decisionTrack.innerHTML=opts}
@@ -122,7 +124,7 @@ function showDetails(type, trackId=null){
   }else if(type === "tasks-late"){
     title = "تفاصيل المهام المتأخرة";
     subtitle = trackId ? "المهام المتأخرة بالمسار المحدد" : "جميع المهام المتأخرة على مستوى المشروع";
-    items = state.items.filter(i=>i.type==="tasks" && ["متأخرة","متاخرة","متأخر","Overdue"].includes(i.status) && (!trackId || i.track===trackId));
+    items = state.items.filter(i=>i.type==="tasks" && isTaskOverdue(i) && (!trackId || i.track===trackId));
   }
 
   // لوحة التفاصيل: تُنشأ ديناميكيًا إذا لم تكن موجودة في الصفحة (حماية كاملة).
@@ -139,7 +141,7 @@ function showDetails(type, trackId=null){
       <p style="margin:2px 0"><b>المسار:</b> ${escH(i.track)}</p>
       <p style="margin:2px 0"><b>النوع:</b> ${escH(i.type)}</p>
       <p style="margin:2px 0"><b>المسؤول:</b> ${escH(i.owner) || "-"}</p>
-      <p style="margin:2px 0"><b>الحالة:</b> <span class="${colorByStatus(i.status)}">${escH(i.status) || "-"}</span></p>
+      <p style="margin:2px 0"><b>الحالة:</b> <span class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i)) || "-"}</span></p>
       <p style="margin:2px 0"><b>الاستحقاق:</b> ${escH(i.due) || "-"}</p>
       ${depLine}
     </div>
@@ -253,7 +255,7 @@ function renderTrackPages(){
     const table=(title,type,rows)=>`<div class="glass panel">
       <div class="panel-title"><b></b><h3 class="clickable-status" onclick="showDetails('${type}','${t.id}')">${title}</h3></div>
       <div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span>الاستحقاق</span></div>
-      ${rows.length?rows.map(i=>`<div class="data-row clickable-card" onclick="showDetails('${type}','${t.id}')"><span>${escH(i.title)}${dependsOnBadgeHtml(i)}</span><span>${escH(i.owner)}</span><strong class="${colorByStatus(i.status)}">${escH(i.status)}</strong><span>${escH(i.due)||"-"}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;
+      ${rows.length?rows.map(i=>`<div class="data-row clickable-card" onclick="showDetails('${type}','${t.id}')"><span>${escH(i.title)}${dependsOnBadgeHtml(i)}</span><span>${escH(i.owner)}</span><strong class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i))}</strong><span>${escH(i.due)||"-"}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;
     const planned = plannedForTrack(t);
     const trackConflictCount = dependencyConflictsForTrack(t.id).length;
     el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}">
@@ -451,15 +453,7 @@ function crossTrackDependencyHtml(){
 }
 
 function v20OverdueItems(){
-  const DONE = ["مكتملة","معتمدة","Completed","Cleared","مغلقة"];
-  const now = new Date(); now.setHours(0,0,0,0);
-  return (state.items||[]).filter(i=>{
-    if(DONE.includes(i.status)) return false;
-    if(["متأخرة","متأخر","Overdue"].includes(i.status)) return true;
-    if(!i.due || ["مستمرة","ongoing","—","-"].includes(String(i.due).trim())) return false;
-    const d = parseItemDate(String(i.due).trim());
-    return d && d < now;
-  });
+  return (state.items||[]).filter(i=>i.type==="tasks" && isTaskOverdue(i));
 }
 function v20DueTodayItems(){
   const today = v20TodayISO();
@@ -632,7 +626,7 @@ function v20RenderIntelligence(){
 
   const required = v20DueTodayItems().concat(v20OverdueItems()).slice(0,8);
   requiredTodayBox.innerHTML = required.length ? required.map(i=>`<div class="intel-list-card" onclick="showDetails('${i.type}','${i.track}')">
-    <h4>${i.title}</h4><p>المسار ${i.track} · ${i.status || "-"} · ${i.due || "-"}</p>
+    <h4>${i.title}</h4><p>المسار ${i.track} · ${displayStatus(i) || "-"} · ${i.due || "-"}</p>
   </div>`).join("") : `<div class="hint">لا توجد عناصر مستحقة اليوم أو متأخرة.</div>`;
 
   const alerts = [];
@@ -1201,7 +1195,7 @@ function filterTimeline(items){
     if(activeTimelineTrack !== "all" && i.track !== activeTimelineTrack) return false;
 
     if(activeTimelineFilter === "all") return true;
-    if(activeTimelineFilter === "overdue") return i.diff !== null && i.diff < 0;
+    if(activeTimelineFilter === "overdue") return i.type==="tasks" ? isTaskOverdue(i) : i.diff !== null && i.diff < 0;
     if(activeTimelineFilter === "today") return i.diff === 0;
     if(activeTimelineFilter === "week") return i.diff !== null && i.diff >= 0 && i.diff <= 7;
     if(activeTimelineFilter === "month") return i.diff !== null && i.diff >= 0 && i.diff <= 30;
@@ -1218,6 +1212,7 @@ function tlDueText(diff){
   return `متبقي ${diff} يوم`;
 }
 function tlStatusClass(item){
+  if(item.type==="tasks" && isTaskOverdue(item)) return "red";
   if(item.diff !== null && item.diff < 0 && !["مكتملة","معتمدة","Cleared","Completed"].includes(item.status)) return "red";
   return colorByStatus(item.status);
 }
@@ -1229,7 +1224,7 @@ function currentTimelineTitle(){
 function renderTimeline(){
   if(typeof timelineKpis === "undefined") return;
   const all = timelineItems().filter(i => activeTimelineTrack === "all" || i.track === activeTimelineTrack);
-  const overdue = all.filter(i => i.diff !== null && i.diff < 0 && !["مكتملة","معتمدة","Cleared","Completed"].includes(i.status));
+  const overdue = all.filter(i => i.type==="tasks" ? isTaskOverdue(i) : i.diff !== null && i.diff < 0 && !["مكتملة","معتمدة","Cleared","Completed"].includes(i.status));
   const today = all.filter(i => i.diff === 0);
   const week = all.filter(i => i.diff !== null && i.diff >= 0 && i.diff <= 7);
   const milestones = all.filter(i => i.type === "milestones" && i.diff !== null && i.diff >= 0);
@@ -1253,7 +1248,7 @@ function renderTimeline(){
         <h4>${i.title}</h4>
         <p>${i.track} · ${i.trackName} · ${i.owner || "-"}</p>
       </div>
-      <span class="timeline-status ${tlStatusClass(i)}">${i.status || "-"}</span>
+      <span class="timeline-status ${tlStatusClass(i)}">${escH(displayStatus(i)) || "-"}</span>
     </div>
   `).join("") : `<div class="hint">لا توجد عناصر مطابقة لهذا الفلتر.</div>`;
 
@@ -1937,6 +1932,8 @@ function bindUiSettings(){
 
 function tick(){var clock=document.getElementById("clock");if(clock){clock.textContent=new Date().toLocaleString("ar-SA");}}
 bindMobileUX();bindMobileMenuV17();bindDetailView();v20BindIntelligence();bindTimeline();bindAdminLock();bindBroadcast();bindOps();bindUiSettings();applyUiSettings();renderAll();trackSelect.onchange();tick();setInterval(tick,1000);setInterval(v22UpdateLiveCountdown,1000);v22UpdateLiveCountdown();
+// Re-evaluate time-based task status even when the Google Sheet version has not changed.
+setInterval(renderAll,30000);
 
 
 
