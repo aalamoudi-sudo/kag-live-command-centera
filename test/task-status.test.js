@@ -12,6 +12,17 @@ test("future in-progress task remains in progress",()=>{
   assert.equal(getTaskDisplayStatus(t,atRiyadh("2026-08-19T20:00:00")),"قيد التنفيذ");
 });
 
+test("in-progress task started before its planned start is ahead of schedule",()=>{
+  const t={...task("قيد التنفيذ","25/08/2026",""),startDate:"25/08/2026"};
+  assert.equal(getTaskDisplayStatus(t,atRiyadh("2026-08-21T12:00:00")),"قيد التنفيذ (متقدم عن المسار)");
+  assert.equal(t.status,"قيد التنفيذ");
+});
+
+test("in-progress task within its planned date range has no extra description",()=>{
+  const t={...task("قيد التنفيذ","25/08/2026",""),startDate:"21/08/2026"};
+  assert.equal(getTaskDisplayStatus(t,atRiyadh("2026-08-21T00:00:00")),"قيد التنفيذ");
+});
+
 test("task due at 9 PM is not late at 8 PM",()=>{
   assert.equal(isTaskOverdue(task("قيد التنفيذ","19/08/2026","9:00 PM"),atRiyadh("2026-08-19T20:00:00")),false);
 });
@@ -38,6 +49,18 @@ test("completed task is never late",()=>{
   const t=task("مكتملة","18/08/2026","3:00 PM");
   assert.equal(isTaskOverdue(t,atRiyadh("2026-08-19T12:00:00")),false);
   assert.equal(getTaskDisplayStatus(t),"مكتملة");
+});
+
+test("completed task is early only when its actual completion predates its planned end",()=>{
+  const early={...task("مكتملة","25/08/2026",""),actualCompletionDate:"24/08/2026"};
+  const onTime={...task("مكتملة","25/08/2026",""),actualCompletionDate:"25/08/2026"};
+  assert.equal(getTaskDisplayStatus(early,atRiyadh("2026-08-20T12:00:00")),"مكتملة (منجزة مبكرًا)");
+  assert.equal(getTaskDisplayStatus(onTime,atRiyadh("2026-08-20T12:00:00")),"مكتملة");
+});
+
+test("completed task without an actual completion date is not inferred early from today",()=>{
+  const t=task("مكتملة","25/08/2026","");
+  assert.equal(getTaskDisplayStatus(t,atRiyadh("2026-08-20T12:00:00")),"مكتملة");
 });
 
 test("automatic display status never mutates the sheet status value",()=>{
