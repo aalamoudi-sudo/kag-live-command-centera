@@ -9,6 +9,7 @@
   const DONE_STATUSES = ["مكتملة","معتمدة","Completed","Cleared","مغلقة"];
   const MANUAL_OVERDUE_STATUSES = ["متأخرة","متاخرة","متأخر","Overdue"];
   const IN_PROGRESS_STATUSES = ["قيد التنفيذ","In Progress"];
+  const EARLY_COMPLETION_STATUSES = ["مكتملة","Completed"];
 
   function parseDateParts(value){
     const s = String(value == null ? "" : value).trim();
@@ -45,6 +46,22 @@
     return timestamp;
   }
 
+  function dateKey(value){
+    const date=parseDateParts(value);
+    if(!date) return null;
+    const key=Date.UTC(date.year,date.month-1,date.day);
+    const check=new Date(key);
+    if(check.getUTCFullYear()!==date.year || check.getUTCMonth()!==date.month-1 || check.getUTCDate()!==date.day) return null;
+    return key;
+  }
+
+  function riyadhTodayKey(now){
+    const current=now instanceof Date ? now.getTime() : (typeof now==="number" ? now : Date.now());
+    if(!Number.isFinite(current)) return null;
+    const inRiyadh=new Date(current+RIYADH_OFFSET_MS);
+    return Date.UTC(inRiyadh.getUTCFullYear(),inRiyadh.getUTCMonth(),inRiyadh.getUTCDate());
+  }
+
   function isTaskOverdue(task, now){
     const status=String(task && task.status || "").trim();
     if(DONE_STATUSES.includes(status)) return false;
@@ -57,8 +74,24 @@
 
   function getTaskDisplayStatus(task, now){
     const status=String(task && task.status || "").trim();
-    if(DONE_STATUSES.includes(status) || MANUAL_OVERDUE_STATUSES.includes(status)) return status;
-    return IN_PROGRESS_STATUSES.includes(status) && isTaskOverdue(task,now) ? "قيد التنفيذ - متأخرة" : status;
+    // Display-only enrichment: the original task and its sheet-backed status are never changed.
+    if(DONE_STATUSES.includes(status)){
+      const completed=dateKey(task && task.actualCompletionDate);
+      const plannedEnd=dateKey(task && task.due);
+      if(EARLY_COMPLETION_STATUSES.includes(status) && completed!==null && plannedEnd!==null && completed<plannedEnd){
+        return status==="Completed" ? "Completed (Early)" : "مكتملة (منجزة مبكرًا)";
+      }
+      return status;
+    }
+    if(MANUAL_OVERDUE_STATUSES.includes(status)) return status;
+    if(!IN_PROGRESS_STATUSES.includes(status)) return status;
+    if(isTaskOverdue(task,now)) return status==="In Progress" ? "In Progress - Overdue" : "قيد التنفيذ - متأخرة";
+    const start=dateKey(task && task.startDate);
+    const today=riyadhTodayKey(now);
+    if(start!==null && today!==null && today<start){
+      return status==="In Progress" ? "In Progress (Ahead of Schedule)" : "قيد التنفيذ (متقدم عن المسار)";
+    }
+    return status;
   }
 
   return {isTaskOverdue,getTaskDisplayStatus,taskDueTimestamp,DONE_STATUSES,MANUAL_OVERDUE_STATUSES,IN_PROGRESS_STATUSES};

@@ -9,7 +9,7 @@ const feedTemplates=[["تحديث PMO","تم تحديث النظرة العام�
 function save(){localStorage.setItem("kagV6BulkImport",JSON.stringify(state))}function now(){return new Date().toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}
 function normalizeTrack(v){v=(v||"").trim();const map={A:"أ",B:"ب",C:"ج",D:"د",E:"هـ","ه":"هـ","هـ":"هـ","ا":"أ","أ":"أ","ب":"ب","ج":"ج","د":"د"};return map[v.toUpperCase?.()||v]||map[v]||v}
 function normalizeType(v){v=(v||"").trim().toLowerCase();if(["task","tasks","مهمة","مهام"].includes(v))return"tasks";if(["risk","risks","مخاطرة","مخاطر"].includes(v))return"risks";if(["permit","permits","approval","approvals","تصريح","تصاريح","اعتماد","اعتمادات"].includes(v))return"permits";if(["milestone","milestones","معلم","معلم رئيسي","معالم"].includes(v))return"milestones";return v||"tasks"}
-function colorByStatus(s){if(["مكتملة","معتمدة","ضمن المسار","Completed","Cleared"].includes(s))return"green";if(["تحت المتابعة","قيد التنفيذ","Watch","In Progress"].includes(s))return"amber";if(["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","معرضة للخطر","معرض للخطر","مرفوضة","At Risk"].includes(s))return"red";return"cyan"}
+function colorByStatus(s){if(["مكتملة","مكتملة (منجزة مبكرًا)","معتمدة","ضمن المسار","Completed","Completed (Early)","Cleared"].includes(s))return"green";if(["تحت المتابعة","قيد التنفيذ","قيد التنفيذ (متقدم عن المسار)","Watch","In Progress","In Progress (Ahead of Schedule)"].includes(s))return"amber";if(["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","In Progress - Overdue","معرضة للخطر","معرض للخطر","مرفوضة","At Risk"].includes(s))return"red";return"cyan"}
 function daysToOpen(){const d=new Date(state.project.openingDate),n=new Date();return Math.max(0,Math.ceil((d-n)/(1000*60*60*24)))}
 function kpis(){const total=state.tracks.reduce((s,t)=>s+Number(t.tasks||0),0);const done=state.tracks.reduce((s,t)=>s+Number(t.done||0),0);const active=state.tracks.reduce((s,t)=>s+Number(t.active||0),0);const risk=state.items.filter(i=>i.type==="risks"&&!["مغلقة","مكتملة","معتمدة"].includes(i.status)).length;const lateTasks=state.items.filter(i=>i.type==="tasks"&&isTaskOverdue(i)).length;const notStarted=state.items.filter(i=>i.type==="tasks"&&i.status==="لم يبدأ").length;const dependentTasks=(state.items||[]).filter(i=>i.dependsOn&&String(i.dependsOn).trim()!=="").length;return{total,done,active,risk,lateTasks,notStarted,dependentTasks,overall:total?Math.round(done/total*100):0,days:daysToOpen()}}
 function renderKpis(){const k=kpis();overviewKpis.innerHTML=[["cyan",k.total,"إجمالي المهام"],["green",k.done,"المهام المنجزة"],["amber",k.active,"مهام نشطة"],["gray",k.notStarted,"لم تبدأ"],["red",k.risk,"مخاطر مفتوحة"],["sand",k.overall+"%","الإنجاز العام"],["cyan",k.days,"يوم على الافتتاح"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("")}
@@ -135,7 +135,7 @@ function showDetails(type, trackId=null){
   if(modal.subtitle) modal.subtitle.textContent = subtitle;
   if(modal.count) modal.count.textContent = `${items.length} عنصر`;
   if(modal.list) modal.list.innerHTML = items.length ? items.map(i=>{
-    const depLine = i.dependsOn && String(i.dependsOn).trim()!=="" ? `<p style="margin:2px 0"><b>تعتمد على:</b> ${String(i.dependsOn).split(",").map(s=>s.trim()).filter(Boolean).map(id=>{ const p=itemById(id); return p ? `${escH(p.title)} <span class="${colorByStatus(p.status)}">(${escH(p.status)})</span>` : escH(id); }).join("، ")}</p>` : "";
+    const depLine = i.dependsOn && String(i.dependsOn).trim()!=="" ? `<p style="margin:2px 0"><b>تعتمد على:</b> ${String(i.dependsOn).split(",").map(s=>s.trim()).filter(Boolean).map(id=>{ const p=itemById(id); return p ? `${escH(p.title)} <span class="${colorByStatus(displayStatus(p))}">(${escH(displayStatus(p))})</span>` : escH(id); }).join("، ")}</p>` : "";
     return `
     <div class="detail-item-card" style="background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:12px 14px;margin-bottom:10px">
       <h4 style="margin:0 0 6px;color:#E8C96A">${escH(i.title)}</h4>
@@ -377,13 +377,13 @@ function nextDeadlineForTrack(trackId){
 function conflictAlertHtml(trackId){
   const conf = dependencyConflictsForTrack(trackId);
   if(!conf.length) return "";
-  const rows = conf.map(c=>`<div class="conflict-row"><b>${escH(c.me.title)}</b> (${escH(c.me.status)}) — تعتمد على <b>${escH(c.pred.title)}</b> التي حالتها لا تزال «${escH(c.pred.status)}»</div>`).join("");
+  const rows = conf.map(c=>`<div class="conflict-row"><b>${escH(c.me.title)}</b> (${escH(displayStatus(c.me))}) — تعتمد على <b>${escH(c.pred.title)}</b> التي حالتها لا تزال «${escH(displayStatus(c.pred))}»</div>`).join("");
   return `<div id="trackConflict-${escH(trackId)}" class="glass panel conflict-alert"><div class="panel-title"><b></b><h3>⚠️ تعارضات الاعتمادية (${conf.length})</h3></div><div class="conflict-list">${rows}</div></div>`;
 }
 function globalConflictAlertHtml(){
   const conf = dependencyConflicts();
   if(!conf.length) return "";
-  const rows = conf.map(c=>`<div class="conflict-row"><b>${escH(c.me.track)} · ${escH(c.me.title)}</b> (${escH(c.me.status)}) — تعتمد على <b>${escH(c.pred.title)}</b> التي حالتها لا تزال «${escH(c.pred.status)}»</div>`).join("");
+  const rows = conf.map(c=>`<div class="conflict-row"><b>${escH(c.me.track)} · ${escH(c.me.title)}</b> (${escH(displayStatus(c.me))}) — تعتمد على <b>${escH(c.pred.title)}</b> التي حالتها لا تزال «${escH(displayStatus(c.pred))}»</div>`).join("");
   return `<div class="glass panel conflict-alert"><div class="panel-title"><b></b><h3>⚠️ تعارضات اعتمادية عبر المشروع (${conf.length})</h3></div><div class="conflict-list">${rows}</div></div>`;
 }
 /* ============ مصفوفة الاعتماديات بين المسارات ============ */
