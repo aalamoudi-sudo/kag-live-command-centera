@@ -36,29 +36,29 @@ function loadPMC(item){
 test("the actual task details card renders its start date through the formatter", () => {
   const dom = loadPMC({
     track:"أ", type:"tasks", title:"مهمة اختبار", owner:"PMC",
-    status:"قيد التنفيذ", startDate:"2026-06-07", due:"15-06-2026"
+    status:"قيد التنفيذ", startDate:"2026-07-16", due:"2026-08-19"
   });
   try{
     dom.window.showDetails("tasks", "أ");
     const text = dom.window.document.querySelector(".detail-item-card").textContent.replace(/\s+/g, " ");
-    assert.match(text, /تاريخ البداية:\s*07-06-2026/);
-    assert.match(text, /الاستحقاق:\s*15-06-2026/);
-    assert.doesNotMatch(text, /تاريخ البداية:\s*2026-06-07/);
+    assert.match(text, /تاريخ البداية:\s*16-07-2026/);
+    assert.match(text, /الاستحقاق:\s*19-08-2026/);
+    assert.doesNotMatch(text, /تاريخ البداية:\s*2026-07-16/);
   }finally{
     dom.window.close();
   }
 });
 
-test("every visible startDate interpolation in the PMC script uses formatTaskStartDate", () => {
+test("every visible startDate interpolation in the PMC script uses formatTaskDate", () => {
   const renderInterpolations = read("public/script.js").match(/\$\{[^}\n]*\.startDate[^}\n]*\}/g) || [];
   assert.ok(renderInterpolations.length > 0, "expected startDate render paths to be present");
   for(const interpolation of renderInterpolations){
-    assert.match(interpolation, /formatTaskStartDate\([^)]*\.startDate\)/);
+    assert.match(interpolation, /formatTaskDate\([^)]*\.startDate\)/);
   }
 });
 
 test("the PMC page requests fresh versions of the date formatter and render bundle", () => {
   const html = read("public/index.html");
-  assert.match(html, /src="task-date\.js\?v=2"/);
-  assert.match(html, /src="script\.js\?v=6"/);
+  assert.match(html, /src="task-date\.js\?v=3"/);
+  assert.match(html, /src="script\.js\?v=7"/);
 });

@@ -2,7 +2,7 @@ const defaultState={project:{title:"حدائق الملك عبدالله",phase:
 let state=JSON.parse(localStorage.getItem("kagV6BulkImport")||"null")||structuredClone(defaultState);
 if(state&&state.project)state.project.openingDate="2026-11-01";
 const {isTaskOverdue,getTaskDisplayStatus}=PMCTaskStatus;
-const {formatTaskStartDate}=PMCTaskDates;
+const {formatTaskDate}=PMCTaskDates;
 function displayStatus(item){return item&&item.type==="tasks"?getTaskDisplayStatus(item):String(item&&item.status||"");}
 function escH(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
 const feedTemplates=[["تحديث PMO","تم تحديث النظرة العامة للمسارات الأربعة","cyan"],["تحديث مسار","تم تحديث جاهزية مسار تجهيز وتفعيل الحديقة","amber"],["تحديث تصريح","تم اعتماد تصريح الدفاع المدني","green"],["تصعيد مخاطرة","اختبار الكهرباء الاحتياطية يحتاج متابعة عاجلة","red"],["تحديث إعلامي","تم رفع خطة الإعلام والتغطية للمراجعة","cyan"],["معلم رئيسي","تم اعتماد خط الأساس للحوكمة","green"]];
@@ -15,7 +15,7 @@ function kpis(){const total=state.tracks.reduce((s,t)=>s+Number(t.tasks||0),0);c
 function renderKpis(){const k=kpis();overviewKpis.innerHTML=[["cyan",k.total,"إجمالي المهام"],["green",k.done,"المهام المنجزة"],["amber",k.active,"مهام نشطة"],["gray",k.notStarted,"لم تبدأ"],["red",k.risk,"مخاطر مفتوحة"],["sand",k.overall+"%","الإنجاز العام"],["cyan",k.days,"يوم على الافتتاح"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("")}
 function trackCard(t){return`<article class="track-card glass" style="--accent:${t.accent};--value:${t.progress}"><div class="track-head"><div class="track-title"><div class="badge">${t.id}</div><div><h3>${t.name}</h3><h4>${t.ar}</h4></div></div><div class="status">${t.status}</div></div><div class="track-body"><div class="ring"><b>${t.progress}%</b></div><div class="mini-grid"><div class="mini"><b>${t.tasks}</b><small>المهام</small></div><div class="mini"><b style="color:#8E7BFF">${t.done}</b><small>منجزة</small></div><div class="mini"><b style="color:#D8CCFF">${t.active}</b><small>نشطة</small></div><div class="mini"><b style="color:#C17CFF">${t.risk}</b><small>خطر</small></div></div></div><div class="spark"></div><div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div></article>`}
 function renderOverview(){tracksSummary.innerHTML=state.tracks.map(trackCard).join("");const risks=state.items.filter(i=>i.type==="risks");riskSnapshot.innerHTML=risks.length?risks.map(r=>`<div class="risk-row"><span>${r.title}</span><strong class="${colorByStatus(r.status)}">${r.status}</strong></div>`).join(""):`<p>لا توجد مخاطر مسجلة.</p>`}
-function renderTrackPages(){state.tracks.forEach(t=>{const el=document.getElementById(t.slug);const items=type=>state.items.filter(i=>i.track===t.id&&i.type===type);const table=(title,rows)=>`<div class="glass panel"><div class="panel-title"><b></b><h3>${title}</h3></div><div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span>تاريخ البداية<br>الاستحقاق</span></div>${rows.length?rows.map(i=>`<div class="data-row"><span>${i.title}</span><span>${i.owner}</span><strong class="${colorByStatus(displayStatus(i))}">${displayStatus(i)}</strong><span>تاريخ البداية: ${formatTaskStartDate(i.startDate)}<br>الاستحقاق: ${i.due||"-"}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}"><div class="track-hero glass"><div class="track-hero-inner"><div><h2>${t.id} · ${t.name}</h2><p>${t.ar} · ${t.sub}</p></div><div class="ring"><b>${t.progress}%</b></div></div><div class="track-kpis"><div class="track-kpi"><b>${t.tasks}</b><small>إجمالي المهام</small></div><div class="track-kpi"><b>${t.done}</b><small>المهام المنجزة</small></div><div class="track-kpi"><b>${t.active}</b><small>المهام النشطة</small></div><div class="track-kpi"><b>${t.risk}</b><small>المهام المعرضة للخطر</small></div></div></div>${table("المهام",items("tasks"))}${table("المخاطر",items("risks"))}${table("التصاريح والاعتمادات",items("permits"))}${table("المعالم الرئيسية",items("milestones"))}</div>`})}
+function renderTrackPages(){state.tracks.forEach(t=>{const el=document.getElementById(t.slug);const items=type=>state.items.filter(i=>i.track===t.id&&i.type===type);const table=(title,rows)=>`<div class="glass panel"><div class="panel-title"><b></b><h3>${title}</h3></div><div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span>تاريخ البداية<br>الاستحقاق</span></div>${rows.length?rows.map(i=>`<div class="data-row"><span>${i.title}</span><span>${i.owner}</span><strong class="${colorByStatus(displayStatus(i))}">${displayStatus(i)}</strong><span>تاريخ البداية: ${formatTaskDate(i.startDate)}<br>الاستحقاق: ${formatTaskDate(i.due)}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}"><div class="track-hero glass"><div class="track-hero-inner"><div><h2>${t.id} · ${t.name}</h2><p>${t.ar} · ${t.sub}</p></div><div class="ring"><b>${t.progress}%</b></div></div><div class="track-kpis"><div class="track-kpi"><b>${t.tasks}</b><small>إجمالي المهام</small></div><div class="track-kpi"><b>${t.done}</b><small>المهام المنجزة</small></div><div class="track-kpi"><b>${t.active}</b><small>المهام النشطة</small></div><div class="track-kpi"><b>${t.risk}</b><small>المهام المعرضة للخطر</small></div></div></div>${table("المهام",items("tasks"))}${table("المخاطر",items("risks"))}${table("التصاريح والاعتمادات",items("permits"))}${table("المعالم الرئيسية",items("milestones"))}</div>`})}
 function addFeed(item){const p=item||feedTemplates[Math.floor(Math.random()*feedTemplates.length)];state.feed.unshift({time:now(),title:p[0],msg:p[1],level:p[2]});state.feed=state.feed.slice(0,25);save();renderFeed()}
 function renderFeed(){liveFeed.innerHTML=state.feed.slice(0,10).map(f=>`<div class="feed-item"><div class="feed-time">${escH(f.time)}</div><div><strong class="${f.level}">${escH(f.title)}</strong><span>${escH(f.msg)}</span></div></div>`).join("")}
 function renderForms(){const opts=state.tracks.map(t=>`<option value="${t.id}">${t.id} · ${t.name}</option>`).join("");trackSelect.innerHTML=opts;itemTrack.innerHTML=opts;if(typeof dailyTrack!=="undefined") dailyTrack.innerHTML=opts;if(typeof decisionTrack!=="undefined") decisionTrack.innerHTML=opts}
@@ -143,8 +143,8 @@ function showDetails(type, trackId=null){
       <p style="margin:2px 0"><b>النوع:</b> ${escH(i.type)}</p>
       <p style="margin:2px 0"><b>المسؤول:</b> ${escH(i.owner) || "-"}</p>
       <p style="margin:2px 0"><b>الحالة:</b> <span class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i)) || "-"}</span></p>
-      <p style="margin:2px 0"><b>تاريخ البداية:</b> ${escH(formatTaskStartDate(i.startDate))}</p>
-      <p style="margin:2px 0"><b>الاستحقاق:</b> ${escH(i.due) || "-"}</p>
+      <p style="margin:2px 0"><b>تاريخ البداية:</b> ${escH(formatTaskDate(i.startDate))}</p>
+      <p style="margin:2px 0"><b>الاستحقاق:</b> ${escH(formatTaskDate(i.due))}</p>
       ${depLine}
     </div>
   `;}).join("") : `<div class="hint">لا توجد عناصر مطابقة.</div>`;
@@ -257,7 +257,7 @@ function renderTrackPages(){
     const table=(title,type,rows)=>`<div class="glass panel">
       <div class="panel-title"><b></b><h3 class="clickable-status" onclick="showDetails('${type}','${t.id}')">${title}</h3></div>
       <div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span>تاريخ البداية<br>الاستحقاق</span></div>
-      ${rows.length?rows.map(i=>`<div class="data-row clickable-card" onclick="showDetails('${type}','${t.id}')"><span>${escH(i.title)}${dependsOnBadgeHtml(i)}</span><span>${escH(i.owner)}</span><strong class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i))}</strong><span>تاريخ البداية: ${escH(formatTaskStartDate(i.startDate))}<br>الاستحقاق: ${escH(i.due)||"-"}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;
+      ${rows.length?rows.map(i=>`<div class="data-row clickable-card" onclick="showDetails('${type}','${t.id}')"><span>${escH(i.title)}${dependsOnBadgeHtml(i)}</span><span>${escH(i.owner)}</span><strong class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i))}</strong><span>تاريخ البداية: ${escH(formatTaskDate(i.startDate))}<br>الاستحقاق: ${escH(formatTaskDate(i.due))}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;
     const planned = plannedForTrack(t);
     const trackConflictCount = dependencyConflictsForTrack(t.id).length;
     el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}">
@@ -628,7 +628,7 @@ function v20RenderIntelligence(){
 
   const required = v20DueTodayItems().concat(v20OverdueItems()).slice(0,8);
   requiredTodayBox.innerHTML = required.length ? required.map(i=>`<div class="intel-list-card" onclick="showDetails('${i.type}','${i.track}')">
-    <h4>${i.title}</h4><p>المسار ${i.track} · ${displayStatus(i) || "-"} · تاريخ البداية: ${escH(formatTaskStartDate(i.startDate))} · الاستحقاق: ${i.due || "-"}</p>
+    <h4>${i.title}</h4><p>المسار ${i.track} · ${displayStatus(i) || "-"} · تاريخ البداية: ${escH(formatTaskDate(i.startDate))} · الاستحقاق: ${formatTaskDate(i.due)}</p>
   </div>`).join("") : `<div class="hint">لا توجد عناصر مستحقة اليوم أو متأخرة.</div>`;
 
   const alerts = [];
@@ -1247,7 +1247,7 @@ function renderTimeline(){
   const shown = filterTimeline(timelineItems());
   timelineList.innerHTML = shown.length ? shown.map(i => `
     <div class="timeline-item" style="--tl-color:${i.color}" onclick="showDetails('${i.type}','${i.track}')">
-      <div class="timeline-date"><small>تاريخ البداية: ${escH(formatTaskStartDate(i.startDate))}</small><br>الاستحقاق: ${i.due}<br><small>${tlDueText(i.diff)}</small></div>
+      <div class="timeline-date"><small>تاريخ البداية: ${escH(formatTaskDate(i.startDate))}</small><br>الاستحقاق: ${formatTaskDate(i.due)}<br><small>${tlDueText(i.diff)}</small></div>
       <div>
         <h4>${i.title}</h4>
         <p>${i.track} · ${i.trackName} · ${i.owner || "-"}</p>
@@ -1263,7 +1263,7 @@ function renderTimeline(){
   upcomingMilestonesBox.innerHTML = up.length ? up.map(i => `
     <div class="milestone-mini" onclick="showDetails('milestones','${i.track}')">
       <h4>${i.title}</h4>
-      <p>${i.trackName} · تاريخ البداية: ${escH(formatTaskStartDate(i.startDate))} · الاستحقاق: ${i.due} · ${tlDueText(i.diff)}</p>
+      <p>${i.trackName} · تاريخ البداية: ${escH(formatTaskDate(i.startDate))} · الاستحقاق: ${formatTaskDate(i.due)} · ${tlDueText(i.diff)}</p>
     </div>
   `).join("") : `<div class="hint">لا توجد معالم قادمة.</div>`;
 }
