@@ -611,6 +611,13 @@ const server=http.createServer(async (req,res)=>{
     if(req.method==="GET" && url==="/api/admin-check")
       return sendJson(res,200,{authed:isAuthed(req), isAdmin:isAdmin(req)});
 
+    // مسار صفحة انحرافات الجدول الزمني محمي على الخادم، وليس بمجرد إخفاء رابط التنقل.
+    if(req.method==="GET" && url==="/schedule-variance"){
+      if(!isAdmin(req)) return sendJson(res,403,{error:"هذه الصفحة متاحة للأدمن فقط"});
+      req.url="/index.html";
+      return serveStatic(req,res);
+    }
+
     // ===== توليد التقارير (Python) =====
     if(url.startsWith("/api/report") && req.method==="POST"){
       if(!isAuthed(req)) return sendJson(res,401,{error:"غير مصرّح"});
