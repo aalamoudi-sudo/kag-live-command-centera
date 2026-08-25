@@ -8,7 +8,7 @@ const read = file => fs.readFileSync(path.join(root, file), "utf8");
 
 test("schedule variance uses the requested user-facing name and description", () => {
   const html = read("public/index.html");
-  assert.match(html, /data-page="schedule-variance" data-protected="true">◫ انحرافات الجدول الزمني/);
+  assert.match(html, /data-page="schedule-variance" data-protected="true">انحرافات الجدول الزمني<\/button>/);
   assert.match(html, /<h2>انحرافات الجدول الزمني<\/h2>/);
   assert.match(html, /رصد ومتابعة الانحرافات في تواريخ البداية والنهاية مقارنةً بالجدول الزمني المعتمد\./);
   assert.doesNotMatch(html, /تحليل الانحرافات عن الجدول الزمني/);
