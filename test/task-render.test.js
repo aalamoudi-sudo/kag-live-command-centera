@@ -57,6 +57,13 @@ test("every visible startDate interpolation in the PMC script uses formatTaskDat
   }
 });
 
+test("track table dates have a non-wrapping, sufficiently wide date cell", () => {
+  const script = read("public/script.js");
+  const css = read("public/style.css");
+  assert.match(script, /class="track-date-cell">تاريخ البداية:/);
+  assert.match(css, /\.data-row \.track-date-cell\{[^}]*min-width:180px[^}]*white-space:nowrap!important[^}]*overflow-wrap:normal!important[^}]*\}/);
+});
+
 test("task notes render independently only when they contain meaningful text", () => {
   const values = [undefined, null, "", "   ", "-", "N/A", "لا يوجد"];
   for(const notes of values){
@@ -86,5 +93,6 @@ test("the PMC page requests fresh versions of the date formatter and render bund
   const html = read("public/index.html");
   assert.match(html, /src="task-date\.js\?v=3"/);
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
-  assert.match(html, /src="script\.js\?v=9"/);
+  assert.match(html, /href="style\.css\?v=4"/);
+  assert.match(html, /src="script\.js\?v=10"/);
 });
