@@ -220,12 +220,16 @@ function parseCSV(text){
 function rowsToItems(rows){
   if(!rows.length) return [];
   const header = rows[0].map(normalizeHeader);
-  const known=["track","type","title","owner","status","due","duetime","id","dependson","startdate","actualcompletiondate"];
+  const known=["track","type","title","owner","status","due","duetime","id","dependson","startdate","actualcompletiondate","approvedstartdate","approvedenddate"];
   const hasHeader = header.some(h=>known.includes(h));
-  let map={track:0,type:1,title:2,owner:3,status:4,due:5,duetime:-1,id:-1,dependson:-1,startdate:-1,actualcompletiondate:-1};
+  let map={track:0,type:1,title:2,owner:3,status:4,due:5,duetime:-1,id:-1,dependson:-1,startdate:-1,actualcompletiondate:-1,approvedstartdate:-1,approvedenddate:-1};
   let body=rows;
   if(hasHeader){
-    known.forEach(k=>{ const idx=header.findIndex(h=>h===k||h.includes(k)); if(idx>=0) map[k]=idx; });
+    known.forEach(k=>{
+      const exact=header.findIndex(h=>h===k);
+      const idx=exact>=0?exact:header.findIndex(h=>h.includes(k));
+      if(idx>=0) map[k]=idx;
+    });
     body=rows.slice(1);
   }
   const items=[];
@@ -241,7 +245,9 @@ function rowsToItems(rows){
       id: map.id>=0 ? clean(r[map.id], 20) : "",
       dependsOn: map.dependson>=0 ? clean(r[map.dependson], 20) : "",
       startDate: map.startdate>=0 ? clean(r[map.startdate], 40) : "",
-      actualCompletionDate: map.actualcompletiondate>=0 ? clean(r[map.actualcompletiondate], 40) : ""
+      actualCompletionDate: map.actualcompletiondate>=0 ? clean(r[map.actualcompletiondate], 40) : "",
+      approvedStartDate: map.approvedstartdate>=0 ? clean(r[map.approvedstartdate], 40) : "",
+      approvedEndDate: map.approvedenddate>=0 ? clean(r[map.approvedenddate], 40) : ""
     };
     if(!VALID_TRACKS.includes(item.track) || !item.title) return;
     items.push(item);

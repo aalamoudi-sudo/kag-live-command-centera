@@ -24,3 +24,7 @@ test("shows an em dash when the sheet start date is empty",()=>{
   assert.equal(formatTaskStartDate(null),"—");
   assert.equal(formatTaskStartDate(undefined),"—");
 });
+
+test("formats a Google Sheets serial without exposing the raw number",()=>{
+  assert.equal(formatTaskDate(45910),"10-09-2025");
+});

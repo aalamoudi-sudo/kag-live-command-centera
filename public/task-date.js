@@ -11,6 +11,13 @@
   function formatTaskDate(value){
     const raw=String(value==null?"":value).trim();
     if(!raw) return "—";
+    if(/^\d+(?:\.\d+)?$/.test(raw)){
+      const serial=Math.floor(Number(raw));
+      if(serial>0){
+        const date=new Date((serial-25569)*86400000);
+        if(!isNaN(date)) return `${String(date.getUTCDate()).padStart(2,"0")}-${String(date.getUTCMonth()+1).padStart(2,"0")}-${date.getUTCFullYear()}`;
+      }
+    }
     // Read date-only components directly: Date/UTC conversion can shift the day.
     let match=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
     if(match&&isCalendarDate(Number(match[3]),Number(match[2]),Number(match[1]))) return `${match[3].padStart(2,"0")}-${match[2].padStart(2,"0")}-${match[1]}`;

@@ -751,7 +751,9 @@ function v21RenderHomeSummary(){
 function renderKpis(){
   const k = kpis();
   const readiness = v22OpeningReadiness();
+  const varianceCount = PMCScheduleVariance.analyzeTasks(state.items).filter(i=>i.hasVariance).length;
   overviewKpis.innerHTML=[
+    ["amber",varianceCount,"انحرافات الجدول الزمني","schedule-variance"],
     ["red",k.lateTasks,"المهام المتأخرة","tasks-late"],
     ["red",k.risk,"مخاطر مفتوحة","risks"],
     ["gray",k.notStarted,"لم تبدأ","tasks-notstarted"],
@@ -761,7 +763,43 @@ function renderKpis(){
     ["purple",k.dependentTasks,"مهام اعتمادية","dependent"],
     ["sand",k.overall+"%","الإنجاز العام","track"],
     ["cyan",readiness+"%","جاهزية الافتتاح","milestones"]
-  ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="showDetails('${x[3]}')"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
+  ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="${x[3]==='schedule-variance'?"activatePage('schedule-variance')":`showDetails('${x[3]}')`}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
+}
+
+let varianceFiltersBound=false;
+function scheduleVarianceType(item){
+  const s=item.startVariance, e=item.endVariance;
+  if(s.changed&&e.changed){
+    if(s.days>0&&e.days>0) return "تأخير البداية والنهاية";
+    if(s.days<0&&e.days<0) return "تقديم البداية والنهاية";
+    return "تغيير البداية والنهاية";
+  }
+  const v=s.changed?s:e;
+  return `${v.days>0?"تأخير":"تقديم"} ${s.changed?"البداية":"النهاية"}`;
+}
+function renderScheduleVariance(){
+  const page=document.getElementById("schedule-variance");
+  if(!page) return;
+  const api=PMCScheduleVariance, all=api.analyzeTasks(state.items), changed=all.filter(i=>i.hasVariance);
+  varianceKpis.innerHTML=[["cyan",all.length,"إجمالي المهام المعتمدة"],["red",changed.length,"المهام ذات الانحراف الزمني"],["amber",all.filter(i=>i.startVariance.changed).length,"تغييرات تاريخ البداية"],["sand",all.filter(i=>i.endVariance.changed).length,"تغييرات تاريخ النهاية"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
+  varianceBanner.className=`glass variance-banner ${changed.length?"has-variance":"no-variance"}`;
+  varianceBanner.textContent=changed.length?`تم اكتشاف ${changed.length} مهمة تم تعديل تواريخها عن الجدول الزمني المعتمد.`:"لا توجد حاليًا أي تغييرات على التواريخ المعتمدة.";
+  const tracks=[...new Set(all.map(i=>i.track).filter(Boolean))], statuses=[...new Set(all.map(i=>i.status).filter(Boolean))];
+  const keep=(el,values,allLabel)=>{const old=el.value;el.innerHTML=`<option value="all">${allLabel}</option>`+values.map(v=>`<option value="${escH(v)}">${escH(v)}</option>`).join("");if([...el.options].some(o=>o.value===old))el.value=old;};
+  keep(varianceTrackFilter,tracks,"جميع المسارات"); keep(varianceStatusFilter,statuses,"جميع الحالات");
+  const query=varianceSearch.value.trim().toLowerCase(), track=varianceTrackFilter.value, type=varianceTypeFilter.value, status=varianceStatusFilter.value;
+  const filtered=changed.filter(i=>(track==="all"||i.track===track)&&(status==="all"||i.status===status)&&(!query||`${i.title} ${i.id||""}`.toLowerCase().includes(query))&&(type==="all"||(type==="start"&&i.startVariance.changed)||(type==="end"&&i.endVariance.changed)||(type==="delay"&&(i.startVariance.days>0||i.endVariance.days>0))||(type==="advance"&&(i.startVariance.days<0||i.endVariance.days<0))));
+  varianceTableBody.innerHTML=filtered.length?filtered.map((i,index)=>`<tr data-variance-index="${changed.indexOf(i)}"><td>${escH(i.title)}${i.id?`<small>${escH(i.id)}</small>`:""}</td><td>${escH(i.track)}</td><td>${escH(formatTaskDate(i.approvedStartDate))}</td><td>${escH(formatTaskDate(i.startDate))}</td><td>${escH(formatTaskDate(i.approvedEndDate))}</td><td>${escH(formatTaskDate(i.due))}</td><td class="variance-values">${i.startVariance.changed?`البداية ${api.formatDays(i.startVariance.days)}`:""}${i.startVariance.changed&&i.endVariance.changed?"<br>":""}${i.endVariance.changed?`النهاية ${api.formatDays(i.endVariance.days)}`:""}</td><td><span class="variance-badge ${((i.startVariance.days||0)>0||(i.endVariance.days||0)>0)?"delay":"advance"}">${scheduleVarianceType(i)}</span></td><td>${escH(displayStatus(i))}</td><td><button class="variance-detail-btn" type="button">عرض</button></td></tr>`).join(""):`<tr><td colspan="10" class="variance-empty">${changed.length?"لا توجد نتائج مطابقة للفلاتر.":"لا توجد حاليًا أي تغييرات على التواريخ المعتمدة."}</td></tr>`;
+  varianceTableBody.querySelectorAll("tr[data-variance-index]").forEach(row=>row.onclick=()=>showScheduleVarianceDetail(changed[+row.dataset.varianceIndex]));
+  const counts=new Map(tracks.map(t=>[t,changed.filter(i=>i.track===t).length])), max=Math.max(1,...counts.values());
+  varianceTrackBars.innerHTML=tracks.map(t=>`<div class="variance-track-row"><span>${escH(t)}</span><div><i style="width:${counts.get(t)/max*100}%"></i></div><b>${counts.get(t)} مهام</b></div>`).join("");
+  if(!varianceFiltersBound){[varianceSearch,varianceTrackFilter,varianceTypeFilter,varianceStatusFilter].forEach(el=>el.addEventListener(el.tagName==="INPUT"?"input":"change",renderScheduleVariance));varianceFiltersBound=true;}
+}
+function showScheduleVarianceDetail(item){
+  const api=PMCScheduleVariance, modal=ensureDetailModal();
+  modal.title.textContent=item.title; modal.subtitle.textContent=`${item.id?item.id+" · ":""}${item.track} · ${displayStatus(item)}`; modal.count.textContent="تفاصيل الانحراف";
+  const section=(label,approved,current,v)=>`<article class="detail-item-card"><h3>${label}</h3><p>${escH(formatTaskDate(approved))} ← ${escH(formatTaskDate(current))}</p><strong class="${v.days>0?"red":v.days<0?"amber":""}">${v.changed?`التغيير: ${api.formatDays(v.days)}`:"لا يوجد تغيير"}</strong><p>${v.changed?`تم ${v.days>0?"تأخير":"تقديم"} ${label} ${Math.abs(v.days)} أيام عن الجدول الزمني المعتمد.`:v.reason==="missing-baseline"?"خط الأساس غير متوفر؛ لم يتم احتساب انحراف.":v.reason==="missing-current"?"التاريخ الحالي غير متوفر؛ لم يتم احتساب انحراف.":"لا يوجد تغيير"}</p></article>`;
+  modal.list.innerHTML=section("تاريخ البداية",item.approvedStartDate,item.startDate,item.startVariance)+section("تاريخ النهاية",item.approvedEndDate,item.due,item.endVariance); modal.overlay.style.display="flex";
 }
 
 
@@ -775,7 +813,7 @@ function ensureRoyalCourtTrack(){
   var tab = document.querySelector('.timeline-track-tab[data-track-filter="هـ"]'); if(tab) tab.remove();
 }
 
-function renderAll(){ensureRoyalCourtTrack();applyUiSettings();renderKpis();renderOverview();renderTrackPages();renderForms();renderFeed();fillUiForms();renderOps();applyBroadcast();v20RenderIntelligence();v21RenderHomeSummary();v27UpdateAllCountdowns();v28RenderHomeAction();renderTimeline()}
+function renderAll(){ensureRoyalCourtTrack();applyUiSettings();renderKpis();renderOverview();renderTrackPages();renderForms();renderFeed();fillUiForms();renderOps();applyBroadcast();v20RenderIntelligence();v21RenderHomeSummary();v27UpdateAllCountdowns();v28RenderHomeAction();renderTimeline();renderScheduleVariance()}
 
 function normalizeHeader(h){
   return String(h||"").trim().toLowerCase()

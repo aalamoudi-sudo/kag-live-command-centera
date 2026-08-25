@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>حدائق الملك عبدالله — مركز القيادة المباشر</title>
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <div class="grid-bg"></div>
@@ -60,6 +60,7 @@
       <button class="nav-btn active" data-page="overview">الرئيسية</button>
       <button class="nav-btn" data-page="intelligence">المؤشرات الذكية</button>
       <button class="nav-btn" data-page="timeline">الجدول الزمني</button>
+      <button class="nav-btn" data-page="schedule-variance">◫ تحليل الانحرافات عن الجدول الزمني</button>
       <button class="nav-btn" data-page="track-a">أ · التخطيط</button>
       <button class="nav-btn" data-page="track-b">ب · الإعلام</button>
       <button class="nav-btn" data-page="track-c">ج · الحفل الرسمي</button>
@@ -239,6 +240,28 @@
           </div>
         </aside>
       </section>
+    </section>
+
+    <section id="schedule-variance" class="page">
+      <div class="page-title"><div>
+        <h2>تحليل الانحرافات عن الجدول الزمني</h2>
+        <p>مقارنة تواريخ المهام الحالية بالجدول الزمني المعتمد ورصد الانحرافات في تواريخ البداية والنهاية.</p>
+      </div></div>
+      <section class="kpi-grid variance-kpis" id="varianceKpis"></section>
+      <div id="varianceBanner" class="glass variance-banner"></div>
+      <section class="glass variance-filters" aria-label="فلاتر تحليل الانحرافات">
+        <input id="varianceSearch" type="search" placeholder="البحث باسم المهمة أو رمزها" aria-label="البحث">
+        <select id="varianceTrackFilter" aria-label="المسار"></select>
+        <select id="varianceTypeFilter" aria-label="نوع الانحراف">
+          <option value="all">كل أنواع الانحراف</option><option value="delay">تأخير</option><option value="advance">تقديم</option><option value="start">تغيير تاريخ البداية</option><option value="end">تغيير تاريخ النهاية</option>
+        </select>
+        <select id="varianceStatusFilter" aria-label="حالة المهمة"></select>
+      </section>
+      <section class="glass panel variance-table-panel"><div class="variance-table-wrap"><table class="variance-table">
+        <thead><tr><th>المهمة</th><th>المسار</th><th>تاريخ البداية المعتمد</th><th>تاريخ البداية الحالي</th><th>تاريخ النهاية المعتمد</th><th>تاريخ النهاية الحالي</th><th>الانحراف</th><th>نوع التغيير</th><th>حالة المهمة</th><th>التفاصيل</th></tr></thead>
+        <tbody id="varianceTableBody"></tbody>
+      </table></div></section>
+      <section class="glass panel variance-tracks"><div class="panel-title"><b></b><h3>الانحرافات حسب المسار</h3></div><div id="varianceTrackBars"></div></section>
     </section>
 
     <section id="track-a" class="page track-page"></section>
@@ -717,7 +740,8 @@
 
   <script src="task-status.js?v=2"></script>
   <script src="task-date.js?v=3"></script>
-  <script src="script.js?v=7"></script>
+  <script src="schedule-variance.js?v=1"></script>
+  <script src="script.js?v=8"></script>
 
   <script>
   // ===== V50 INLINE DATE/TIME - INDEPENDENT FROM script.js =====

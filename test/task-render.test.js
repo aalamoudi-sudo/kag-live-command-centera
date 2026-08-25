@@ -27,7 +27,7 @@ function loadPMC(item){
     items:[item],
     feed:[], dailyLogs:[], decisions:[], snapshots:[]
   }));
-  for(const file of ["public/task-status.js", "public/task-date.js", "public/script.js"]){
+  for(const file of ["public/task-status.js", "public/task-date.js", "public/schedule-variance.js", "public/script.js"]){
     window.eval(read(file));
   }
   return dom;
@@ -60,5 +60,6 @@ test("every visible startDate interpolation in the PMC script uses formatTaskDat
 test("the PMC page requests fresh versions of the date formatter and render bundle", () => {
   const html = read("public/index.html");
   assert.match(html, /src="task-date\.js\?v=3"/);
-  assert.match(html, /src="script\.js\?v=7"/);
+  assert.match(html, /src="schedule-variance\.js\?v=1"/);
+  assert.match(html, /src="script\.js\?v=8"/);
 });
