@@ -57,9 +57,34 @@ test("every visible startDate interpolation in the PMC script uses formatTaskDat
   }
 });
 
+test("task notes render independently only when they contain meaningful text", () => {
+  const values = [undefined, null, "", "   ", "-", "N/A", "لا يوجد"];
+  for(const notes of values){
+    const dom = loadPMC({track:"أ", type:"tasks", title:"مهمة بلا ملاحظة", owner:"PMC", status:"قيد التنفيذ", notes});
+    try{
+      dom.window.showDetails("tasks", "أ");
+      assert.equal(dom.window.document.querySelector(".task-notes"), null, `unexpected notes row for ${String(notes)}`);
+    }finally{ dom.window.close(); }
+  }
+
+  const dom = loadPMC({track:"أ", type:"tasks", title:"مهمة بملاحظة", owner:"PMC", status:"قيد التنفيذ", notes:"  بانتظار اعتماد النسخة النهائية من العميل  "});
+  try{
+    dom.window.showDetails("tasks", "أ");
+    const notesRow = dom.window.document.querySelector(".task-notes");
+    assert.ok(notesRow);
+    assert.match(notesRow.textContent, /الملاحظات:\s*بانتظار اعتماد النسخة النهائية من العميل/);
+  }finally{ dom.window.close(); }
+});
+
+test("Google Sheet mapping uses the existing Arabic notes column", () => {
+  const server = read("server.js");
+  assert.match(server, /replace\("الملاحظات","notes"\)/);
+  assert.match(server, /notes:\s*map\.notes>=0\s*\?\s*clean\(r\[map\.notes\]/);
+});
+
 test("the PMC page requests fresh versions of the date formatter and render bundle", () => {
   const html = read("public/index.html");
   assert.match(html, /src="task-date\.js\?v=3"/);
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
-  assert.match(html, /src="script\.js\?v=8"/);
+  assert.match(html, /src="script\.js\?v=9"/);
 });
