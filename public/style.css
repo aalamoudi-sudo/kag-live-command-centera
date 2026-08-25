@@ -2778,6 +2778,7 @@ footer{display:none!important;}
 
 /* ============ شارة الاعتماد وبطاقة التعارضات ============ */
 .dep-badge{display:inline-block;margin-right:8px;margin-top:4px;padding:3px 9px;border-radius:6px;background:rgba(193,124,255,.14);border:1px solid rgba(193,124,255,.42);color:#D8B4FF;font-size:14px;font-weight:900;white-space:normal;line-height:1.5}
+.data-row .track-date-cell{min-width:180px;max-width:100%;white-space:nowrap!important;overflow-wrap:normal!important}
 .conflict-alert{border-color:rgba(255,94,107,.5)!important;box-shadow:0 0 24px rgba(255,94,107,.12),var(--shadow)}
 .conflict-alert .panel-title b{background:var(--red)}
 .conflict-alert .panel-title h3{color:var(--red)}

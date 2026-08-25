@@ -263,8 +263,8 @@ function renderTrackPages(){
     const items=type=>state.items.filter(i=>i.track===t.id&&i.type===type);
     const table=(title,type,rows)=>`<div class="glass panel">
       <div class="panel-title"><b></b><h3 class="clickable-status" onclick="showDetails('${type}','${t.id}')">${title}</h3></div>
-      <div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span>تاريخ البداية<br>الاستحقاق</span></div>
-      ${rows.length?rows.map(i=>`<div class="data-row clickable-card" onclick="showDetails('${type}','${t.id}')"><span>${escH(i.title)}${dependsOnBadgeHtml(i)}</span><span>${escH(i.owner)}</span><strong class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i))}</strong><span>تاريخ البداية: ${escH(formatTaskDate(i.startDate))}<br>الاستحقاق: ${escH(formatTaskDate(i.due))}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span>-</span></div>`}</div></div>`;
+      <div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span class="track-date-cell">تاريخ البداية<br>الاستحقاق</span></div>
+      ${rows.length?rows.map(i=>`<div class="data-row clickable-card" onclick="showDetails('${type}','${t.id}')"><span>${escH(i.title)}${dependsOnBadgeHtml(i)}</span><span>${escH(i.owner)}</span><strong class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i))}</strong><span class="track-date-cell">تاريخ البداية: ${escH(formatTaskDate(i.startDate))}<br>الاستحقاق: ${escH(formatTaskDate(i.due))}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span class="track-date-cell">-</span></div>`}</div></div>`;
     const planned = plannedForTrack(t);
     const trackConflictCount = dependencyConflictsForTrack(t.id).length;
     el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}">
