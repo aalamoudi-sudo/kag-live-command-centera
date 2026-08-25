@@ -60,7 +60,7 @@
       <button class="nav-btn active" data-page="overview">الرئيسية</button>
       <button class="nav-btn" data-page="intelligence">المؤشرات الذكية</button>
       <button class="nav-btn" data-page="timeline">الجدول الزمني</button>
-      <button class="nav-btn" data-page="schedule-variance">◫ تحليل الانحرافات عن الجدول الزمني</button>
+      <button class="nav-btn admin" data-page="schedule-variance" data-protected="true">◫ انحرافات الجدول الزمني</button>
       <button class="nav-btn" data-page="track-a">أ · التخطيط</button>
       <button class="nav-btn" data-page="track-b">ب · الإعلام</button>
       <button class="nav-btn" data-page="track-c">ج · الحفل الرسمي</button>
@@ -244,12 +244,12 @@
 
     <section id="schedule-variance" class="page">
       <div class="page-title"><div>
-        <h2>تحليل الانحرافات عن الجدول الزمني</h2>
-        <p>مقارنة تواريخ المهام الحالية بالجدول الزمني المعتمد ورصد الانحرافات في تواريخ البداية والنهاية.</p>
+        <h2>انحرافات الجدول الزمني</h2>
+        <p>رصد ومتابعة الانحرافات في تواريخ البداية والنهاية مقارنةً بالجدول الزمني المعتمد.</p>
       </div></div>
       <section class="kpi-grid variance-kpis" id="varianceKpis"></section>
       <div id="varianceBanner" class="glass variance-banner"></div>
-      <section class="glass variance-filters" aria-label="فلاتر تحليل الانحرافات">
+      <section class="glass variance-filters" aria-label="فلاتر انحرافات الجدول الزمني">
         <input id="varianceSearch" type="search" placeholder="البحث باسم المهمة أو رمزها" aria-label="البحث">
         <select id="varianceTrackFilter" aria-label="المسار"></select>
         <select id="varianceTypeFilter" aria-label="نوع الانحراف">

@@ -751,9 +751,7 @@ function v21RenderHomeSummary(){
 function renderKpis(){
   const k = kpis();
   const readiness = v22OpeningReadiness();
-  const varianceCount = PMCScheduleVariance.analyzeTasks(state.items).filter(i=>i.hasVariance).length;
   overviewKpis.innerHTML=[
-    ["amber",varianceCount,"انحرافات الجدول الزمني","schedule-variance"],
     ["red",k.lateTasks,"المهام المتأخرة","tasks-late"],
     ["red",k.risk,"مخاطر مفتوحة","risks"],
     ["gray",k.notStarted,"لم تبدأ","tasks-notstarted"],
@@ -763,7 +761,7 @@ function renderKpis(){
     ["purple",k.dependentTasks,"مهام اعتمادية","dependent"],
     ["sand",k.overall+"%","الإنجاز العام","track"],
     ["cyan",readiness+"%","جاهزية الافتتاح","milestones"]
-  ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="${x[3]==='schedule-variance'?"activatePage('schedule-variance')":`showDetails('${x[3]}')`}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
+  ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="showDetails('${x[3]}')"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
 }
 
 let varianceFiltersBound=false;
@@ -779,7 +777,7 @@ function scheduleVarianceType(item){
 }
 function renderScheduleVariance(){
   const page=document.getElementById("schedule-variance");
-  if(!page) return;
+  if(!page || !isAdminUnlocked()) return;
   const api=PMCScheduleVariance, all=api.analyzeTasks(state.items), changed=all.filter(i=>i.hasVariance);
   varianceKpis.innerHTML=[["cyan",all.length,"إجمالي المهام المعتمدة"],["red",changed.length,"المهام ذات الانحراف الزمني"],["amber",all.filter(i=>i.startVariance.changed).length,"تغييرات تاريخ البداية"],["sand",all.filter(i=>i.endVariance.changed).length,"تغييرات تاريخ النهاية"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
   varianceBanner.className=`glass variance-banner ${changed.length?"has-variance":"no-variance"}`;
@@ -1344,14 +1342,21 @@ function setAdminUnlocked(value){
   if(value) sessionStorage.setItem("kagAdminUnlocked", "true");
   else sessionStorage.removeItem("kagAdminUnlocked");
   document.body.classList.toggle("admin-unlocked", isAdminUnlocked());
+  if(value && typeof renderScheduleVariance === "function") renderScheduleVariance();
 }
 function activatePage(pageId, btn){
+  const pageButton=document.querySelector(`.nav-btn[data-page="${pageId}"]`);
+  if(pageButton?.dataset.protected === "true" && !isAdminUnlocked()){
+    requestAdminAccess(pageId);
+    return false;
+  }
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   const page = document.getElementById(pageId);
   if(page) page.classList.add("active");
   const targetBtn = btn || document.querySelector(`.nav-btn[data-page="${pageId}"]`);
   if(targetBtn) targetBtn.classList.add("active");
+  return true;
 }
 function requestAdminAccess(pageId){
   pendingProtectedPage = pageId;
@@ -1367,7 +1372,12 @@ function bindAdminLock(){
   try{
     if(location.protocol.indexOf("http")===0){
       fetch("/api/admin-check",{credentials:"include"}).then(function(r){return r.json();})
-        .then(function(d){ if(d&&d.isAdmin) setAdminUnlocked(true); }).catch(function(){});
+        .then(function(d){
+          if(d&&d.isAdmin){
+            setAdminUnlocked(true);
+            if(location.pathname==="/schedule-variance") activatePage("schedule-variance");
+          }
+        }).catch(function(){});
     }
   }catch(e){}
 
