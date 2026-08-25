@@ -5,6 +5,10 @@ const {isTaskOverdue,getTaskDisplayStatus}=PMCTaskStatus;
 const {formatTaskDate}=PMCTaskDates;
 function displayStatus(item){return item&&item.type==="tasks"?getTaskDisplayStatus(item):String(item&&item.status||"");}
 function escH(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+function taskNotesText(value){
+  const notes = String(value == null ? "" : value).trim();
+  return /^(?:-|n\/?a|لا يوجد)$/i.test(notes) ? "" : notes;
+}
 const feedTemplates=[["تحديث PMO","تم تحديث النظرة العامة للمسارات الأربعة","cyan"],["تحديث مسار","تم تحديث جاهزية مسار تجهيز وتفعيل الحديقة","amber"],["تحديث تصريح","تم اعتماد تصريح الدفاع المدني","green"],["تصعيد مخاطرة","اختبار الكهرباء الاحتياطية يحتاج متابعة عاجلة","red"],["تحديث إعلامي","تم رفع خطة الإعلام والتغطية للمراجعة","cyan"],["معلم رئيسي","تم اعتماد خط الأساس للحوكمة","green"]];
 function save(){localStorage.setItem("kagV6BulkImport",JSON.stringify(state))}function now(){return new Date().toLocaleTimeString("ar-SA",{hour:"2-digit",minute:"2-digit"})}
 function normalizeTrack(v){v=(v||"").trim();const map={A:"أ",B:"ب",C:"ج",D:"د",E:"هـ","ه":"هـ","هـ":"هـ","ا":"أ","أ":"أ","ب":"ب","ج":"ج","د":"د"};return map[v.toUpperCase?.()||v]||map[v]||v}
@@ -136,6 +140,8 @@ function showDetails(type, trackId=null){
   if(modal.count) modal.count.textContent = `${items.length} عنصر`;
   if(modal.list) modal.list.innerHTML = items.length ? items.map(i=>{
     const depLine = i.dependsOn && String(i.dependsOn).trim()!=="" ? `<p style="margin:2px 0"><b>تعتمد على:</b> ${String(i.dependsOn).split(",").map(s=>s.trim()).filter(Boolean).map(id=>{ const p=itemById(id); return p ? `${escH(p.title)} <span class="${colorByStatus(displayStatus(p))}">(${escH(displayStatus(p))})</span>` : escH(id); }).join("، ")}</p>` : "";
+    const notes = taskNotesText(i.notes);
+    const notesLine = notes ? `<p class="task-notes" style="margin:2px 0;white-space:normal;overflow-wrap:anywhere"><b>الملاحظات:</b> ${escH(notes)}</p>` : "";
     return `
     <div class="detail-item-card" style="background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:12px 14px;margin-bottom:10px">
       <h4 style="margin:0 0 6px;color:#E8C96A">${escH(i.title)}</h4>
@@ -145,6 +151,7 @@ function showDetails(type, trackId=null){
       <p style="margin:2px 0"><b>الحالة:</b> <span class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i)) || "-"}</span></p>
       <p style="margin:2px 0"><b>تاريخ البداية:</b> ${escH(formatTaskDate(i.startDate))}</p>
       <p style="margin:2px 0"><b>الاستحقاق:</b> ${escH(formatTaskDate(i.due))}</p>
+      ${notesLine}
       ${depLine}
     </div>
   `;}).join("") : `<div class="hint">لا توجد عناصر مطابقة.</div>`;

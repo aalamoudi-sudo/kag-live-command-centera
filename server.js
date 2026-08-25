@@ -185,6 +185,7 @@ function normalizeHeader(h){
     .replace("وقت الاستحقاق","duetime").replace("وقتالاستحقاق","duetime")
     .replace("duetime","duetime")
     .replace("تعتمدعلى","dependson")
+    .replace("الملاحظات","notes")
     .replace("المسار","track").replace("نوعالعنصر","type").replace("النوع","type")
     .replace("العنوان","title").replace("المهمة","title").replace("النشاط","title")
     .replace("الوصف","title").replace("المسؤول","owner").replace("الجهة","owner")
@@ -220,9 +221,9 @@ function parseCSV(text){
 function rowsToItems(rows){
   if(!rows.length) return [];
   const header = rows[0].map(normalizeHeader);
-  const known=["track","type","title","owner","status","due","duetime","id","dependson","startdate","actualcompletiondate","approvedstartdate","approvedenddate"];
+  const known=["track","type","title","owner","status","due","duetime","id","dependson","notes","startdate","actualcompletiondate","approvedstartdate","approvedenddate"];
   const hasHeader = header.some(h=>known.includes(h));
-  let map={track:0,type:1,title:2,owner:3,status:4,due:5,duetime:-1,id:-1,dependson:-1,startdate:-1,actualcompletiondate:-1,approvedstartdate:-1,approvedenddate:-1};
+  let map={track:0,type:1,title:2,owner:3,status:4,due:5,duetime:-1,id:-1,dependson:-1,notes:-1,startdate:-1,actualcompletiondate:-1,approvedstartdate:-1,approvedenddate:-1};
   let body=rows;
   if(hasHeader){
     known.forEach(k=>{
@@ -244,6 +245,7 @@ function rowsToItems(rows){
       dueTime: map.duetime>=0 ? clean(r[map.duetime], 30) : "",
       id: map.id>=0 ? clean(r[map.id], 20) : "",
       dependsOn: map.dependson>=0 ? clean(r[map.dependson], 20) : "",
+      notes: map.notes>=0 ? clean(r[map.notes], 2000) : "",
       startDate: map.startdate>=0 ? clean(r[map.startdate], 40) : "",
       actualCompletionDate: map.actualcompletiondate>=0 ? clean(r[map.actualcompletiondate], 40) : "",
       approvedStartDate: map.approvedstartdate>=0 ? clean(r[map.approvedstartdate], 40) : "",
