@@ -214,12 +214,21 @@ function renderKpis(){
     ["cyan",k.days,"يوم على الافتتاح","milestones"]
   ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="showDetails('${x[3]}')"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
 }
+// تصنيف عرض محلي لشارة بطاقات المسارات في صفحة النظرة العامة فقط.
+// يعتمد على قيمة الانحراف المحسوبة أصلًا ولا يغيّر حالة المسار المخزنة أو أي حسبة مشتركة.
+function overviewTrackStatus(variance){
+  if(variance >= -10) return {label:"ضمن المسار", tone:"green"};
+  if(variance >= -20) return {label:"يحتاج متابعة", tone:"amber"};
+  return {label:"معرض للخطر", tone:"red"};
+}
 function trackCard(t){
   const planned = plannedForTrack(t);
+  const variance = paCompliance(planned, Number(t.progress||0)).ratio;
+  const displayTrackStatus = overviewTrackStatus(variance);
   return `<article class="track-card glass clickable-card" onclick="showDetails('track','${t.id}')" style="--accent:${t.accent};--value:${t.progress}">
     <div class="track-head">
       <div class="track-title"><div class="badge">${t.id}</div><div><h3>${t.name}</h3><h4>${t.ar}</h4></div></div>
-      <div class="status clickable-status" onclick="event.stopPropagation();showDetails('risks','${t.id}')">${t.status}</div>
+      <div class="status clickable-status overview-track-status overview-track-status--${displayTrackStatus.tone}" onclick="event.stopPropagation();showDetails('risks','${t.id}')">${displayTrackStatus.label}</div>
     </div>
     <div class="track-body">
       <div class="ring"><b>${t.progress}%</b></div>

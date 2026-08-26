@@ -2968,6 +2968,9 @@ footer{display:none!important;}
   padding:14px;
 }
 #overview .home-tracks-grid .track-head{gap:10px}
+#overview .home-tracks-grid .overview-track-status--green{color:var(--green);border-color:var(--green)}
+#overview .home-tracks-grid .overview-track-status--amber{color:var(--amber);border-color:var(--amber)}
+#overview .home-tracks-grid .overview-track-status--red{color:var(--red);border-color:var(--red)}
 #overview .home-tracks-grid .track-title{gap:9px;min-width:0}
 #overview .home-tracks-grid .badge{width:40px;height:40px;font-size:20px;flex:0 0 auto}
 #overview .home-tracks-grid .track-card h3{font-size:21px;line-height:1.15}
