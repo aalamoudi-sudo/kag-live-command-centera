@@ -27,7 +27,7 @@ function loadPMC(item){
     items:[item],
     feed:[], dailyLogs:[], decisions:[], snapshots:[]
   }));
-  for(const file of ["public/task-status.js", "public/task-date.js", "public/schedule-variance.js", "public/script.js"]){
+  for(const file of ["public/task-status.js", "public/task-date.js", "public/schedule-variance.js", "public/schedule-completeness.js", "public/script.js"]){
     window.eval(read(file));
   }
   return dom;
@@ -93,6 +93,7 @@ test("the PMC page requests fresh versions of the date formatter and render bund
   const html = read("public/index.html");
   assert.match(html, /src="task-date\.js\?v=3"/);
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
-  assert.match(html, /href="style\.css\?v=4"/);
-  assert.match(html, /src="script\.js\?v=10"/);
+  assert.match(html, /src="schedule-completeness\.js\?v=1"/);
+  assert.match(html, /href="style\.css\?v=5"/);
+  assert.match(html, /src="script\.js\?v=11"/);
 });
