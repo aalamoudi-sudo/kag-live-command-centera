@@ -24,7 +24,7 @@ function loadPMC(item){
   window.localStorage.setItem("kagV6BulkImport", JSON.stringify({
     project:{title:"PMC", openingDate:"2026-11-01"},
     tracks:[{id:"أ", slug:"track-a", name:"المسار", ar:"Track", sub:"", status:"ضمن المسار", progress:0, tasks:1, done:0, active:1, risk:0, lead:"PMC", focus:""}],
-    items:[item],
+    items:Array.isArray(item) ? item : [item],
     feed:[], dailyLogs:[], decisions:[], snapshots:[]
   }));
   for(const file of ["public/task-status.js", "public/task-date.js", "public/schedule-variance.js", "public/schedule-completeness.js", "public/script.js"]){
@@ -83,6 +83,46 @@ test("task notes render independently only when they contain meaningful text", (
   }finally{ dom.window.close(); }
 });
 
+test("task details show date warnings only for the missing date combinations", () => {
+  const tasks = [
+    {track:"أ", type:"tasks", title:"مكتملة التواريخ", startDate:"2026-09-10", due:"2026-09-15"},
+    {track:"أ", type:"tasks", title:"بداية ناقصة", startDate:"", due:"2026-09-15"},
+    {track:"أ", type:"tasks", title:"نهاية ناقصة", startDate:"2026-09-10", due:""},
+    {track:"أ", type:"tasks", title:"التاريخان ناقصان", startDate:"", due:""}
+  ];
+  const dom = loadPMC(tasks);
+  try{
+    dom.window.showDetails("tasks", "أ");
+    const cards = [...dom.window.document.querySelectorAll(".detail-item-card")];
+    assert.equal(cards[0].querySelector(".schedule-date-warning"), null);
+    assert.equal(cards[1].querySelector(".schedule-date-warning").textContent.trim(), "⚠ تاريخ البداية مفقود");
+    assert.equal(cards[2].querySelector(".schedule-date-warning").textContent.trim(), "⚠ تاريخ النهاية مفقود");
+    assert.equal(cards[3].querySelector(".schedule-date-warning").textContent.trim(), "⚠ تاريخ البداية والنهاية مفقودان");
+    assert.doesNotMatch(dom.window.document.getElementById("detailModalList").textContent, /التواريخ مكتملة/);
+  }finally{ dom.window.close(); }
+});
+
+test("task details show a compact summary only when incomplete dates exist", () => {
+  const incomplete = [1, 2, 3].map(n=>({track:"أ", type:"tasks", title:`مهمة ${n}`, startDate:"", due:"2026-09-15"}));
+  const dom = loadPMC(incomplete);
+  try{
+    dom.window.showDetails("tasks", "أ");
+    assert.equal(dom.window.document.querySelector(".schedule-completeness-summary").textContent.trim(), "⚠ 3 مهام بتواريخ غير مكتملة");
+  }finally{ dom.window.close(); }
+
+  const completeDom = loadPMC({track:"أ", type:"tasks", title:"مهمة مكتملة التواريخ", startDate:"2026-09-10", due:"2026-09-15"});
+  try{
+    completeDom.window.showDetails("tasks", "أ");
+    assert.equal(completeDom.window.document.querySelector(".schedule-completeness-summary"), null);
+  }finally{ completeDom.window.close(); }
+});
+
+test("track cards no longer render the schedule completeness box", () => {
+  const script = read("public/script.js");
+  assert.doesNotMatch(script, /scheduleCompletenessHtml\(t\.id\)/);
+  assert.doesNotMatch(script, /اكتمال بيانات الجدول الزمني/);
+});
+
 test("Google Sheet mapping uses the existing Arabic notes column", () => {
   const server = read("server.js");
   assert.match(server, /replace\("الملاحظات","notes"\)/);
@@ -94,6 +134,6 @@ test("the PMC page requests fresh versions of the date formatter and render bund
   assert.match(html, /src="task-date\.js\?v=3"/);
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
   assert.match(html, /src="schedule-completeness\.js\?v=1"/);
-  assert.match(html, /href="style\.css\?v=5"/);
-  assert.match(html, /src="script\.js\?v=11"/);
+  assert.match(html, /href="style\.css\?v=6"/);
+  assert.match(html, /src="script\.js\?v=12"/);
 });
