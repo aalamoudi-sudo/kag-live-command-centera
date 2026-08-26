@@ -130,10 +130,6 @@ function showDetails(type, trackId=null){
     title = "تفاصيل المهام المتأخرة";
     subtitle = trackId ? "المهام المتأخرة بالمسار المحدد" : "جميع المهام المتأخرة على مستوى المشروع";
     items = state.items.filter(i=>i.type==="tasks" && isTaskOverdue(i) && (!trackId || i.track===trackId));
-  }else if(type === "schedule-incomplete"){
-    title = "اكتمال بيانات الجدول الزمني";
-    subtitle = "المهام ذات تاريخ بداية أو نهاية مفقود في المسار المحدد";
-    items = scheduleCompletenessForTrack(trackId).incompleteTasks.map(entry=>entry.task);
   }
 
   // لوحة التفاصيل: تُنشأ ديناميكيًا إذا لم تكن موجودة في الصفحة (حماية كاملة).
@@ -142,25 +138,23 @@ function showDetails(type, trackId=null){
   if(modal.title) modal.title.textContent = title;
   if(modal.subtitle) modal.subtitle.textContent = subtitle;
   if(modal.count) modal.count.textContent = `${items.length} عنصر`;
-  if(modal.list) modal.list.innerHTML = items.length ? items.map(i=>{
-    if(type === "schedule-incomplete"){
-      const dateState=PMCScheduleCompleteness.inspectTask(i);
-      return `<div class="detail-item-card schedule-completeness-task">
-        <h4>${escH(i.title)}</h4>
-        ${i.id?`<p><b>Task ID:</b> ${escH(i.id)}</p>`:""}
-        <p><b>المسار:</b> ${escH(i.track)}</p>
-        ${i.owner?`<p><b>المسؤول:</b> ${escH(i.owner)}</p>`:""}
-        ${i.status?`<p><b>الحالة الحالية:</b> ${escH(i.status)}</p>`:""}
-        <p><b>تاريخ البداية:</b> ${dateState.missingStart?`<strong class="amber">مفقود</strong>`:escH(formatTaskDate(i.startDate))}</p>
-        <p><b>تاريخ النهاية:</b> ${dateState.missingEnd?`<strong class="amber">مفقود</strong>`:escH(formatTaskDate(i.due))}</p>
-      </div>`;
-    }
+  if(modal.list){
+    const dateSummary=type==="tasks"?PMCScheduleCompleteness.summarize(items):null;
+    const dateSummaryHtml=dateSummary&&dateSummary.incomplete
+      ? `<div class="schedule-completeness-summary">⚠ ${dateSummary.incomplete} مهام بتواريخ غير مكتملة</div>`
+      : "";
+    modal.list.innerHTML = items.length ? dateSummaryHtml+items.map(i=>{
     const depLine = i.dependsOn && String(i.dependsOn).trim()!=="" ? `<p style="margin:2px 0"><b>تعتمد على:</b> ${String(i.dependsOn).split(",").map(s=>s.trim()).filter(Boolean).map(id=>{ const p=itemById(id); return p ? `${escH(p.title)} <span class="${colorByStatus(displayStatus(p))}">(${escH(displayStatus(p))})</span>` : escH(id); }).join("، ")}</p>` : "";
     const notes = taskNotesText(i.notes);
     const notesLine = notes ? `<p class="task-notes" style="margin:2px 0;white-space:normal;overflow-wrap:anywhere"><b>الملاحظات:</b> ${escH(notes)}</p>` : "";
+    const dateState=type==="tasks"?PMCScheduleCompleteness.inspectTask(i):null;
+    const dateWarning=dateState&&dateState.incomplete
+      ? `<span class="schedule-date-warning">⚠ ${dateState.missingStart&&dateState.missingEnd?"تاريخ البداية والنهاية مفقودان":dateState.missingStart?"تاريخ البداية مفقود":"تاريخ النهاية مفقود"}</span>`
+      : "";
     return `
     <div class="detail-item-card" style="background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:12px 14px;margin-bottom:10px">
       <h4 style="margin:0 0 6px;color:#E8C96A">${escH(i.title)}</h4>
+      ${dateWarning}
       <p style="margin:2px 0"><b>المسار:</b> ${escH(i.track)}</p>
       <p style="margin:2px 0"><b>النوع:</b> ${escH(i.type)}</p>
       <p style="margin:2px 0"><b>المسؤول:</b> ${escH(i.owner) || "-"}</p>
@@ -171,6 +165,7 @@ function showDetails(type, trackId=null){
       ${depLine}
     </div>
   `;}).join("") : `<div class="hint">لا توجد عناصر مطابقة.</div>`;
+  }
   modal.overlay.style.display = "flex";
 }
 // ينشئ نافذة التفاصيل مرة واحدة ويعيد مراجع عناصرها (أو يستخدم عناصر HTML إن وُجدت)
@@ -241,17 +236,6 @@ function scheduleCompletenessForTrack(trackId){
   const tasks=(state.items||[]).filter(item=>item.type==="tasks"&&item.track===trackId);
   return PMCScheduleCompleteness.summarize(tasks);
 }
-function scheduleCompletenessHtml(trackId){
-  const summary=scheduleCompletenessForTrack(trackId);
-  const detail=summary.incomplete
-    ? `<button type="button" class="schedule-completeness-detail" onclick="event.stopPropagation();showDetails('schedule-incomplete','${trackId}')">${summary.incomplete} مهام بتواريخ غير مكتملة</button>`
-    : `<span class="schedule-completeness-all">جميع التواريخ مكتملة</span>`;
-  return `<div class="schedule-completeness ${summary.incomplete?'schedule-completeness--warning':'schedule-completeness--complete'}">
-    <small>اكتمال بيانات الجدول الزمني</small>
-    <strong>${summary.complete} من ${summary.total} مكتملة</strong>
-    ${detail}
-  </div>`;
-}
 function trackCard(t){
   const planned = plannedForTrack(t);
   const variance = paCompliance(planned, Number(t.progress||0)).ratio;
@@ -271,7 +255,6 @@ function trackCard(t){
       </div>
     </div>
     ${paHtml(planned, Number(t.progress||0))}
-    ${scheduleCompletenessHtml(t.id)}
     <div class="spark"></div>
     <div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div>
   </article>`;
