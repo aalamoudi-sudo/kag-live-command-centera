@@ -89,7 +89,25 @@ test("manual and automatic overdue tasks share one aggregate/filter predicate",(
   const items=[
     ...Array.from({length:5},()=>task("متأخرة","20/08/2026","3:00 PM")),
     ...Array.from({length:3},()=>task("قيد التنفيذ","19/08/2026","3:00 PM")),
+    task("لم يبدأ","19/08/2026","3:00 PM"),
     task("مكتملة","18/08/2026","3:00 PM")
   ];
-  assert.equal(items.filter(i=>isTaskOverdue(i,now)).length,8);
+  assert.equal(items.filter(i=>isTaskOverdue(i,now)).length,9);
+});
+
+test("not-started tasks reuse the overdue predicate without mutating their source status",()=>{
+  const now=atRiyadh("2026-08-26T12:00:00");
+  const overdue=task("لم يبدأ","16/08/2026","");
+  assert.equal(isTaskOverdue(overdue,now),true);
+  assert.equal(getTaskDisplayStatus(overdue,now),"لم يبدأ - متأخرة");
+  assert.equal(overdue.status,"لم يبدأ");
+  assert.equal(getTaskDisplayStatus(task("لم يبدأ","26/08/2026",""),now),"لم يبدأ");
+  assert.equal(getTaskDisplayStatus(task("لم يبدأ","29/09/2026",""),now),"لم يبدأ");
+});
+
+test("acceptance statuses preserve existing in-progress and completed behavior",()=>{
+  const now=atRiyadh("2026-08-26T12:00:00");
+  assert.equal(getTaskDisplayStatus(task("قيد التنفيذ","30/07/2026",""),now),"قيد التنفيذ - متأخرة");
+  assert.equal(getTaskDisplayStatus(task("قيد التنفيذ","29/09/2026",""),now),"قيد التنفيذ");
+  assert.equal(getTaskDisplayStatus(task("مكتملة","30/07/2026",""),now),"مكتملة");
 });

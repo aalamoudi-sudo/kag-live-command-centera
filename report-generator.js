@@ -21,7 +21,7 @@ const TRACK_COLORS = {
 };
 const DONE_SET   = ["مكتملة","معتمدة","Completed","Cleared","مكتمل","معتمد"];
 const ACTIVE_SET = ["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"];
-const RISK_SET   = ["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","معرضة للخطر","معرض للخطر","At Risk"];
+const RISK_SET   = ["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","لم يبدأ - متأخرة","لم تبدأ - متأخرة","Not Started - Overdue","معرضة للخطر","معرض للخطر","At Risk"];
 
 const isDone     = s => DONE_SET.includes(s);
 const isActive   = s => ACTIVE_SET.includes(s);

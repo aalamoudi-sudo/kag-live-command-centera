@@ -9,6 +9,7 @@
   const DONE_STATUSES = ["مكتملة","معتمدة","Completed","Cleared","مغلقة"];
   const MANUAL_OVERDUE_STATUSES = ["متأخرة","متاخرة","متأخر","Overdue"];
   const IN_PROGRESS_STATUSES = ["قيد التنفيذ","In Progress"];
+  const NOT_STARTED_STATUSES = ["لم يبدأ","لم تبدأ","Not Started"];
   const EARLY_COMPLETION_STATUSES = ["مكتملة","Completed"];
 
   function parseDateParts(value){
@@ -66,7 +67,7 @@
     const status=String(task && task.status || "").trim();
     if(DONE_STATUSES.includes(status)) return false;
     if(MANUAL_OVERDUE_STATUSES.includes(status)) return true;
-    if(!IN_PROGRESS_STATUSES.includes(status)) return false;
+    if(!IN_PROGRESS_STATUSES.includes(status) && !NOT_STARTED_STATUSES.includes(status)) return false;
     const due=taskDueTimestamp(task);
     const current=now instanceof Date ? now.getTime() : (typeof now==="number" ? now : Date.now());
     return due !== null && Number.isFinite(current) && current > due;
@@ -84,8 +85,13 @@
       return status;
     }
     if(MANUAL_OVERDUE_STATUSES.includes(status)) return status;
-    if(!IN_PROGRESS_STATUSES.includes(status)) return status;
-    if(isTaskOverdue(task,now)) return status==="In Progress" ? "In Progress - Overdue" : "قيد التنفيذ - متأخرة";
+    if(!IN_PROGRESS_STATUSES.includes(status) && !NOT_STARTED_STATUSES.includes(status)) return status;
+    if(isTaskOverdue(task,now)){
+      if(status==="Not Started") return "Not Started - Overdue";
+      if(NOT_STARTED_STATUSES.includes(status)) return `${status} - متأخرة`;
+      return status==="In Progress" ? "In Progress - Overdue" : "قيد التنفيذ - متأخرة";
+    }
+    if(NOT_STARTED_STATUSES.includes(status)) return status;
     const start=dateKey(task && task.startDate);
     const today=riyadhTodayKey(now);
     if(start!==null && today!==null && today<start){
@@ -94,5 +100,5 @@
     return status;
   }
 
-  return {isTaskOverdue,getTaskDisplayStatus,taskDueTimestamp,DONE_STATUSES,MANUAL_OVERDUE_STATUSES,IN_PROGRESS_STATUSES};
+  return {isTaskOverdue,getTaskDisplayStatus,taskDueTimestamp,DONE_STATUSES,MANUAL_OVERDUE_STATUSES,IN_PROGRESS_STATUSES,NOT_STARTED_STATUSES};
 });
