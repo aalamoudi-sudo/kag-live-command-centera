@@ -131,9 +131,10 @@ test("Google Sheet mapping uses the existing Arabic notes column", () => {
 
 test("the PMC page requests fresh versions of the date formatter and render bundle", () => {
   const html = read("public/index.html");
+  assert.match(html, /src="task-status\.js\?v=3"/);
   assert.match(html, /src="task-date\.js\?v=3"/);
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
   assert.match(html, /src="schedule-completeness\.js\?v=1"/);
   assert.match(html, /href="style\.css\?v=6"/);
-  assert.match(html, /src="script\.js\?v=12"/);
+  assert.match(html, /src="script\.js\?v=13"/);
 });
