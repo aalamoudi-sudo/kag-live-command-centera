@@ -179,8 +179,6 @@ function normalizeType(v){
 }
 function normalizeHeader(h){
   return String(h||"").trim().toLowerCase().replace(/\s+/g,"")
-    .replace("تاريخالبدايةالمعتمد","approvedstartdate")
-    .replace("تاريخالنهايةالمعتمد","approvedenddate")
     .replace("تاريخالإنجازالفعلي","actualcompletiondate").replace("تاريخالانجازالفعلي","actualcompletiondate")
     .replace("actualcompletiondate","actualcompletiondate")
     .replace("تاريخالبداية","startdate")
