@@ -26,12 +26,9 @@ function renderForms(){const opts=state.tracks.map(t=>`<option value="${t.id}">$
 
 // ===== V18 DIWAN + PLANNED VS ACTUAL + CLICKABLE DETAILS =====
 function plannedForTrack(t){
-  // يحسب المخطط تلقائياً من تواريخ الاستحقاق
-  const today = new Date(); today.setHours(0,0,0,0);
   const trackItems = (state&&state.items||[]).filter(i=>i.track===t.id && i.type==="tasks");
   if(trackItems.length){
-    const due = trackItems.filter(i=>{ if(!i.due) return false; const d=parseItemDate(String(i.due).trim()); return d && d<=today; }).length;
-    return Math.round((due/trackItems.length)*100);
+    return PMCPlannedActual.summarize(trackItems).planned;
   }
   if(t && typeof t.planned === "number") return t.planned;
   const base = { "أ":88, "ب":66, "ج":55, "د":60, "هـ":58 };
@@ -39,17 +36,12 @@ function plannedForTrack(t){
 }
 function projectPlanned(){
   if(!state||!state.tracks||!state.tracks.length) return 0;
-  const today = new Date(); today.setHours(0,0,0,0);
   const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
   if(!allTasks.length) return 0;
-  const due = allTasks.filter(i=>{ if(!i.due) return false; const d=parseItemDate(String(i.due).trim()); return d && d<=today; }).length;
-  return Math.round((due/allTasks.length)*100);
+  return PMCPlannedActual.summarize(allTasks).planned;
 }
 function projectActual(){
-  if(!state.tracks.length) return 0;
-  let totalTasks=0, weightedSum=0;
-  state.tracks.forEach(t=>{ const n=Number(t.tasks||0); totalTasks+=n; weightedSum+=Number(t.progress||0)*n; });
-  return totalTasks>0 ? Math.round(weightedSum/totalTasks) : 0;
+  return PMCPlannedActual.summarize(state.items||[]).actual;
 }
 // معادلة الفرق = ((الفعلي ÷ المخطط) - 1) × 100
 // ملاحظة: قيمة "الفعلي" تبقى نسبة الإنجاز الخام كما هي، والمعادلة الجديدة تُستخدم فقط لحساب "الفرق"
@@ -238,7 +230,8 @@ function scheduleCompletenessForTrack(trackId){
 }
 function trackCard(t){
   const planned = plannedForTrack(t);
-  const variance = paCompliance(planned, Number(t.progress||0)).ratio;
+  const actual = PMCPlannedActual.summarize(state.items||[],{trackId:t.id}).actual;
+  const variance = paCompliance(planned, actual).ratio;
   const displayTrackStatus = overviewTrackStatus(variance);
   return `<article class="track-card glass clickable-card" onclick="showDetails('track','${t.id}')" style="--accent:${t.accent};--value:${t.progress}">
     <div class="track-head">
@@ -254,7 +247,7 @@ function trackCard(t){
         <div class="mini clickable-kpi" onclick="event.stopPropagation();showDetails('risks','${t.id}')"><b style="color:#ff5e6b">${t.risk}</b><small>خطر</small></div>
       </div>
     </div>
-    ${paHtml(planned, Number(t.progress||0))}
+    ${paHtml(planned, actual)}
     <div class="spark"></div>
     <div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div>
   </article>`;
@@ -290,6 +283,7 @@ function renderTrackPages(){
       <div class="data-table"><div class="data-row head"><span>العنوان</span><span>المسؤول</span><span>الحالة</span><span class="track-date-cell">تاريخ البداية<br>الاستحقاق</span></div>
       ${rows.length?rows.map(i=>`<div class="data-row clickable-card" onclick="showDetails('${type}','${t.id}')"><span>${escH(i.title)}${dependsOnBadgeHtml(i)}</span><span>${escH(i.owner)}</span><strong class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i))}</strong><span class="track-date-cell">تاريخ البداية: ${escH(formatTaskDate(i.startDate))}<br>الاستحقاق: ${escH(formatTaskDate(i.due))}</span></div>`).join(""):`<div class="data-row"><span>لا توجد عناصر بعد</span><span>-</span><span>-</span><span class="track-date-cell">-</span></div>`}</div></div>`;
     const planned = plannedForTrack(t);
+    const actual = PMCPlannedActual.summarize(state.items||[],{trackId:t.id}).actual;
     const trackConflictCount = dependencyConflictsForTrack(t.id).length;
     el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}">
       <div class="track-hero glass"><div class="track-hero-inner"><div><h2>${t.id} · ${t.name}</h2><p>${t.ar} · ${t.sub}</p></div><div class="ring"><b>${t.progress}%</b></div></div>
@@ -299,7 +293,7 @@ function renderTrackPages(){
         <div class="track-kpi clickable-kpi" onclick="showDetails('tasks-active','${t.id}')"><b>${t.active}</b><small>المهام النشطة</small></div>
         <div class="track-kpi clickable-kpi" onclick="showDetails('risks','${t.id}')"><b>${t.risk}</b><small>المهام المعرضة للخطر</small></div>
         <div class="track-kpi${trackConflictCount?' clickable-kpi':''}" ${trackConflictCount?`onclick="document.getElementById('trackConflict-'+'${t.id}')?.scrollIntoView({behavior:'smooth'})"`:''}><b class="${trackConflictCount?'red':''}">${trackConflictCount}</b><small>مهام متعارضة الاعتماد</small></div>
-      </div>${paHtml(planned, Number(t.progress||0))}</div>
+      </div>${paHtml(planned, actual)}</div>
       ${table("المهام","tasks",items("tasks"))}
       ${table("المخاطر","risks",items("risks"))}
       ${table("التصاريح والاعتمادات","permits",items("permits"))}
@@ -320,32 +314,33 @@ function v20TodayISO(){
   return new Date().toISOString().slice(0,10);
 }
 function v20ProjectActual(){
-  if(!state.tracks || !state.tracks.length) return 0;
-  // مرجّح بعدد المهام الفعلية لكل مسار
-  let totalTasks = 0, weightedSum = 0;
-  state.tracks.forEach(t=>{
-    const tasks = Number(t.tasks||0);
-    totalTasks += tasks;
-    weightedSum += Number(t.progress||0) * tasks;
-  });
-  return totalTasks > 0 ? v20Clamp(Math.round(weightedSum/totalTasks)) : 0;
+  return PMCPlannedActual.summarize(state.items||[]).actual;
 }
 function v20PlannedTrack(t){
-  // يحسب المخطط تلقائياً: المهام التي حان استحقاقها حتى اليوم ÷ إجمالي مهام المسار
-  const today = new Date(); today.setHours(0,0,0,0);
-  const trackItems = (state.items||[]).filter(i=>i.track===t.id && i.type==="tasks");
-  if(!trackItems.length) return 0;
-  const due = trackItems.filter(i=>{ if(!i.due) return false; const d=parseItemDate(String(i.due).trim()); return d && d<=today; }).length;
-  return Math.round((due/trackItems.length)*100);
+  return PMCPlannedActual.summarize(state.items||[],{trackId:t.id}).planned;
 }
 function v20ProjectPlanned(){
-  if(!state.tracks || !state.tracks.length) return 0;
-  // مرجّح بعدد المهام الفعلية لكل مسار
+  return PMCPlannedActual.summarize(state.items||[]).planned;
+}
+// تبقى مؤشرات الصحة/الجاهزية المستقلة على مدخلاتها الأصلية؛ نطاق القطع خاص بـ Planned vs Actual فقط.
+function v20LegacyPlannedTrack(t){
   const today = new Date(); today.setHours(0,0,0,0);
-  const allTasks = (state.items||[]).filter(i=>i.type==="tasks");
-  if(!allTasks.length) return 0;
-  const dueTasks = allTasks.filter(i=>{ if(!i.due) return false; const d=parseItemDate(String(i.due).trim()); return d && d<=today; }).length;
-  return Math.round((dueTasks/allTasks.length)*100);
+  const tasks = (state.items||[]).filter(i=>i.track===t.id&&i.type==="tasks");
+  if(!tasks.length) return 0;
+  const due=tasks.filter(i=>{if(!i.due)return false;const d=parseItemDate(String(i.due).trim());return d&&d<=today;}).length;
+  return Math.round(due/tasks.length*100);
+}
+function v20LegacyProjectPlanned(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tasks=(state.items||[]).filter(i=>i.type==="tasks");
+  if(!tasks.length) return 0;
+  const due=tasks.filter(i=>{if(!i.due)return false;const d=parseItemDate(String(i.due).trim());return d&&d<=today;}).length;
+  return Math.round(due/tasks.length*100);
+}
+function v20LegacyProjectActual(){
+  let total=0,weighted=0;
+  (state.tracks||[]).forEach(t=>{const count=Number(t.tasks||0);total+=count;weighted+=Number(t.progress||0)*count;});
+  return total?v20Clamp(Math.round(weighted/total)):0;
 }
 function v20Items(type){
   return (state.items||[]).filter(i=>i.type===type);
@@ -518,7 +513,7 @@ function v20TrackHealth(t){
 
   // 1. الإنجاز مقابل المخطط
   const actual = Number(t.progress||0);
-  const planned = v20PlannedTrack(t);
+  const planned = v20LegacyPlannedTrack(t);
   const variance = actual - planned;
   const progressScore = variance >= 0 ? 100 : Math.max(0, 100 + variance * 2);
 
@@ -556,8 +551,8 @@ function v20DynamicWeights(){
   return                    {progress:0.50, risk:0.25, overdue:0.15, decision:0.10}; // إطلاق
 }
 function v20ProjectHealth(){
-  const actual = v20ProjectActual();
-  const planned = v20ProjectPlanned();
+  const actual = v20LegacyProjectActual();
+  const planned = v20LegacyProjectPlanned();
   const w = v20DynamicWeights();
 
   // 1. الإنجاز مقابل المخطط
