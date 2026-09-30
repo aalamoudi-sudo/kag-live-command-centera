@@ -32,8 +32,8 @@ test("overview track badges use the requested variance boundaries", () => {
 });
 
 test("overview badge classification stays local to the overview track card", () => {
-  assert.match(script, /const displayTrackStatus = overviewTrackStatus\(variance\)/);
+  assert.match(script, /variance==null \? \{label:t\.status,tone:"amber"\} : overviewTrackStatus\(variance\)/);
   assert.match(script, /overview-track-status--\$\{displayTrackStatus\.tone\}/);
   assert.match(script, /\$\{displayTrackStatus\.label\}/);
-  assert.match(script, /\$\{paHtml\(planned, Number\(t\.progress\|\|0\)\)\}/);
+  assert.match(script, /\$\{paHtml\(planned, actual\)\}/);
 });
