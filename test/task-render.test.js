@@ -27,7 +27,7 @@ function loadPMC(item){
     items:Array.isArray(item) ? item : [item],
     feed:[], dailyLogs:[], decisions:[], snapshots:[]
   }));
-  for(const file of ["public/task-status.js", "public/task-date.js", "public/schedule-variance.js", "public/schedule-completeness.js", "public/script.js"]){
+  for(const file of ["public/task-status.js", "public/task-date.js", "public/schedule-variance.js", "public/schedule-completeness.js", "public/pmc-planned-actual.js", "public/script.js"]){
     window.eval(read(file));
   }
   return dom;
