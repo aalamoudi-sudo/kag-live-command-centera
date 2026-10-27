@@ -5,7 +5,7 @@
 })(typeof globalThis!=="undefined"?globalThis:this,function(){
   "use strict";
 
-  const CUTOFF_DATE="2026-11-01";
+  const CUTOFF_DATE="2026-12-30";
   const PROJECT_TIME_ZONE="Asia/Riyadh";
   const DONE_STATUSES=new Set(["مكتملة","معتمدة","Completed","Cleared"]);
 

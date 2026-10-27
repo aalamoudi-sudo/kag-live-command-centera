@@ -47,7 +47,7 @@ function todayStr() {
   return new Date().toLocaleDateString("ar-SA", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 }
 function daysToOpen(openingDate) {
-  const d = new Date(openingDate || "2026-11-01");
+  const d = new Date(`${openingDate || "2026-12-30"}T00:00:00+03:00`);
   const n = new Date();
   return Math.max(0, Math.ceil((d - n) / (1000*60*60*24)));
 }
