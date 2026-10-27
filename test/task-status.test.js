@@ -1,7 +1,15 @@
 "use strict";
 const test=require("node:test");
 const assert=require("node:assert/strict");
-const {isTaskOverdue,getTaskDisplayStatus,taskDueTimestamp}=require("../public/task-status");
+const {isTaskHeld,isTaskOverdue,getTaskDisplayStatus,taskDueTimestamp}=require("../public/task-status");
+
+test("star in task title or sheet status marks a task as held",()=>{
+  assert.equal(isTaskHeld({title:"مهمة *",status:"مكتملة"}),true);
+  assert.equal(isTaskHeld({title:"مهمة",status:"قيد التنفيذ*"}),true);
+  assert.equal(getTaskDisplayStatus({title:"مهمة *",status:"مكتملة"}),"معلقة");
+  assert.equal(isTaskOverdue({title:"مهمة *",status:"متأخرة"}),false);
+  assert.equal(isTaskHeld({title:"مهمة",status:"مكتملة"}),false);
+});
 
 const task=(status,due,dueTime)=>({type:"tasks",status,due,dueTime});
 const atRiyadh=(isoLocal)=>Date.parse(isoLocal+"+03:00");

@@ -22,7 +22,7 @@ function loadPMC(item){
   window.setInterval = () => 0;
   window.setTimeout = () => 0;
   window.localStorage.setItem("kagV6BulkImport", JSON.stringify({
-    project:{title:"PMC", openingDate:"2026-11-01"},
+    project:{title:"PMC", openingDate:"2026-12-30"},
     tracks:[{id:"أ", slug:"track-a", name:"المسار", ar:"Track", sub:"", status:"ضمن المسار", progress:0, tasks:1, done:0, active:1, risk:0, lead:"PMC", focus:""}],
     items:Array.isArray(item) ? item : [item],
     feed:[], dailyLogs:[], decisions:[], snapshots:[]
@@ -136,5 +136,5 @@ test("the PMC page requests fresh versions of the date formatter and render bund
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
   assert.match(html, /src="schedule-completeness\.js\?v=1"/);
   assert.match(html, /href="style\.css\?v=6"/);
-  assert.match(html, /src="script\.js\?v=13"/);
+  assert.match(html, /src="script\.js\?v=14"/);
 });
