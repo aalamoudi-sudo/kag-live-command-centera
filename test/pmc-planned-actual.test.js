@@ -9,6 +9,17 @@ const metrics=require("../public/pmc-planned-actual");
 
 const task=(due,status="قيد التنفيذ",extra={})=>({type:"tasks",track:"أ",due,status,...extra});
 
+test("held tasks are excluded from planned and actual numerator and denominator",()=>{
+  const result=metrics.summarize([
+    task("2026-10-01","مكتملة",{title:"منجزة *"}),
+    task("2026-10-01","قيد التنفيذ*",{title:"نشطة"})
+  ],{measurementDate:"2026-10-27"});
+  assert.equal(result.denominator,0);
+  assert.equal(result.planned,0);
+  assert.equal(result.actual,0);
+  assert.equal(result.excludedCount,2);
+});
+
 test("November 1 is included and November 2 is excluded using the existing due field",()=>{
   const result=metrics.summarize([task("2026-11-01","مكتملة"),task("2026-11-02","مكتملة")],{measurementDate:"2026-11-01"});
   assert.equal(result.endDateField,"due");
