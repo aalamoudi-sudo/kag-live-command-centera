@@ -7,7 +7,6 @@ module.exports = {
     env: {
       PORT: 3000,
       ADMIN_USERNAME: "MAYADEEN",
-      ADMIN_PASSWORD: "Mayadeen@2026",   // غيّرها لكلمة أقوى وقت ما تحب
       REQUIRE_LOGIN: "true",             // قفل كامل: لا يُعرض أي شيء قبل تسجيل الدخول
       // SHEET_CSV_URL: "رابط_النشر_للويب" // اختياري
     }

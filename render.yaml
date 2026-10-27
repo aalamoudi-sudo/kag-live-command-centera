@@ -12,4 +12,8 @@ services:
       - key: ADMIN_USERNAME
         value: MAYADEEN
       - key: ADMIN_PASSWORD
-        value: Mayadeen@2026
+        sync: false
+      - key: VIEWER_PASSWORD
+        sync: false
+      - key: SHEET_ID
+        sync: false

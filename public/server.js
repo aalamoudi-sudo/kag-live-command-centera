@@ -16,7 +16,7 @@
  *   SHEET_REFRESH_MS مدة إعادة السحب بالمللي ثانية (افتراضي 15000)
  *   OPENING_DATE     تاريخ الافتتاح (افتراضي 2026-09-27)
  *   ADMIN_USERNAME   اسم مستخدم الأدمن لإعدادات العرض (افتراضي MAYADEEN)
- *   ADMIN_PASSWORD   كلمة مرور الأدمن (افتراضي تُولّد عشوائيًا وتُطبع عند الإقلاع)
+ *   ADMIN_PASSWORD   كلمة مرور الأدمن (مطلوبة عند تفعيل تسجيل الدخول)
  *   PORT             المنفذ (افتراضي 3000)
  */
 const http = require("http");
@@ -25,10 +25,11 @@ const path = require("path");
 const crypto = require("crypto");
 const { generateReport } = require("./report-generator");
 const { generatePptx }   = require("./pptx-generator");
+const { isTaskHeld } = require("./task-status");
 
 const PORT = Number(process.env.PORT || 3000);
 // معرّف جدول حدائق الملك عبدالله المثبّت مسبقًا (يمكن تجاوزه بمتغيّر البيئة SHEET_ID)
-const SHEET_ID = process.env.SHEET_ID || "15m2VHVr7W2mWWz7g_Z5iMDxaIZuRshj-N3EtA9j4lWk";
+const SHEET_ID = process.env.SHEET_ID || "";
 const SHEET_NAME = process.env.SHEET_NAME || "";
 const SHEET_GID = process.env.SHEET_GID || "";          // رقم التبويب (gid) إن وُجد
 const SHEET_CSV_URL = process.env.SHEET_CSV_URL || "";  // رابط "النشر للويب" CSV (الأكثر ضمانًا)
@@ -36,11 +37,11 @@ const LOCAL_CSV = process.env.LOCAL_CSV || "";          // مسار ملف CSV �
 const SHEET_REFRESH_MS = Number(process.env.SHEET_REFRESH_MS || 15000);
 const OPENING_DATE = process.env.OPENING_DATE || "2026-09-27";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "MAYADEEN";
-// كلمة المرور الأساسية المثبّتة (يمكن تغييرها بمتغيّر البيئة ADMIN_PASSWORD).
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Mayadeen@2026";
+// كلمة مرور الأدمن تُقرأ من البيئة فقط ولا يوجد لها بديل مضمن.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 // بيانات حساب المشاهد — يفتح اللوحة فقط بدون صلاحيات الأدمن
 const VIEWER_USERNAME = process.env.VIEWER_USERNAME || "KAG_VIEWER";
-const VIEWER_PASSWORD = process.env.VIEWER_PASSWORD || "KAG@View2026";
+const VIEWER_PASSWORD = process.env.VIEWER_PASSWORD || "";
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 const sessions = new Map(); // sid -> { exp: timestamp, role: "viewer"|"admin" }
@@ -246,16 +247,19 @@ function rowsToItems(rows){
 /* ============ بناء حالة اللوحة الكاملة من العناصر ============ */
 function buildState(items){
   const tracks = TRACK_CONFIG.map(cfg=>{
-    const t={...cfg, status:"تحت المتابعة", progress:0, tasks:0, done:0, active:0, risk:0};
+    const t={...cfg, status:"تحت المتابعة", progress:0, tasks:0, done:0, active:0, risk:0, held:0};
     const ti=items.filter(i=>i.track===t.id);
     const tasks=ti.filter(i=>i.type==="tasks");
+    const held=tasks.filter(isTaskHeld);
+    const countedTasks=tasks.filter(i=>!isTaskHeld(i));
     const risks=ti.filter(i=>i.type==="risks" && i.status!=="مغلقة");
     t.tasks=tasks.length;
-    t.done=tasks.filter(i=>DONE_SET.includes(i.status)).length;
-    t.active=tasks.filter(i=>ACTIVE_SET.includes(i.status)).length;
-    t.risk=risks.length + tasks.filter(i=>RISK_SET.includes(i.status)).length;
-    if(t.tasks>0){
-      t.progress=Math.round((t.done/t.tasks)*100);
+    t.held=held.length;
+    t.done=countedTasks.filter(i=>DONE_SET.includes(i.status)).length;
+    t.active=countedTasks.filter(i=>ACTIVE_SET.includes(i.status)).length;
+    t.risk=risks.length + countedTasks.filter(i=>RISK_SET.includes(i.status)).length;
+    if(countedTasks.length>0){
+      t.progress=Math.round((t.done/countedTasks.length)*100);
       t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=45 ? "تحت المتابعة" : "معرض للخطر";
     }else{ t.progress=0; t.status="تحت المتابعة"; }
     return t;
@@ -263,11 +267,11 @@ function buildState(items){
 
   // تغذية حية مشتقة من بيانات حقيقية (مخاطر/عناصر معرضة للخطر/أحدث المكتمل)
   const feed=[];
-  items.filter(i=>RISK_SET.includes(i.status)).slice(0,4).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&RISK_SET.includes(i.status)).slice(0,4).forEach(i=>
     feed.push({time:i.due||"", title:"تنبيه مخاطرة", msg:`${i.title} (${i.track})`, level:"red"}));
-  items.filter(i=>ACTIVE_SET.includes(i.status)).slice(0,4).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&ACTIVE_SET.includes(i.status)).slice(0,4).forEach(i=>
     feed.push({time:i.due||"", title:"قيد المتابعة", msg:`${i.title} (${i.track})`, level:"amber"}));
-  items.filter(i=>DONE_SET.includes(i.status)).slice(0,3).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&DONE_SET.includes(i.status)).slice(0,3).forEach(i=>
     feed.push({time:i.due||"", title:"إنجاز", msg:`${i.title} (${i.track})`, level:"green"}));
   if(!feed.length) feed.push({time:"", title:"النظام الحي", msg:"تمت مزامنة البيانات من Google Sheet", level:"cyan"});
 
@@ -662,13 +666,15 @@ server.headersTimeout = 15000;
 server.keepAliveTimeout = 8000;
 
 (async ()=>{
+  if(REQUIRE_LOGIN && (!ADMIN_PASSWORD || !VIEWER_PASSWORD)){
+    throw new Error("ADMIN_PASSWORD and VIEWER_PASSWORD must be configured when REQUIRE_LOGIN=true");
+  }
   await refreshFromSheet();
   setInterval(refreshFromSheet, SHEET_REFRESH_MS);
   server.listen(PORT,()=>{
     console.log(`KAG Live Command Center يعمل على http://localhost:${PORT}`);
-    console.log(`مصدر البيانات: ${SHEET_ID?("Google Sheet ["+SHEET_ID+"]"):"بيانات تجريبية (لم يُضبط SHEET_ID)"}`);
+    console.log(`مصدر البيانات: ${SHEET_ID?"Google Sheet مهيأ":"بيانات تجريبية (لم يُضبط SHEET_ID)"}`);
     console.log(`اسم مستخدم الأدمن: ${ADMIN_USERNAME}`);
-    if(!process.env.ADMIN_PASSWORD) console.log(`كلمة مرور الأدمن الأساسية: ${ADMIN_PASSWORD}  (يمكن تغييرها عبر ADMIN_PASSWORD)`);
     if(REQUIRE_LOGIN) console.log("الوضع: قفل كامل (REQUIRE_LOGIN=true) — لا تُعرض البيانات إلا بعد تسجيل الدخول.");
   });
 })();
