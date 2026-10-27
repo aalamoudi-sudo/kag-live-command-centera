@@ -25,6 +25,7 @@ const path = require("path");
 const crypto = require("crypto");
 const { generateReport } = require("./report-generator");
 const { generatePptx }   = require("./pptx-generator");
+const { isTaskHeld } = require("./public/task-status");
 
 const PORT = Number(process.env.PORT || 3000);
 // معرّف جدول حدائق الملك عبدالله المثبّت مسبقًا (يمكن تجاوزه بمتغيّر البيئة SHEET_ID)
@@ -260,16 +261,19 @@ function rowsToItems(rows){
 /* ============ بناء حالة اللوحة الكاملة من العناصر ============ */
 function buildState(items){
   const tracks = TRACK_CONFIG.map(cfg=>{
-    const t={...cfg, status:"تحت المتابعة", progress:0, tasks:0, done:0, active:0, risk:0};
+    const t={...cfg, status:"تحت المتابعة", progress:0, tasks:0, done:0, active:0, risk:0, held:0};
     const ti=items.filter(i=>i.track===t.id);
     const tasks=ti.filter(i=>i.type==="tasks");
+    const held=tasks.filter(isTaskHeld);
+    const countedTasks=tasks.filter(i=>!isTaskHeld(i));
     const risks=ti.filter(i=>i.type==="risks" && i.status!=="مغلقة");
     t.tasks=tasks.length;
-    t.done=tasks.filter(i=>DONE_SET.includes(i.status)).length;
-    t.active=tasks.filter(i=>ACTIVE_SET.includes(i.status)).length;
-    t.risk=risks.length + tasks.filter(i=>RISK_SET.includes(i.status)).length;
-    if(t.tasks>0){
-      t.progress=Math.round((t.done/t.tasks)*100);
+    t.held=held.length;
+    t.done=countedTasks.filter(i=>DONE_SET.includes(i.status)).length;
+    t.active=countedTasks.filter(i=>ACTIVE_SET.includes(i.status)).length;
+    t.risk=risks.length + countedTasks.filter(i=>RISK_SET.includes(i.status)).length;
+    if(countedTasks.length>0){
+      t.progress=Math.round((t.done/countedTasks.length)*100);
       t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=45 ? "تحت المتابعة" : "معرض للخطر";
     }else{ t.progress=0; t.status="تحت المتابعة"; }
     return t;
@@ -277,11 +281,11 @@ function buildState(items){
 
   // تغذية حية مشتقة من بيانات حقيقية (مخاطر/عناصر معرضة للخطر/أحدث المكتمل)
   const feed=[];
-  items.filter(i=>RISK_SET.includes(i.status)).slice(0,4).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&RISK_SET.includes(i.status)).slice(0,4).forEach(i=>
     feed.push({time:i.due||"", title:"تنبيه مخاطرة", msg:`${i.title} (${i.track})`, level:"red"}));
-  items.filter(i=>ACTIVE_SET.includes(i.status)).slice(0,4).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&ACTIVE_SET.includes(i.status)).slice(0,4).forEach(i=>
     feed.push({time:i.due||"", title:"قيد المتابعة", msg:`${i.title} (${i.track})`, level:"amber"}));
-  items.filter(i=>DONE_SET.includes(i.status)).slice(0,3).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&DONE_SET.includes(i.status)).slice(0,3).forEach(i=>
     feed.push({time:i.due||"", title:"إنجاز", msg:`${i.title} (${i.track})`, level:"green"}));
   if(!feed.length) feed.push({time:"", title:"النظام الحي", msg:"تمت مزامنة البيانات من Google Sheet", level:"cyan"});
 
