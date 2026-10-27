@@ -1,4 +1,5 @@
 "use strict";
+const metrics = require("./public/pmc-planned-actual");
 /**
  * pptx-generator.js
  * مولّد PowerPoint رسمي — حدائق الملك عبدالله
@@ -6,7 +7,7 @@
  */
 
 const PptxGenJS = require("pptxgenjs");
-const {isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
+const {isTaskHeld,isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
 
 const TRACK_NAMES = {
   "أ": "التخطيط والتنسيق",
@@ -269,7 +270,7 @@ function addTracksSlide(pptx, tracks) {
       { label:"إجمالي", val: t.tasks||0, color: NAVY },
       { label:"مكتملة", val: t.done||0,  color: GREEN },
       { label:"جارية",  val: t.active||0, color: BLUE },
-      { label:"حرجة",   val: t.risk||0,   color: RED }
+      { label:"معلقة",   val: t.held||0,   color: RED }
     ];
     statData.forEach((s, si) => {
       const sx = x + 0.15 + si * statW;
@@ -380,12 +381,12 @@ async function buildComprehensivePptx(state) {
 
   const tracks  = state.tracks  || [];
   const items   = state.items   || [];
-  const tasks   = items.filter(i=>!isRisk(i));
+  const tasks   = items.filter(i=>i.type==="tasks");
   const risks   = items.filter(i=>isRisk(i)&&!isDone(i.status));
-  const totDone = tasks.filter(i=>isDone(i.status)).length;
-  const totAct  = tasks.filter(i=>isActive(i.status)).length;
-  const totLate = tasks.filter(isTaskOverdue).length;
-  const ovr     = tracks.length ? Math.round(tracks.reduce((s,t)=>s+(t.progress||0),0)/tracks.length) : 0;
+  const totDone = tasks.filter(i=>!isTaskHeld(i)&&isDone(i.status)).length;
+  const totAct  = tasks.filter(i=>!isTaskHeld(i)&&isActive(i.status)).length;
+  const totLate = tasks.filter(i=>isTaskOverdue(i)).length;
+  const ovr     = metrics.summarize(items).actual;
   const days    = daysToOpen(state.project?.openingDate);
 
   // 1. الغلاف
@@ -410,8 +411,10 @@ async function buildComprehensivePptx(state) {
   addTracksSlide(pptx, tracks);
 
   // 4. المهام الجارية والمتأخرة
-  const criticals = tasks.filter(i=>isTaskOverdue(i)||isActive(i.status)).slice(0,30);
+  const criticals = tasks.filter(i=>!isTaskHeld(i)&&(isTaskOverdue(i)||isActive(i.status))).slice(0,30);
   if (criticals.length) addTasksSlide(pptx, criticals, "المهام الجارية والمتأخرة", null);
+
+  if(tasks.some(isTaskHeld)) addTasksSlide(pptx, tasks.filter(isTaskHeld), "المهام المعلقة", null);
 
   // 5. المخاطر
   addRisksSlide(pptx, risks);
@@ -446,11 +449,11 @@ async function buildTrackPptx(state, tid) {
   const items   = state.items  || [];
   const track   = tracks.find(t=>t.id===tid) || { id:tid, name:nm, progress:0, status:"—", lead:"—" };
   const ti      = items.filter(i=>i.track===tid);
-  const tTasks  = ti.filter(i=>!isRisk(i));
+  const tTasks  = ti.filter(i=>i.type==="tasks");
   const tRisks  = ti.filter(i=>isRisk(i)&&!isDone(i.status));
-  const tDone   = tTasks.filter(i=>isDone(i.status)).length;
-  const tAct    = tTasks.filter(i=>isActive(i.status)).length;
-  const tLate   = tTasks.filter(isTaskOverdue).length;
+  const tDone   = tTasks.filter(i=>!isTaskHeld(i)&&isDone(i.status)).length;
+  const tAct    = tTasks.filter(i=>!isTaskHeld(i)&&isActive(i.status)).length;
+  const tLate   = tTasks.filter(i=>isTaskOverdue(i)).length;
   const days    = daysToOpen(state.project?.openingDate);
 
   // 1. الغلاف
@@ -472,7 +475,7 @@ async function buildTrackPptx(state, tid) {
   ], `مؤشرات مسار ${tid}: ${nm}`);
 
   // 3. المهام الجارية
-  const activeTasks = tTasks.filter(i=>isActive(i.status)||isTaskOverdue(i));
+  const activeTasks = tTasks.filter(i=>!isTaskHeld(i)&&isActive(i.status)||isTaskOverdue(i));
   if (activeTasks.length) addTasksSlide(pptx, activeTasks, "المهام الجارية والمتأخرة", tid);
 
   // 4. سجل المهام الكامل
@@ -497,6 +500,7 @@ async function buildTrackPptx(state, tid) {
 
 // ─── الدالة الرئيسية ─────────────────────────────────────────
 async function generatePptx(type, state) {
+  state=metrics.reportState(state);
   if (type === "comprehensive") return await buildComprehensivePptx(state);
   if (["أ","ب","ج","د"].includes(type)) return await buildTrackPptx(state, type);
   throw new Error("نوع تقرير غير معروف: " + type);

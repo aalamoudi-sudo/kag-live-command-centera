@@ -28,7 +28,7 @@ function loadPMC(item){
     feed:[], dailyLogs:[], decisions:[], snapshots:[]
   }));
   for(const file of ["public/task-status.js", "public/task-date.js", "public/schedule-variance.js", "public/schedule-completeness.js", "public/pmc-planned-actual.js", "public/script.js"]){
-    window.eval(read(file));
+    window.eval(read(file)+(file==="public/script.js"?"\nwindow.testState=()=>state;":""));
   }
   return dom;
 }
@@ -131,10 +131,35 @@ test("Google Sheet mapping uses the existing Arabic notes column", () => {
 
 test("the PMC page requests fresh versions of the date formatter and render bundle", () => {
   const html = read("public/index.html");
-  assert.match(html, /src="task-status\.js\?v=3"/);
+  assert.match(html, /src="task-status\.js\?v=4"/);
   assert.match(html, /src="task-date\.js\?v=3"/);
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
   assert.match(html, /src="schedule-completeness\.js\?v=1"/);
   assert.match(html, /href="style\.css\?v=6"/);
-  assert.match(html, /src="script\.js\?v=13"/);
+  assert.match(html, /src="script\.js\?v=14"/);
+});
+
+test("held-task card opens matching details while full task list retains held tasks",()=>{
+  const dom=loadPMC([
+    {type:"tasks",track:"أ",title:"HELD_ROW*",status:"مكتملة",due:"2026-10-01"},
+    {type:"tasks",track:"أ",title:"ACTIVE_ROW",status:"قيد التنفيذ",due:"2026-10-01"},
+    {type:"risks",track:"أ",title:"RISK_ROW*",status:"تحت المتابعة"}
+  ]);
+  try{
+    const w=dom.window;
+    const button=w.document.querySelector('#tracksSummary [onclick*="tasks-held"]');
+    assert.ok(button);assert.match(button.textContent,/1.*المهام المعلقة/s);
+    button.onclick=w.Function("event",button.getAttribute("onclick"));
+    button.click();
+    assert.match(w.document.getElementById('detailModalList').textContent,/HELD_ROW.*معلقة/s);
+    assert(!w.document.getElementById('detailModalList').textContent.includes('ACTIVE_ROW'));
+    w.showDetails('tasks','أ');assert.match(w.document.getElementById('detailModalList').textContent,/HELD_ROW/);
+    w.showDetails('tasks-done','أ');assert(!w.document.getElementById('detailModalList').textContent.includes('HELD_ROW'));
+    w.showDetails('risks','أ');assert.match(w.document.getElementById('detailModalList').textContent,/RISK_ROW/);
+    w.testState().items[0].title="HELD_ROW"; w.renderAll();
+    w.showDetails('tasks-done','أ');assert.match(w.document.getElementById('detailModalList').textContent,/HELD_ROW/);
+    w.testState().items[0].title="HELD_ROW*"; w.testState().items[1].title="ACTIVE_ROW*"; w.renderAll();
+    assert.equal(w.testState().tracks[0].progress,0);
+    assert.equal(w.projectActual(),0);
+  }finally{dom.window.close();}
 });

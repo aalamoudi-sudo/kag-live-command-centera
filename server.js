@@ -16,7 +16,7 @@
  *   SHEET_REFRESH_MS مدة إعادة السحب بالمللي ثانية (افتراضي 15000)
  *   OPENING_DATE     تاريخ الافتتاح (افتراضي 2026-09-27)
  *   ADMIN_USERNAME   اسم مستخدم الأدمن لإعدادات العرض (افتراضي MAYADEEN)
- *   ADMIN_PASSWORD   كلمة مرور الأدمن (افتراضي تُولّد عشوائيًا وتُطبع عند الإقلاع)
+ *   ADMIN_PASSWORD   كلمة مرور الأدمن (مطلوبة من متغيرات البيئة)
  *   PORT             المنفذ (افتراضي 3000)
  */
 const http = require("http");
@@ -25,6 +25,9 @@ const path = require("path");
 const crypto = require("crypto");
 const { generateReport } = require("./report-generator");
 const { generatePptx }   = require("./pptx-generator");
+
+const {isTaskHeld} = require("./public/task-status");
+const metrics = require("./public/pmc-planned-actual");
 
 const PORT = Number(process.env.PORT || 3000);
 // معرّف جدول حدائق الملك عبدالله المثبّت مسبقًا (يمكن تجاوزه بمتغيّر البيئة SHEET_ID)
@@ -36,11 +39,13 @@ const LOCAL_CSV = process.env.LOCAL_CSV || "";          // مسار ملف CSV �
 const SHEET_REFRESH_MS = Number(process.env.SHEET_REFRESH_MS || 15000);
 const OPENING_DATE = process.env.OPENING_DATE || "2026-09-27";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "MAYADEEN";
-// كلمة المرور الأساسية المثبّتة (يمكن تغييرها بمتغيّر البيئة ADMIN_PASSWORD).
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Mayadeen@2026";
+// كلمات المرور مطلوبة من إعدادات الاستضافة ولا تُسجّل في المخرجات.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if(!ADMIN_PASSWORD) throw new Error("ADMIN_PASSWORD must be configured in the environment");
 // بيانات حساب المشاهد — يفتح اللوحة فقط بدون صلاحيات الأدمن
 const VIEWER_USERNAME = process.env.VIEWER_USERNAME || "KAG_VIEWER";
-const VIEWER_PASSWORD = process.env.VIEWER_PASSWORD || "KAG@View2026";
+const VIEWER_PASSWORD = process.env.VIEWER_PASSWORD;
+if(!VIEWER_PASSWORD) throw new Error("VIEWER_PASSWORD must be configured in the environment");
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 const sessions = new Map(); // sid -> { exp: timestamp, role: "viewer"|"admin" }
@@ -262,26 +267,20 @@ function buildState(items){
   const tracks = TRACK_CONFIG.map(cfg=>{
     const t={...cfg, status:"تحت المتابعة", progress:0, tasks:0, done:0, active:0, risk:0};
     const ti=items.filter(i=>i.track===t.id);
-    const tasks=ti.filter(i=>i.type==="tasks");
     const risks=ti.filter(i=>i.type==="risks" && i.status!=="مغلقة");
-    t.tasks=tasks.length;
-    t.done=tasks.filter(i=>DONE_SET.includes(i.status)).length;
-    t.active=tasks.filter(i=>ACTIVE_SET.includes(i.status)).length;
-    t.risk=risks.length + tasks.filter(i=>RISK_SET.includes(i.status)).length;
-    if(t.tasks>0){
-      t.progress=Math.round((t.done/t.tasks)*100);
-      t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=45 ? "تحت المتابعة" : "معرض للخطر";
-    }else{ t.progress=0; t.status="تحت المتابعة"; }
+    Object.assign(t, metrics.trackCounters(items, t.id));
+    t.risk=risks.length;
+    t.status=t.progress>=70 ? "ضمن المسار" : t.progress>=45 ? "تحت المتابعة" : "معرض للخطر";
     return t;
   });
 
   // تغذية حية مشتقة من بيانات حقيقية (مخاطر/عناصر معرضة للخطر/أحدث المكتمل)
   const feed=[];
-  items.filter(i=>RISK_SET.includes(i.status)).slice(0,4).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&RISK_SET.includes(i.status)).slice(0,4).forEach(i=>
     feed.push({time:i.due||"", title:"تنبيه مخاطرة", msg:`${i.title} (${i.track})`, level:"red"}));
-  items.filter(i=>ACTIVE_SET.includes(i.status)).slice(0,4).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&ACTIVE_SET.includes(i.status)).slice(0,4).forEach(i=>
     feed.push({time:i.due||"", title:"قيد المتابعة", msg:`${i.title} (${i.track})`, level:"amber"}));
-  items.filter(i=>DONE_SET.includes(i.status)).slice(0,3).forEach(i=>
+  items.filter(i=>!isTaskHeld(i)&&DONE_SET.includes(i.status)).slice(0,3).forEach(i=>
     feed.push({time:i.due||"", title:"إنجاز", msg:`${i.title} (${i.track})`, level:"green"}));
   if(!feed.length) feed.push({time:"", title:"النظام الحي", msg:"تمت مزامنة البيانات من Google Sheet", level:"cyan"});
 
@@ -458,6 +457,7 @@ function serveStatic(req,res){
   const filePath=path.normalize(path.join(PUBLIC_DIR,urlPath));
   // منع تجاوز المسار: يجب أن يبقى داخل مجلد public تمامًا
   if(filePath!==PUBLIC_DIR && !filePath.startsWith(PUBLIC_DIR+path.sep)){ res.writeHead(403); return res.end("Forbidden"); }
+  if(path.basename(filePath)==="server.js"){ res.writeHead(404); return res.end("Not found"); }
   fs.stat(filePath,(err,stat)=>{
     if(err||!stat.isFile()){ res.writeHead(404); return res.end("Not found"); }
     const cache = /\.(png|jpg|jpeg|svg|ico)$/i.test(filePath) ? "public, max-age=3600" : "no-cache";
@@ -636,11 +636,7 @@ const server=http.createServer(async (req,res)=>{
 
         if(reportFormat === "pptx"){
           // توليد PPTX بـ pptxgenjs
-          const stream = await generatePptx(reportType, liveState);
-          const chunks = [];
-          stream.on("data", chunk => chunks.push(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk)));
-          await new Promise((resolve,reject)=>{ stream.on("end",resolve); stream.on("error",reject); });
-          const buf = Buffer.concat(chunks);
+          const buf = await generatePptx(reportType, liveState);
           const fname = `KAGA-${safeName}-${dateStr}.pptx`;
           res.writeHead(200,{
             "Content-Type":"application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -686,10 +682,9 @@ server.keepAliveTimeout = 8000;
   await refreshFromSheet();
   setInterval(refreshFromSheet, SHEET_REFRESH_MS);
   server.listen(PORT,()=>{
-    console.log(`KAG Live Command Center يعمل على http://localhost:${PORT}`);
+    console.log(`KAG Live Command Center يعمل على http://localhost:${server.address().port}`);
     console.log(`مصدر البيانات: ${SHEET_ID?("Google Sheet ["+SHEET_ID+"]"):"بيانات تجريبية (لم يُضبط SHEET_ID)"}`);
     console.log(`اسم مستخدم الأدمن: ${ADMIN_USERNAME}`);
-    if(!process.env.ADMIN_PASSWORD) console.log(`كلمة مرور الأدمن الأساسية: ${ADMIN_PASSWORD}  (يمكن تغييرها عبر ADMIN_PASSWORD)`);
     if(REQUIRE_LOGIN) console.log("الوضع: قفل كامل (REQUIRE_LOGIN=true) — لا تُعرض البيانات إلا بعد تسجيل الدخول.");
   });
 })();

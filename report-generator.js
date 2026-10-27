@@ -1,5 +1,6 @@
+const metrics = require("./public/pmc-planned-actual");
 "use strict";
-const {isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
+const {isTaskHeld,isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
 /**
  * report-generator.js — v6 Executive Edition
  * تصميم حكومي رسمي راقٍ: كحلي عميق / ذهبي / أبيض
@@ -48,6 +49,7 @@ function getDateBuckets(reportDate){
   return{yesterday:d(-1),today:d(0),tomorrow:d(1),base};
 }
 function bucketItems(items,buckets){
+  items=items.filter(i=>!isTaskHeld(i));
   const{yesterday,today,tomorrow}=buckets;
   const yd=[],td=[],tm=[];
   items.forEach(i=>{
@@ -56,8 +58,8 @@ function bucketItems(items,buckets){
     else if(due===today)td.push(i);
     else if(due===tomorrow)tm.push(i);
   });
-  const done  =yd.length?yd:items.filter(i=>isDone(i.status)).slice(0,8);
-  const active=td.length?td:items.filter(i=>isActive(i.status)).slice(0,8);
+  const done  =yd.length?yd:items.filter(i=>!isTaskHeld(i)&&isDone(i.status)).slice(0,8);
+  const active=td.length?td:items.filter(i=>!isTaskHeld(i)&&isActive(i.status)).slice(0,8);
   const next  =tm.length?tm:items.filter(i=>!isDone(i.status)&&!isActive(i.status)&&i.due)
                               .sort((a,b)=>a.due>b.due?1:-1).slice(0,8);
   return{done,active,next,hasExactDates:yd.length>0||td.length>0||tm.length>0};
@@ -579,26 +581,25 @@ function buildComprehensive(state, reportDate){
   const items     = state.items    || [];
   const decisions = (state.decisions||[]).filter(d=>d.status!=="معتمد");
 
-  const tasks    = items.filter(i=>!isRiskItem(i));
+  const tasks    = items.filter(i=>i.type==="tasks");
   const risks    = items.filter(i=>isRiskItem(i)&&!isDone(i.status));
-  const totDone  = tasks.filter(i=>isDone(i.status)).length;
-  const totAct   = tasks.filter(i=>isActive(i.status)).length;
-  const totLate  = tasks.filter(isTaskOverdue).length;
-  const ovr      = tracks.length
-    ? Math.round(tracks.reduce((s,t)=>s+(t.progress||0),0)/tracks.length) : 0;
+  const totDone  = tasks.filter(i=>!isTaskHeld(i)&&isDone(i.status)).length;
+  const totAct   = tasks.filter(i=>!isTaskHeld(i)&&isActive(i.status)).length;
+  const totLate  = tasks.filter(i=>isTaskOverdue(i)).length;
+  const ovr      = metrics.summarize(items).actual;
 
   const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(tasks,buckets);
-  const criticals = tasks.filter(isTaskOverdue).slice(0,20);
+  const criticals = tasks.filter(i=>isTaskOverdue(i)).slice(0,20);
 
   // بطاقات المسارات
   const trackCards = tracks.map(t=>{
     const tc = TRACK_COLORS[t.id]||{bg:"#0B1F35",accent:"#C9A84C",light:"#EDF2F8",bar:"#1C3D5E"};
     const ti  = items.filter(i=>i.track===t.id);
-    const tT  = ti.filter(i=>!isRiskItem(i));
+    const tT  = ti.filter(i=>i.type==="tasks");
     const tR  = ti.filter(i=>isRiskItem(i)&&!isDone(i.status));
-    const tD  = tT.filter(i=>isDone(i.status)).length;
-    const tA  = tT.filter(i=>isActive(i.status)).length;
-    const tLt = tT.filter(isTaskOverdue).length;
+    const tD  = tT.filter(i=>!isTaskHeld(i)&&isDone(i.status)).length;
+    const tA  = tT.filter(i=>!isTaskHeld(i)&&isActive(i.status)).length;
+    const tLt = tT.filter(i=>isTaskOverdue(i)).length;
     return `<div class="track-card">
       <div class="track-head" style="background:${tc.bg}">
         <div class="track-letter">${t.id||""}</div>
@@ -624,8 +625,8 @@ function buildComprehensive(state, reportDate){
             <div class="ts-lbl" style="color:var(--blue)">جارية</div>
           </div>
           <div class="ts-box" style="background:var(--red-lt)">
-            <div class="ts-num" style="color:var(--red)">${tLt||tR.length}</div>
-            <div class="ts-lbl" style="color:var(--red)">حرجة</div>
+            <div class="ts-num" style="color:var(--red)">${t.held||0}</div>
+            <div class="ts-lbl" style="color:var(--red)">المهام المعلقة</div>
           </div>
         </div>
       </div>
@@ -751,6 +752,8 @@ function buildComprehensive(state, reportDate){
     <div class="section-body-tight">${taskTable(criticals,true)}</div>
   </div>` : ""}
 
+  ${tasks.some(isTaskHeld) ? `<div class="section"><div class="section-head"><h2 class="section-title">المهام المعلقة</h2><span class="section-count">${tasks.filter(isTaskHeld).length}</span></div><div class="section-body-tight">${taskTable(tasks.filter(isTaskHeld),true)}</div></div>` : ""}
+
   <!-- سجل المخاطر -->
   <div class="section">
     <div class="section-head" style="background:#FFF5F5;border-bottom-color:#FEE2E2">
@@ -792,15 +795,15 @@ function buildTrack(state, tid, reportDate){
   const pct = track.progress||0;
 
   const ti       = items.filter(i=>i.track===tid);
-  const tT       = ti.filter(i=>!isRiskItem(i));
+  const tT       = ti.filter(i=>i.type==="tasks");
   const tR       = ti.filter(i=>isRiskItem(i)&&!isDone(i.status));
-  const tDone    = tT.filter(i=>isDone(i.status)).length;
-  const tActive  = tT.filter(i=>isActive(i.status)).length;
-  const tLate    = tT.filter(isTaskOverdue).length;
+  const tDone    = tT.filter(i=>!isTaskHeld(i)&&isDone(i.status)).length;
+  const tActive  = tT.filter(i=>!isTaskHeld(i)&&isActive(i.status)).length;
+  const tLate    = tT.filter(i=>isTaskOverdue(i)).length;
 
   const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(tT,buckets);
-  const activeTasks = tT.filter(i=>isActive(i.status)||isTaskOverdue(i)).slice(0,20);
-  const allTasks    = tT.slice(0,40);
+  const activeTasks = tT.filter(i=>!isTaskHeld(i)&&isActive(i.status)||isTaskOverdue(i)).slice(0,20);
+  const allTasks    = tT;
 
   const execGrid = latestLog ? `
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px">
@@ -898,7 +901,7 @@ function buildTrack(state, tid, reportDate){
         </div>
         <div class="ts-box" style="background:var(--red-lt)">
           <div class="ts-num" style="color:var(--red)">${tLate||tR.length}</div>
-          <div class="ts-lbl" style="color:var(--red)">حرجة</div>
+          <div class="ts-lbl" style="color:var(--red)">المهام المعلقة</div>
         </div>
       </div>
     </div>
@@ -975,6 +978,7 @@ function buildTrack(state, tid, reportDate){
 
 // ─── الدالة الرئيسية ─────────────────────────────────────────
 async function generateReport(type, state){
+  state=metrics.reportState(state);
   const reportDate = state.reportDate || null;
   let html;
   if(type==="comprehensive") html = buildComprehensive(state, reportDate);

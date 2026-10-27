@@ -1,8 +1,8 @@
 (function(root,factory){
-  const api=factory();
+  const api=factory(typeof module==="object"&&module.exports ? require("./task-status") : root.PMCTaskStatus);
   if(typeof module==="object"&&module.exports) module.exports=api;
   root.PMCPlannedActual=api;
-})(typeof globalThis!=="undefined"?globalThis:this,function(){
+})(typeof globalThis!=="undefined"?globalThis:this,function(taskStatus){
   "use strict";
 
   const CUTOFF_DATE="2026-11-01";
@@ -43,7 +43,7 @@
     const excluded=[];
     tasks.forEach(item=>{
       const endDate=dateKey(item.due);
-      if(endDate&&endDate>CUTOFF_DATE) excluded.push(item);
+      if(taskStatus.isTaskHeld(item) || (endDate&&endDate>CUTOFF_DATE)) excluded.push(item);
       else eligible.push({item,endDate});
     });
     const denominator=eligible.length;
@@ -58,5 +58,23 @@
     };
   }
 
-  return {CUTOFF_DATE,PROJECT_TIME_ZONE,DONE_STATUSES,dateKey,measurementDateKey,summarize};
+  // Keep sheet-backed title/status untouched; all derived counters share this rule.
+  function trackCounters(items, trackId){
+    const tasks=(items||[]).filter(i=>i.type==="tasks" && (!trackId||i.track===trackId));
+    const counted=tasks.filter(i=>!taskStatus.isTaskHeld(i));
+    const metrics=summarize(items,{trackId});
+    return {
+      tasks:tasks.length, held:tasks.length-counted.length,
+      done:counted.filter(i=>DONE_STATUSES.has(String(i.status||"").trim())).length,
+      active:counted.filter(i=>["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"].includes(i.status)).length,
+      late:counted.filter(i=>taskStatus.isTaskOverdue(i)).length,
+      progress:metrics.actual, planned:metrics.planned
+    };
+  }
+
+  function reportState(state){
+    return {...state, tracks:(state.tracks||[]).map(t=>({...t,...trackCounters(state.items,t.id)}))};
+  }
+
+  return {trackCounters,reportState,CUTOFF_DATE,PROJECT_TIME_ZONE,DONE_STATUSES,dateKey,measurementDateKey,summarize};
 });

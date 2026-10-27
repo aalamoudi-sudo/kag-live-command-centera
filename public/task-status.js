@@ -63,7 +63,12 @@
     return Date.UTC(inRiyadh.getUTCFullYear(),inRiyadh.getUTCMonth(),inRiyadh.getUTCDate());
   }
 
+  function isTaskHeld(task){
+    return !!task && task.type === "tasks" && /\*/.test(String(task.title || "") + String(task.status || ""));
+  }
+
   function isTaskOverdue(task, now){
+    if(isTaskHeld(task)) return false;
     const status=String(task && task.status || "").trim();
     if(DONE_STATUSES.includes(status)) return false;
     if(MANUAL_OVERDUE_STATUSES.includes(status)) return true;
@@ -74,6 +79,7 @@
   }
 
   function getTaskDisplayStatus(task, now){
+    if(isTaskHeld(task)) return "معلقة";
     const status=String(task && task.status || "").trim();
     // Display-only enrichment: the original task and its sheet-backed status are never changed.
     if(DONE_STATUSES.includes(status)){
@@ -100,5 +106,5 @@
     return status;
   }
 
-  return {isTaskOverdue,getTaskDisplayStatus,taskDueTimestamp,DONE_STATUSES,MANUAL_OVERDUE_STATUSES,IN_PROGRESS_STATUSES,NOT_STARTED_STATUSES};
+  return {isTaskHeld,isTaskOverdue,getTaskDisplayStatus,taskDueTimestamp,DONE_STATUSES,MANUAL_OVERDUE_STATUSES,IN_PROGRESS_STATUSES,NOT_STARTED_STATUSES};
 });
