@@ -2807,6 +2807,20 @@ footer{display:none!important;}
 .cross-track-stat b{color:#D8B4FF}
 .cross-track-stat.muted{color:var(--muted);font-weight:700;font-size:14px}
 .cross-track-stat.muted b{color:var(--sand)}
+.held-track-filter{display:grid;grid-template-columns:auto minmax(180px,1fr);align-items:center;gap:12px;margin:0 0 14px;color:#d9ccff;font-weight:900}
+.held-track-filter select{background:#11182c;border:1px solid rgba(193,124,255,.45);border-radius:8px;color:#edf0ff;padding:9px 12px;font-family:inherit;font-size:16px}
+.held-distribution-panel{grid-column:1/-1;border-color:rgba(193,124,255,.4)!important}
+.held-distribution-panel .panel-title b{background:#c17cff!important}
+.held-distribution-panel .panel-title h3{color:#d8b4ff!important}
+.held-distribution-summary{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 12px;border-radius:9px;background:rgba(193,124,255,.08);color:var(--muted)}
+.held-distribution-summary strong{font-size:28px;color:#c17cff}.held-distribution-summary span{font-weight:900}
+.held-distribution-list{display:grid;gap:10px}
+.held-distribution-row{display:grid;grid-template-columns:minmax(190px,.8fr) minmax(180px,1.4fr) minmax(220px,1fr);gap:14px;align-items:center;width:100%;padding:12px 14px;background:rgba(8,12,25,.68);border:1px solid rgba(193,124,255,.22);border-radius:9px;color:var(--text);font-family:inherit;text-align:right;cursor:pointer}
+.held-distribution-row:hover{border-color:rgba(193,124,255,.62);background:rgba(193,124,255,.10)}
+.held-distribution-track,.held-distribution-value{display:flex;flex-direction:column;gap:3px}.held-distribution-track b{color:var(--sand);font-size:18px}.held-distribution-track small,.held-distribution-value small{color:var(--muted);font-weight:800}.held-distribution-value b{color:#c17cff;font-size:24px}
+.held-distribution-visual{height:11px;border-radius:99px;background:rgba(159,176,195,.16);overflow:hidden}.held-distribution-visual i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#875cff,#c17cff);box-shadow:0 0 14px rgba(193,124,255,.45)}
+.held-distribution-warning{color:var(--amber);font-size:15px}
+@media(max-width:780px){.held-track-filter{grid-template-columns:1fr}.held-distribution-row{grid-template-columns:1fr;gap:8px}.held-distribution-value{flex-direction:row;align-items:baseline;gap:8px}.held-distribution-value small{line-height:1.4}}
 
 /* Keep dependency rows visually balanced without changing their generated content. */
 .cross-track-targets{
@@ -2958,7 +2972,7 @@ footer{display:none!important;}
 #overview .home-kpi-grid .kpi:nth-child(1){order:6} /* إجمالي المهام */
 #overview .home-kpi-grid .kpi:nth-child(9){order:7;grid-column:span 2} /* جاهزية الافتتاح */
 #overview .home-kpi-grid .kpi:nth-child(8){order:8;grid-column:span 2} /* الإنجاز العام */
-#overview .home-kpi-grid .kpi:nth-child(7){order:9;grid-column:span 2} /* مهام اعتمادية */
+#overview .home-kpi-grid .kpi:nth-child(7){order:9;grid-column:span 2} /* إجمالي المهام المعلقة */
 
 /* Project comparison spans the row; the four existing tracks align beneath it. */
 #overview .home-tracks-grid{
