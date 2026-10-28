@@ -47,7 +47,7 @@ test("held project card, distribution, list and track filter stay count-consiste
     const card=[...dom.window.document.querySelectorAll("#overviewKpis .kpi")].find(el=>el.textContent.includes("إجمالي المهام المعلقة"));
     assert.ok(card);
     assert.match(card.textContent,/2/);
-    assert.match(card.textContent,/مستبعدة من حساب الإنجاز/);
+    assert.doesNotMatch(card.textContent,/مستبعدة من حساب الإنجاز/);
     const rows=[...dom.window.document.querySelectorAll(".held-distribution-row")];
     assert.equal(rows.length,2);
     assert.deepEqual(rows.map(row=>row.querySelector(".held-distribution-value b").textContent),["1","1"]);
@@ -59,13 +59,6 @@ test("held project card, distribution, list and track filter stay count-consiste
     assert.equal(filtered.length,1);
     assert.match(filtered[0].textContent,/معلقة بالاسم/);
   }finally{dom.window.close();}
-});
-
-test("held KPI note has enough card height and responsive spacing", () => {
-  const css=read("public/style.css");
-  assert.match(css,/#overview \.home-kpi-grid \.kpi:nth-child\(n\+7\)\{[\s\S]*?height:132px;[\s\S]*?min-height:132px;/);
-  assert.match(css,/#overview \.home-kpi-grid \.kpi:nth-child\(7\) \.kpi-note\{[\s\S]*?font-size:12px;[\s\S]*?line-height:1\.25;[\s\S]*?white-space:normal;/);
-  assert.match(css,/@media\(max-width:600px\)\{[\s\S]*?#overview \.home-kpi-grid \.kpi:nth-child\(n\+7\)\{height:126px;min-height:126px\}/);
 });
 
 test("the actual task details card renders its start date through the formatter", () => {
@@ -171,5 +164,5 @@ test("the PMC page requests fresh versions of the date formatter and render bund
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
   assert.match(html, /src="schedule-completeness\.js\?v=1"/);
   assert.match(html, /href="style\.css\?v=6"/);
-  assert.match(html, /src="script\.js\?v=17"/);
+  assert.match(html, /src="script\.js\?v=18"/);
 });
