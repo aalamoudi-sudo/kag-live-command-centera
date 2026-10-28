@@ -15,7 +15,7 @@ function normalizeTrack(v){v=(v||"").trim();const map={A:"أ",B:"ب",C:"ج",D:"�
 function normalizeType(v){v=(v||"").trim().toLowerCase();if(["task","tasks","مهمة","مهام"].includes(v))return"tasks";if(["risk","risks","مخاطرة","مخاطر"].includes(v))return"risks";if(["permit","permits","approval","approvals","تصريح","تصاريح","اعتماد","اعتمادات"].includes(v))return"permits";if(["milestone","milestones","معلم","معلم رئيسي","معالم"].includes(v))return"milestones";return v||"tasks"}
 function colorByStatus(s){if(["مكتملة","مكتملة (منجزة مبكرًا)","معتمدة","ضمن المسار","Completed","Completed (Early)","Cleared"].includes(s))return"green";if(["تحت المتابعة","قيد التنفيذ","قيد التنفيذ (متقدم عن المسار)","Watch","In Progress","In Progress (Ahead of Schedule)"].includes(s))return"amber";if(["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","لم يبدأ - متأخرة","لم تبدأ - متأخرة","In Progress - Overdue","Not Started - Overdue","معرضة للخطر","معرض للخطر","مرفوضة","At Risk"].includes(s))return"red";return"cyan"}
 function daysToOpen(){const d=new Date(`${state.project.openingDate}T00:00:00+03:00`),n=new Date();return Math.max(0,Math.ceil((d-n)/(1000*60*60*24)))}
-function kpis(){const allTasks=(state.items||[]).filter(i=>i.type==="tasks");const tasks=allTasks.filter(i=>!isTaskHeld(i));const total=allTasks.length;const done=tasks.filter(i=>["مكتملة","معتمدة","Completed","Cleared"].includes(i.status)).length;const active=tasks.filter(i=>["قيد التنفيذ","متأخرة","متاخرة","تحت المتابعة","In Progress","Watch","Overdue"].includes(i.status)).length;const risk=state.items.filter(i=>i.type==="risks"&&!["مغلقة","مكتملة","معتمدة"].includes(i.status)).length;const lateTasks=tasks.filter(i=>isTaskOverdue(i)).length;const notStarted=tasks.filter(i=>i.status==="لم يبدأ").length;const dependentTasks=tasks.filter(i=>i.dependsOn&&String(i.dependsOn).trim()!=="").length;return{total,done,active,risk,lateTasks,notStarted,dependentTasks,overall:PMCPlannedActual.summarize(allTasks).actual,days:daysToOpen()}}
+function kpis(){const allTasks=(state.items||[]).filter(i=>i.type==="tasks");const metrics=PMCPlannedActual.summarize(allTasks);const tasks=metrics.eligible;const total=allTasks.length;const done=tasks.filter(i=>["مكتملة","معتمدة","Completed","Cleared"].includes(i.status)).length;const active=tasks.filter(i=>["قيد التنفيذ","متأخرة","متاخرة","تحت المتابعة","In Progress","Watch","Overdue"].includes(i.status)).length;const risk=state.items.filter(i=>i.type==="risks"&&!["مغلقة","مكتملة","معتمدة"].includes(i.status)).length;const lateTasks=tasks.filter(i=>isTaskOverdue(i)).length;const notStarted=tasks.filter(i=>["لم يبدأ","لم تبدأ","Not Started"].includes(i.status)).length;const dependentTasks=tasks.filter(i=>i.dependsOn&&String(i.dependsOn).trim()!=="").length;return{total,done,active,risk,lateTasks,notStarted,dependentTasks,overall:metrics.actual,days:daysToOpen()}}
 function renderKpis(){const k=kpis();overviewKpis.innerHTML=[["cyan",k.total,"إجمالي المهام"],["green",k.done,"المهام المنجزة"],["amber",k.active,"مهام نشطة"],["gray",k.notStarted,"لم تبدأ"],["red",k.risk,"مخاطر مفتوحة"],["sand",k.overall+"%","الإنجاز العام"],["cyan",k.days,"يوم على الافتتاح"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("")}
 function trackCard(t){return`<article class="track-card glass" style="--accent:${t.accent};--value:${t.progress}"><div class="track-head"><div class="track-title"><div class="badge">${t.id}</div><div><h3>${t.name}</h3><h4>${t.ar}</h4></div></div><div class="status">${t.status}</div></div><div class="track-body"><div class="ring"><b>${t.progress}%</b></div><div class="mini-grid"><div class="mini"><b>${t.tasks}</b><small>المهام</small></div><div class="mini"><b style="color:#8E7BFF">${t.done}</b><small>منجزة</small></div><div class="mini"><b style="color:#D8CCFF">${t.active}</b><small>نشطة</small></div><div class="mini"><b style="color:#C17CFF">${t.risk}</b><small>خطر</small></div></div></div><div class="spark"></div><div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div></article>`}
 function renderOverview(){tracksSummary.innerHTML=state.tracks.map(trackCard).join("");const risks=state.items.filter(i=>i.type==="risks");riskSnapshot.innerHTML=risks.length?risks.map(r=>`<div class="risk-row"><span>${r.title}</span><strong class="${colorByStatus(r.status)}">${r.status}</strong></div>`).join(""):`<p>لا توجد مخاطر مسجلة.</p>`}
@@ -80,6 +80,7 @@ function showDetails(type, trackId=null){
   let title = "التفاصيل";
   let subtitle = "عرض تفصيلي للعناصر";
   let items = [];
+  const eligibleTasks=PMCPlannedActual.summarize(state.items||[],trackId?{trackId}:undefined).eligible;
 
   if(type === "risks"){
     title = "تفاصيل المخاطر";
@@ -105,15 +106,15 @@ function showDetails(type, trackId=null){
   }else if(type === "dependent"){
     title = "تفاصيل المهام الاعتمادية";
     subtitle = trackId ? "مهام المسار المحدد التي تعتمد على مهام أخرى" : "جميع المهام التي تعتمد على مهام أخرى على مستوى المشروع";
-    items = state.items.filter(i=>i.dependsOn && String(i.dependsOn).trim()!=="" && (!trackId || i.track===trackId));
+    items = eligibleTasks.filter(i=>i.dependsOn && String(i.dependsOn).trim()!=="");
   }else if(type === "tasks-done"){
     title = "تفاصيل المهام المنجزة";
     subtitle = trackId ? "المهام المنجزة بالمسار المحدد" : "جميع المهام المنجزة على مستوى المشروع";
-    items = state.items.filter(i=>i.type==="tasks" && !isTaskHeld(i) && ["مكتملة","معتمدة","Completed","Cleared"].includes(i.status) && (!trackId || i.track===trackId));
+    items = eligibleTasks.filter(i=>["مكتملة","معتمدة","Completed","Cleared"].includes(i.status));
   }else if(type === "tasks-active"){
     title = "تفاصيل المهام النشطة";
     subtitle = trackId ? "المهام النشطة بالمسار المحدد" : "جميع المهام النشطة على مستوى المشروع";
-    items = state.items.filter(i=>i.type==="tasks" && !isTaskHeld(i) && ["قيد التنفيذ","متأخرة","متاخرة","تحت المتابعة","In Progress","Watch","Overdue"].includes(i.status) && (!trackId || i.track===trackId));
+    items = eligibleTasks.filter(i=>["قيد التنفيذ","متأخرة","متاخرة","تحت المتابعة","In Progress","Watch","Overdue"].includes(i.status));
   }else if(type === "tasks-held"){
     title = "تفاصيل المهام المعلقة";
     subtitle = trackId ? "المهام المعلقة بالمسار المحدد" : "جميع المهام المعلقة على مستوى المشروع";
@@ -121,11 +122,11 @@ function showDetails(type, trackId=null){
   }else if(type === "tasks-notstarted"){
     title = "تفاصيل المهام التي لم تبدأ";
     subtitle = trackId ? "المهام التي لم تبدأ بالمسار المحدد" : "جميع المهام التي لم تبدأ على مستوى المشروع";
-    items = state.items.filter(i=>i.type==="tasks" && !isTaskHeld(i) && i.status==="لم يبدأ" && (!trackId || i.track===trackId));
+    items = eligibleTasks.filter(i=>["لم يبدأ","لم تبدأ","Not Started"].includes(i.status));
   }else if(type === "tasks-late"){
     title = "تفاصيل المهام المتأخرة";
     subtitle = trackId ? "المهام المتأخرة بالمسار المحدد" : "جميع المهام المتأخرة على مستوى المشروع";
-    items = state.items.filter(i=>i.type==="tasks" && !isTaskHeld(i) && isTaskOverdue(i) && (!trackId || i.track===trackId));
+    items = eligibleTasks.filter(i=>isTaskOverdue(i));
   }
 
   // لوحة التفاصيل: تُنشأ ديناميكيًا إذا لم تكن موجودة في الصفحة (حماية كاملة).
@@ -370,13 +371,20 @@ function itemById(id){
   if(!id) return null;
   return (state.items||[]).find(i=>i.id===id) || null;
 }
+function eligibleTaskSet(){
+  return new Set(PMCPlannedActual.summarize(state.items||[]).eligible);
+}
+function isEligibleTask(item){
+  return item&&item.type==="tasks"&&PMCPlannedActual.summarize([item]).denominator===1;
+}
 function dependencyConflicts(){
   const out=[];
+  const eligible=eligibleTaskSet();
   (state.items||[]).forEach(me=>{
-    if(!me.dependsOn) return;
+    if(!eligible.has(me)||!me.dependsOn) return;
     me.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(depId=>{
       const pred = itemById(depId);
-      if(!pred) return;
+      if(!pred||!eligible.has(pred)) return;
       if(ACTIVE_STATUSES_DEP.includes(me.status) && !DONE_STATUSES_DEP.includes(pred.status)){
         out.push({me, pred, depId});
       }
@@ -396,8 +404,8 @@ function dependsOnBadgeHtml(item){
 function nextDeadlineForTrack(trackId){
   const DONE = ["مكتملة","معتمدة","Completed","Cleared","مغلقة"];
   const now = new Date(); now.setHours(0,0,0,0);
-  const upcoming = (state.items||[])
-    .filter(i=>i.track===trackId && i.type==="tasks" && !DONE.includes(i.status))
+  const upcoming = PMCPlannedActual.summarize(state.items||[],{trackId}).eligible
+    .filter(i=>!DONE.includes(i.status))
     .map(i=>({item:i, d: i.due ? parseItemDate(String(i.due).trim()) : null}))
     .filter(x=>x.d && x.d>=now)
     .sort((a,b)=>a.d-b.d);
@@ -419,11 +427,12 @@ function globalConflictAlertHtml(){
 function crossTrackDependencyMatrix(){
   // matrix[fromTrackId][toTrackId] = عدد المهام في fromTrack التي تعتمد على مهام في toTrack
   const matrix = {};
+  const eligible=eligibleTaskSet();
   (state.items||[]).forEach(me=>{
-    if(!me.dependsOn) return;
+    if(!eligible.has(me)||!me.dependsOn) return;
     me.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(depId=>{
       const pred = itemById(depId);
-      if(!pred || !pred.track || pred.track===me.track) return; // نتجاهل الاعتماديات داخل المسار نفسه
+      if(!pred || !eligible.has(pred) || !pred.track || pred.track===me.track) return; // نتجاهل الاعتماديات داخل المسار نفسه
       matrix[me.track] = matrix[me.track] || {};
       matrix[me.track][pred.track] = (matrix[me.track][pred.track]||0) + 1;
     });
@@ -433,11 +442,12 @@ function crossTrackDependencyMatrix(){
 function intraTrackDependencyCounts(){
   // لكل مسار: عدد المهام التي تعتمد على مهمة أخرى من نفس المسار
   const counts = {};
+  const eligible=eligibleTaskSet();
   (state.items||[]).forEach(me=>{
-    if(!me.dependsOn) return;
+    if(!eligible.has(me)||!me.dependsOn) return;
     me.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(depId=>{
       const pred = itemById(depId);
-      if(!pred || !pred.track || pred.track!==me.track) return; // نحسب فقط الاعتماديات الداخلية لنفس المسار
+      if(!pred || !eligible.has(pred) || !pred.track || pred.track!==me.track) return; // نحسب فقط الاعتماديات الداخلية لنفس المسار
       counts[me.track] = counts[me.track] || new Set();
       counts[me.track].add(me.id || `${me.track}:${me.title}`);
     });
@@ -452,16 +462,17 @@ function crossTrackDependencyHtml(){
   const trackName = id => { const t=(state.tracks||[]).find(x=>x.id===id); return t ? t.name : ""; };
   // عدد المهام الفريدة (مو الروابط) التي لها اعتمادية خارجية واحدة على الأقل — لنفس منهجية عدّ الداخلية، حتى يتطابق المجموعان منطقياً
   const crossItemIds = new Set();
+  const eligible=eligibleTaskSet();
   (state.items||[]).forEach(me=>{
-    if(!me.dependsOn) return;
+    if(!eligible.has(me)||!me.dependsOn) return;
     me.dependsOn.split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(depId=>{
       const pred = itemById(depId);
-      if(pred && pred.track && pred.track!==me.track) crossItemIds.add(me.id || `${me.track}:${me.title}`);
+      if(pred && eligible.has(pred) && pred.track && pred.track!==me.track) crossItemIds.add(me.id || `${me.track}:${me.title}`);
     });
   });
   const totalCrossItems = crossItemIds.size;
   const totalIntraItems = Object.values(intra).reduce((a,b)=>a+b,0);
-  const totalDependentItems = (state.items||[]).filter(i=>i.dependsOn && String(i.dependsOn).trim()!=="").length;
+  const totalDependentItems = [...eligible].filter(i=>i.dependsOn && String(i.dependsOn).trim()!=="").length;
   const overlap = Math.max(0, totalCrossItems + totalIntraItems - totalDependentItems);
   const rows = (state.tracks||[]).map(t=>{
     const targets = matrix[t.id];
@@ -484,11 +495,11 @@ function crossTrackDependencyHtml(){
 }
 
 function v20OverdueItems(){
-  return (state.items||[]).filter(i=>i.type==="tasks" && isTaskOverdue(i));
+  return PMCPlannedActual.summarize(state.items||[]).eligible.filter(isTaskOverdue);
 }
 function v20DueTodayItems(){
   const today = v20TodayISO();
-  return (state.items||[]).filter(i=>i.due===today);
+  return PMCPlannedActual.summarize(state.items||[]).eligible.filter(i=>PMCPlannedActual.dateKey(i.due)===today);
 }
 function v20ApprovalsRate(){
   const permits = v20Items("permits");
@@ -515,8 +526,9 @@ function v20TrackHealth(t){
   const w = v20DynamicWeights();
 
   // 1. الإنجاز مقابل المخطط
-  const actual = Number(t.progress||0);
-  const planned = v20LegacyPlannedTrack(t);
+  const metrics=PMCPlannedActual.summarize(state.items||[],{trackId:t.id});
+  const actual = metrics.actual;
+  const planned = metrics.planned;
   const variance = actual - planned;
   const progressScore = variance >= 0 ? 100 : Math.max(0, 100 + variance * 2);
 
@@ -554,8 +566,9 @@ function v20DynamicWeights(){
   return                    {progress:0.50, risk:0.25, overdue:0.15, decision:0.10}; // إطلاق
 }
 function v20ProjectHealth(){
-  const actual = v20LegacyProjectActual();
-  const planned = v20LegacyProjectPlanned();
+  const metrics=PMCPlannedActual.summarize(state.items||[]);
+  const actual = metrics.actual;
+  const planned = metrics.planned;
   const w = v20DynamicWeights();
 
   // 1. الإنجاز مقابل المخطط
@@ -582,18 +595,7 @@ function v20ProjectHealth(){
   ));
 }
 function v20OpeningReadiness(){
-  // جاهزية الافتتاح = المهام المكتملة التي تاريخها ≤ تاريخ الافتتاح ÷ إجمالي المهام الحرجة
-  const opening = new Date("2026-12-30T00:00:00+03:00");
-  const allTasks = (state.items||[]).filter(i=>i.type==="tasks"&&!isTaskHeld(i));
-  const criticalTasks = allTasks.filter(i=>{
-    if(!i.due) return false;
-    const d = parseItemDate(String(i.due).trim());
-    return d && d <= opening;
-  });
-  if(!criticalTasks.length) return 0;
-  const DONE_SET=["مكتملة","معتمدة","Completed","Cleared"];
-  const doneCritical = criticalTasks.filter(i=>DONE_SET.includes(i.status)).length;
-  return v20Clamp(Math.round((doneCritical/criticalTasks.length)*100));
+  return PMCPlannedActual.summarize(state.items||[]).actual;
 }
 function v20MostCriticalTrack(){
   const ranked = (state.tracks||[]).map(t=>({track:t, health:v20TrackHealth(t)}));
@@ -647,7 +649,7 @@ function v20RenderIntelligence(){
     criticalTrackBox.innerHTML = `<div class="intel-list-card" onclick="showDetails('track','${critical.track.id}')">
       <h4>${critical.track.id} · ${critical.track.name}</h4>
       <p><b>صحة المسار:</b> ${critical.health}%</p>
-      <p><b>الإنجاز:</b> ${critical.track.progress}%</p>
+      <p><b>الإنجاز:</b> ${PMCPlannedActual.summarize(state.items||[],{trackId:critical.track.id}).actual}%</p>
       <p><b>المخاطر:</b> ${v20Items("risks").filter(i=>i.track===critical.track.id).length}</p>
       <span class="health-chip ${cls}">${label}</span>
     </div>`;
@@ -866,18 +868,19 @@ function recalcTrackCountersFromItems(){
     const taskItems = trackItems.filter(i=>i.type === "tasks");
     const riskItems = trackItems.filter(i=>i.type === "risks" && i.status !== "مغلقة");
 
+    const metrics=PMCPlannedActual.summarize(state.items||[],{trackId:t.id});
+    const eligible=metrics.eligible;
     t.tasks = taskItems.length;
-    t.done = taskItems.filter(i=>["مكتملة","معتمدة","Completed","Cleared"].includes(i.status)).length;
+    t.held = taskItems.filter(isTaskHeld).length;
+    t.done = eligible.filter(i=>["مكتملة","معتمدة","Completed","Cleared"].includes(i.status)).length;
     // "متأخرة" تُعد امتدادًا لـ"قيد التنفيذ": تُحسب ضمن النشطة وضمن الخطر معًا في آنٍ واحد
-    t.active = taskItems.filter(i=>["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"].includes(i.status)).length;
-    t.risk = riskItems.length + taskItems.filter(i=>["معرضة للخطر","معرض للخطر","At Risk"].includes(i.status)).length;
+    t.active = eligible.filter(i=>["قيد التنفيذ","متأخرة","متاخرة","Overdue","تحت المتابعة","In Progress","Watch"].includes(i.status)).length;
+    t.risk = riskItems.length + eligible.filter(i=>["معرضة للخطر","معرض للخطر","At Risk"].includes(i.status)).length;
 
-    const total = Number(t.tasks || 0);
-    const done = Number(t.done || 0);
-    if(total > 0){
-      t.progress = Math.round((done / total) * 100);
+    if(metrics.denominator > 0){
+      t.progress = metrics.actual;
       t.status = t.progress >= 70 ? "ضمن المسار" : t.progress >= 45 ? "تحت المتابعة" : "معرض للخطر";
-    }
+    }else{ t.progress=0; t.status="تحت المتابعة"; }
   });
 }
 
@@ -953,7 +956,7 @@ document.querySelectorAll(".nav-btn").forEach(btn=>{
 })
 // تمت إزالة الاستيراد المحلي (لصق/CSV) — البيانات تُسحب الآن من Google Sheet عبر الخادم.
 trackSelect.onchange=()=>{const t=state.tracks.find(x=>x.id===trackSelect.value);progressInput.value=t.progress;tasksInput.value=t.tasks;doneInput.value=t.done;activeInput.value=t.active;riskInput.value=t.risk;leadInput.value=t.lead;focusInput.value=t.focus}
-trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.progress=+progressInput.value||0;t.tasks=+tasksInput.value||0;t.done=+doneInput.value||0;t.active=+activeInput.value||0;t.risk=+riskInput.value||0;t.lead=leadInput.value;t.focus=focusInput.value;{ const h=v20TrackHealth(t); t.status=h>=85?"ضمن المسار":h>=65?"تحت المتابعة":h>=45?"يحتاج تدخل":"حرج"; }addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
+trackForm.onsubmit=e=>{e.preventDefault();const t=state.tracks.find(x=>x.id===trackSelect.value);t.lead=leadInput.value;t.focus=focusInput.value;recalcTrackCountersFromItems();{ const h=v20TrackHealth(t); t.status=h>=85?"ضمن المسار":h>=65?"تحت المتابعة":h>=45?"يحتاج تدخل":"حرج"; }addFeed(["تحديث مسار",`تم تحديث لوحة مسار ${t.name}`,colorByStatus(t.status)]);save();renderAll()}
 itemForm.onsubmit=async function(e){
   e.preventDefault();
   const newItem={track:itemTrack.value,type:itemType.value,title:itemTitle.value,owner:itemOwner.value,status:itemStatus.value,due:itemDue.value};
@@ -1265,9 +1268,9 @@ function filterTimeline(items){
 
     if(activeTimelineFilter === "all") return true;
     if(activeTimelineFilter === "overdue") return i.type==="tasks" ? isTaskOverdue(i) : i.diff !== null && i.diff < 0;
-    if(activeTimelineFilter === "today") return i.diff === 0;
-    if(activeTimelineFilter === "week") return i.diff !== null && i.diff >= 0 && i.diff <= 7;
-    if(activeTimelineFilter === "month") return i.diff !== null && i.diff >= 0 && i.diff <= 30;
+    if(activeTimelineFilter === "today") return (i.type!=="tasks"||isEligibleTask(i)) && i.diff === 0;
+    if(activeTimelineFilter === "week") return (i.type!=="tasks"||isEligibleTask(i)) && i.diff !== null && i.diff >= 0 && i.diff <= 7;
+    if(activeTimelineFilter === "month") return (i.type!=="tasks"||isEligibleTask(i)) && i.diff !== null && i.diff >= 0 && i.diff <= 30;
     if(activeTimelineFilter === "risks") return i.type === "risks";
     if(activeTimelineFilter === "permits") return i.type === "permits";
     if(activeTimelineFilter === "milestones") return i.type === "milestones";
@@ -1293,10 +1296,11 @@ function currentTimelineTitle(){
 function renderTimeline(){
   if(typeof timelineKpis === "undefined") return;
   const all = timelineItems().filter(i => activeTimelineTrack === "all" || i.track === activeTimelineTrack);
-  const overdue = all.filter(i => i.type==="tasks" ? isTaskOverdue(i) : i.diff !== null && i.diff < 0 && !["مكتملة","معتمدة","Cleared","Completed"].includes(i.status));
-  const today = all.filter(i => i.diff === 0);
-  const week = all.filter(i => i.diff !== null && i.diff >= 0 && i.diff <= 7);
-  const milestones = all.filter(i => i.type === "milestones" && i.diff !== null && i.diff >= 0);
+  const operational=all.filter(i=>i.type!=="tasks"||isEligibleTask(i));
+  const overdue = operational.filter(i => i.type==="tasks" ? isTaskOverdue(i) : i.diff !== null && i.diff < 0 && !["مكتملة","معتمدة","Cleared","Completed"].includes(i.status));
+  const today = operational.filter(i => i.diff === 0);
+  const week = operational.filter(i => i.diff !== null && i.diff >= 0 && i.diff <= 7);
+  const milestones = operational.filter(i => i.type === "milestones" && i.diff !== null && i.diff >= 0);
   const pressure = Math.min(100, overdue.length*18 + week.length*7 + today.length*10);
 
   if(typeof timelineTitle !== "undefined") timelineTitle.textContent = currentTimelineTitle();
@@ -1719,7 +1723,7 @@ function renderExecutiveMode(){
   execStatusText.textContent = statusText;
 
   execTracks.innerHTML = state.tracks.map(t=>`
-    <div class="exec-row"><span>${t.id} · ${t.name}</span><strong class="${colorByStatus(t.status)}">${t.progress}% · ${t.status}</strong></div>
+    <div class="exec-row"><span>${t.id} · ${t.name}</span><strong class="${colorByStatus(t.status)}">${PMCPlannedActual.summarize(state.items||[],{trackId:t.id}).actual}% · ${t.status}</strong></div>
   `).join("");
 
   execRisks.innerHTML = highRisks.length ? highRisks.map(r=>`
@@ -1750,7 +1754,7 @@ function generateDailyReport(){
 - المتبقي على الافتتاح: ${k.days} يوم
 
 ثانيًا: حالة المسارات
-${state.tracks.map(t=>`- ${t.id} · ${t.name}: ${t.progress}% — ${t.status} — المسؤول: ${t.lead}`).join("\n")}
+${state.tracks.map(t=>`- ${t.id} · ${t.name}: ${PMCPlannedActual.summarize(state.items||[],{trackId:t.id}).actual}% — ${t.status} — المسؤول: ${t.lead}`).join("\n")}
 
 ثالثًا: أبرز التحديثات اليومية
 ${latestLogs.length ? latestLogs.map(l=>`- ${l.trackName}: المنجز (${l.done || "-"})، المتأخر (${l.delayed || "-"})، القرار المطلوب (${l.decision || "-"})`).join("\n") : "- لا توجد تحديثات يومية مسجلة حتى الآن."}
@@ -2193,7 +2197,7 @@ setTimeout(function(){
       setSyncStatus("وضع الاتصال: متصل ومزامن", "online", formatUpdated(data.updatedAt));
       return true;
     }catch(e){
-      setSyncStatus("وضع الاتصال: غير متصل بالخادم", "error", "يعمل محليًا");
+      setSyncStatus("تعذر التحديث — تُعرض بيانات محفوظة وقد تكون قديمة", "error", "بيانات محلية غير مؤكدة");
       return false;
     }
   }

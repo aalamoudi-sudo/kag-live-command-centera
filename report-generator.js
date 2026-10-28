@@ -588,6 +588,8 @@ function buildComprehensive(state, reportDate){
   const totAct   = countedTasks.filter(i=>isActive(i.status)).length;
   const totLate  = countedTasks.filter(isTaskOverdue).length;
   const ovr      = projectMetrics.actual;
+  const planned  = projectMetrics.planned;
+  const variance = PMCPlannedActual.variance(planned,ovr);
 
   const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(countedTasks,buckets);
   const criticals = countedTasks.filter(isTaskOverdue).slice(0,20);
@@ -691,6 +693,11 @@ function buildComprehensive(state, reportDate){
     <div class="kpi-card k-late"><div class="kpi-num">${totLate}</div><div class="kpi-label">متأخرة</div></div>
     <div class="kpi-card k-pct"><div class="kpi-num">${ovr}%</div><div class="kpi-label">نسبة الإنجاز</div></div>
     <div class="kpi-card k-risk"><div class="kpi-num">${risks.length}</div><div class="kpi-label">مخاطر مفتوحة</div></div>
+  </div>
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-num">${planned}%</div><div class="kpi-label">المخطط</div></div>
+    <div class="kpi-card k-pct"><div class="kpi-num">${ovr}%</div><div class="kpi-label">الفعلي</div></div>
+    <div class="kpi-card ${variance<0?'k-late':'k-done'}"><div class="kpi-num">${variance>0?'+':''}${variance}%</div><div class="kpi-label">الانحراف</div></div>
   </div>
 
   <!-- شريط تقدم المسارات -->
@@ -803,6 +810,8 @@ function buildTrack(state, tid, reportDate){
   const countedTT = trackMetrics.eligible;
   const tDone    = countedTT.filter(i=>isDone(i.status)).length;
   const pct      = trackMetrics.actual;
+  const planned  = trackMetrics.planned;
+  const variance = PMCPlannedActual.variance(planned,pct);
   const tActive  = countedTT.filter(i=>isActive(i.status)).length;
   const tLate    = countedTT.filter(isTaskOverdue).length;
 
@@ -873,6 +882,11 @@ function buildTrack(state, tid, reportDate){
     <div class="kpi-card k-late"><div class="kpi-num">${tLate}</div><div class="kpi-label">متأخرة</div></div>
     <div class="kpi-card k-pct"><div class="kpi-num">${pct}%</div><div class="kpi-label">نسبة الإنجاز</div></div>
     <div class="kpi-card k-risk"><div class="kpi-num">${tR.length}</div><div class="kpi-label">مخاطر مفتوحة</div></div>
+  </div>
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-num">${planned}%</div><div class="kpi-label">المخطط</div></div>
+    <div class="kpi-card k-pct"><div class="kpi-num">${pct}%</div><div class="kpi-label">الفعلي</div></div>
+    <div class="kpi-card ${variance<0?'k-late':'k-done'}"><div class="kpi-num">${variance>0?'+':''}${variance}%</div><div class="kpi-label">الانحراف</div></div>
   </div>
 
   <!-- الوضع التنفيذي -->

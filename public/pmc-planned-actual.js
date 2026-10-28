@@ -38,6 +38,12 @@
     return dateKey(now||new Date());
   }
 
+  function variance(planned,actual){
+    const p=Number(planned)||0;
+    const a=Number(actual)||0;
+    return p>0?Math.round(((a/p)-1)*100):(a>0?100:0);
+  }
+
   // `due` is deliberately the same end-date source used by the existing planned calculation.
   // Missing and invalid dates remain eligible, preserving their existing denominator/status behavior.
   function summarize(items,options){
@@ -64,5 +70,5 @@
     };
   }
 
-  return {CUTOFF_DATE,PROJECT_TIME_ZONE,DONE_STATUSES,dateKey,measurementDateKey,summarize};
+  return {CUTOFF_DATE,PROJECT_TIME_ZONE,DONE_STATUSES,dateKey,measurementDateKey,variance,summarize};
 });

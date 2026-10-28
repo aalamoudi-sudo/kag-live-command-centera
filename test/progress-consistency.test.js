@@ -62,3 +62,31 @@ test("server and report paths consume the same planned-actual helper", () => {
     assert.match(source, /PMCPlannedActual\.summarize\(/, `${file} must use the shared calculation`);
   }
 });
+
+test("shared variance preserves the dashboard formula and zero behavior", () => {
+  assert.equal(metrics.variance(80,60),-25);
+  assert.equal(metrics.variance(50,75),50);
+  assert.equal(metrics.variance(0,0),0);
+  assert.equal(metrics.variance(0,25),100);
+});
+
+test("operational paths use eligible tasks and stale local data is disclosed", () => {
+  const source=read("public/script.js");
+  const recalc=source.slice(source.indexOf("function recalcTrackCountersFromItems"),source.indexOf("function smartImportRows"));
+  assert.match(recalc,/PMCPlannedActual\.summarize/);
+  assert.match(recalc,/metrics\.eligible/);
+  assert.match(recalc,/t\.progress = metrics\.actual/);
+  assert.match(source,/const operational=all\.filter\(i=>i\.type!=="tasks"\|\|isEligibleTask\(i\)\)/);
+  assert.match(source,/تعذر التحديث — تُعرض بيانات محفوظة وقد تكون قديمة/);
+  assert.match(source,/function v20OpeningReadiness\(\)[\s\S]*?PMCPlannedActual\.summarize\(state\.items\|\|\[\]\)\.actual/);
+});
+
+test("reports include planned actual and variance from shared metrics", () => {
+  for(const file of ["report-generator.js","pptx-generator.js"]){
+    const source=read(file);
+    assert.match(source,/PMCPlannedActual\.variance\(/);
+    assert.match(source,/المخطط/);
+    assert.match(source,/الفعلي/);
+    assert.match(source,/الانحراف/);
+  }
+});

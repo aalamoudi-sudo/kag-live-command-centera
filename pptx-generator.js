@@ -260,8 +260,8 @@ function addTracksSlide(pptx, tracks) {
     slide.addText("نسبة الإنجاز", { x: x+0.15, y: barY-0.02, w:2, h:0.22, fontSize:8, color:GRAY, rtlMode:true, fontFace:"Arial" });
     slide.addText(`${t.progress || 0}%`, { x: x+cardW-0.7, y: barY-0.02, w:0.55, h:0.22, fontSize:9, bold:true, color:tc.accent, fontFace:"Arial", align:"center" });
     slide.addShape("rect", { x: x+0.15, y: barY+0.2, w: cardW-0.3, h: 0.1, fill:{color:"E5EAF0"}, line:{color:"E5EAF0"} });
-    const fillW = Math.max(0.05, (cardW-0.3) * (t.progress||0) / 100);
-    slide.addShape("rect", { x: x+0.15, y: barY+0.2, w: fillW, h: 0.1, fill:{color:tc.accent}, line:{color:tc.accent} });
+    const fillW = (cardW-0.3) * (t.progress||0) / 100;
+    if(fillW>0) slide.addShape("rect", { x: x+0.15, y: barY+0.2, w: fillW, h: 0.1, fill:{color:tc.accent}, line:{color:tc.accent} });
 
     // إحصائيات
     const statsY = y + 1.45;
@@ -389,6 +389,8 @@ async function buildComprehensivePptx(state) {
   const totAct  = countedTasks.filter(i=>isActive(i.status)).length;
   const totLate = countedTasks.filter(isTaskOverdue).length;
   const ovr     = projectMetrics.actual;
+  const planned = projectMetrics.planned;
+  const variance = PMCPlannedActual.variance(planned,ovr);
   const days    = daysToOpen(state.project?.openingDate);
 
   // 1. الغلاف
@@ -406,7 +408,10 @@ async function buildComprehensivePptx(state) {
     { value: totAct,       label: "قيد التنفيذ",      color: BLUE  },
     { value: totLate,      label: "متأخرة",           color: RED   },
     { value: `${ovr}%`,    label: "نسبة الإنجاز",     color: AMBER },
-    { value: risks.length, label: "مخاطر مفتوحة",     color: RED   }
+    { value: risks.length, label: "مخاطر مفتوحة",     color: RED   },
+    { value: `${planned}%`, label: "المخطط", color: NAVY },
+    { value: `${ovr}%`, label: "الفعلي", color: GREEN },
+    { value: `${variance>0?"+":""}${variance}%`, label: "الانحراف", color: variance<0?RED:GREEN }
   ], "مؤشرات الأداء الرئيسية");
 
   // 3. المسارات
@@ -458,6 +463,8 @@ async function buildTrackPptx(state, tid) {
   const countedTasks = trackMetrics.eligible;
   const tDone   = countedTasks.filter(i=>isDone(i.status)).length;
   const trackProgress = trackMetrics.actual;
+  const planned = trackMetrics.planned;
+  const variance = PMCPlannedActual.variance(planned,trackProgress);
   const tAct    = countedTasks.filter(i=>isActive(i.status)).length;
   const tLate   = countedTasks.filter(isTaskOverdue).length;
   const days    = daysToOpen(state.project?.openingDate);
@@ -477,7 +484,10 @@ async function buildTrackPptx(state, tid) {
     { value: tAct,            label: "قيد التنفيذ",    color: BLUE     },
     { value: tLate,           label: "متأخرة",         color: RED      },
     { value: `${trackProgress}%`, label: "الإنجاز", color: tc.accent },
-    { value: tRisks.length,   label: "مخاطر مفتوحة",  color: RED      }
+    { value: tRisks.length,   label: "مخاطر مفتوحة",  color: RED      },
+    { value: `${planned}%`, label: "المخطط", color: tc.bg },
+    { value: `${trackProgress}%`, label: "الفعلي", color: GREEN },
+    { value: `${variance>0?"+":""}${variance}%`, label: "الانحراف", color: variance<0?RED:GREEN }
   ], `مؤشرات مسار ${tid}: ${nm}`);
 
   // 3. المهام الجارية
