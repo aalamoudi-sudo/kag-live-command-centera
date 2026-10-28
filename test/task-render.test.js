@@ -21,10 +21,12 @@ function loadPMC(item){
   window.confirm = () => false;
   window.setInterval = () => 0;
   window.setTimeout = () => 0;
+  const items=Array.isArray(item) ? item : [item];
+  const trackIds=[...new Set(items.map(entry=>entry.track||"أ"))];
   window.localStorage.setItem("kagV6BulkImport", JSON.stringify({
-    project:{title:"PMC", openingDate:"2026-11-01"},
-    tracks:[{id:"أ", slug:"track-a", name:"المسار", ar:"Track", sub:"", status:"ضمن المسار", progress:0, tasks:1, done:0, active:1, risk:0, lead:"PMC", focus:""}],
-    items:Array.isArray(item) ? item : [item],
+    project:{title:"PMC", openingDate:"2026-12-30"},
+    tracks:trackIds.map((id,index)=>({id, slug:`track-${index}`, name:`المسار ${id}`, ar:"Track", sub:"", status:"ضمن المسار", progress:0, tasks:items.filter(entry=>entry.track===id).length, done:0, active:1, risk:0, lead:"PMC", focus:""})),
+    items,
     feed:[], dailyLogs:[], decisions:[], snapshots:[]
   }));
   for(const file of ["public/task-status.js", "public/task-date.js", "public/schedule-variance.js", "public/schedule-completeness.js", "public/pmc-planned-actual.js", "public/script.js"]){
@@ -32,6 +34,39 @@ function loadPMC(item){
   }
   return dom;
 }
+
+test("held project card, distribution, list and track filter stay count-consistent", () => {
+  const tasks=[
+    {track:"أ",type:"tasks",title:"معلقة بالاسم *",owner:"مالك أ",status:"مكتملة",due:"2027-02-01"},
+    {track:"أ",type:"tasks",title:"مهمة عادية",owner:"مالك أ",status:"قيد التنفيذ",due:"2026-10-01"},
+    {track:"ب",type:"tasks",title:"معلقة بالحالة",owner:"مالك ب",status:"قيد التنفيذ *",due:"2026-11-01"},
+    {track:"ب",type:"tasks",title:"منجزة",owner:"مالك ب",status:"مكتملة",due:"2026-09-01"}
+  ];
+  const dom=loadPMC(tasks);
+  try{
+    const card=[...dom.window.document.querySelectorAll("#overviewKpis .kpi")].find(el=>el.textContent.includes("إجمالي المهام المعلقة"));
+    assert.ok(card);
+    assert.match(card.textContent,/2/);
+    assert.match(card.textContent,/مستبعدة من حساب الإنجاز/);
+    const rows=[...dom.window.document.querySelectorAll(".held-distribution-row")];
+    assert.equal(rows.length,2);
+    assert.deepEqual(rows.map(row=>row.querySelector(".held-distribution-value b").textContent),["1","1"]);
+    dom.window.showDetails("tasks-held");
+    assert.equal(dom.window.document.querySelectorAll(".detail-item-card").length,2);
+    assert.match(dom.window.document.querySelector("#detailModalList").textContent,/الحالة الأصلية/);
+    dom.window.showDetails("tasks-held","أ");
+    const filtered=[...dom.window.document.querySelectorAll(".detail-item-card")];
+    assert.equal(filtered.length,1);
+    assert.match(filtered[0].textContent,/معلقة بالاسم/);
+  }finally{dom.window.close();}
+});
+
+test("held KPI note has enough card height and responsive spacing", () => {
+  const css=read("public/style.css");
+  assert.match(css,/#overview \.home-kpi-grid \.kpi:nth-child\(n\+7\)\{[\s\S]*?height:132px;[\s\S]*?min-height:132px;/);
+  assert.match(css,/#overview \.home-kpi-grid \.kpi:nth-child\(7\) \.kpi-note\{[\s\S]*?font-size:12px;[\s\S]*?line-height:1\.25;[\s\S]*?white-space:normal;/);
+  assert.match(css,/@media\(max-width:600px\)\{[\s\S]*?#overview \.home-kpi-grid \.kpi:nth-child\(n\+7\)\{height:126px;min-height:126px\}/);
+});
 
 test("the actual task details card renders its start date through the formatter", () => {
   const dom = loadPMC({
@@ -136,5 +171,5 @@ test("the PMC page requests fresh versions of the date formatter and render bund
   assert.match(html, /src="schedule-variance\.js\?v=1"/);
   assert.match(html, /src="schedule-completeness\.js\?v=1"/);
   assert.match(html, /href="style\.css\?v=6"/);
-  assert.match(html, /src="script\.js\?v=13"/);
+  assert.match(html, /src="script\.js\?v=17"/);
 });
