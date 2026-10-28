@@ -2973,7 +2973,23 @@ footer{display:none!important;}
 #overview .home-kpi-grid .kpi:nth-child(1){order:6} /* إجمالي المهام */
 #overview .home-kpi-grid .kpi:nth-child(9){order:7;grid-column:span 2} /* جاهزية الافتتاح */
 #overview .home-kpi-grid .kpi:nth-child(8){order:8;grid-column:span 2} /* الإنجاز العام */
-#overview .home-kpi-grid .kpi:nth-child(7){order:9;grid-column:span 2} /* مهام اعتمادية */
+#overview .home-kpi-grid .kpi:nth-child(7){order:9;grid-column:span 2} /* إجمالي المهام المعلقة */
+
+/* Keep the three summary cards aligned while allowing the held card's note to fit. */
+#overview .home-kpi-grid .kpi:nth-child(n+7){
+  height:132px;
+  min-height:132px;
+  padding:12px 10px 11px;
+}
+#overview .home-kpi-grid .kpi:nth-child(n+7):before{margin-bottom:8px}
+#overview .home-kpi-grid .kpi:nth-child(n+7) h3{font-size:36px;line-height:1}
+#overview .home-kpi-grid .kpi:nth-child(n+7) small{margin-top:6px;font-size:16px;line-height:1.15}
+#overview .home-kpi-grid .kpi:nth-child(7) .kpi-note{
+  margin-top:5px;
+  font-size:12px;
+  line-height:1.25;
+  white-space:normal;
+}
 
 /* Project comparison spans the row; the four existing tracks align beneath it. */
 #overview .home-tracks-grid{
@@ -3010,4 +3026,5 @@ footer{display:none!important;}
 }
 @media(max-width:600px){
   #overview .home-kpi-grid{grid-template-columns:1fr!important}
+  #overview .home-kpi-grid .kpi:nth-child(n+7){height:126px;min-height:126px}
 }

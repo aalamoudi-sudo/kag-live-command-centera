@@ -61,6 +61,13 @@ test("held project card, distribution, list and track filter stay count-consiste
   }finally{dom.window.close();}
 });
 
+test("held KPI note has enough card height and responsive spacing", () => {
+  const css=read("public/style.css");
+  assert.match(css,/#overview \.home-kpi-grid \.kpi:nth-child\(n\+7\)\{[\s\S]*?height:132px;[\s\S]*?min-height:132px;/);
+  assert.match(css,/#overview \.home-kpi-grid \.kpi:nth-child\(7\) \.kpi-note\{[\s\S]*?font-size:12px;[\s\S]*?line-height:1\.25;[\s\S]*?white-space:normal;/);
+  assert.match(css,/@media\(max-width:600px\)\{[\s\S]*?#overview \.home-kpi-grid \.kpi:nth-child\(n\+7\)\{height:126px;min-height:126px\}/);
+});
+
 test("the actual task details card renders its start date through the formatter", () => {
   const dom = loadPMC({
     track:"أ", type:"tasks", title:"مهمة اختبار", owner:"PMC",
