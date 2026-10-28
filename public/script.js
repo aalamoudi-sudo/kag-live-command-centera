@@ -15,7 +15,7 @@ function normalizeTrack(v){v=(v||"").trim();const map={A:"أ",B:"ب",C:"ج",D:"�
 function normalizeType(v){v=(v||"").trim().toLowerCase();if(["task","tasks","مهمة","مهام"].includes(v))return"tasks";if(["risk","risks","مخاطرة","مخاطر"].includes(v))return"risks";if(["permit","permits","approval","approvals","تصريح","تصاريح","اعتماد","اعتمادات"].includes(v))return"permits";if(["milestone","milestones","معلم","معلم رئيسي","معالم"].includes(v))return"milestones";return v||"tasks"}
 function colorByStatus(s){if(["مكتملة","مكتملة (منجزة مبكرًا)","معتمدة","ضمن المسار","Completed","Completed (Early)","Cleared"].includes(s))return"green";if(["تحت المتابعة","قيد التنفيذ","قيد التنفيذ (متقدم عن المسار)","Watch","In Progress","In Progress (Ahead of Schedule)"].includes(s))return"amber";if(["متأخرة","متاخرة","متأخر","Overdue","قيد التنفيذ - متأخرة","لم يبدأ - متأخرة","لم تبدأ - متأخرة","In Progress - Overdue","Not Started - Overdue","معرضة للخطر","معرض للخطر","مرفوضة","At Risk"].includes(s))return"red";return"cyan"}
 function daysToOpen(){const d=new Date(`${state.project.openingDate}T00:00:00+03:00`),n=new Date();return Math.max(0,Math.ceil((d-n)/(1000*60*60*24)))}
-function kpis(){const allTasks=(state.items||[]).filter(i=>i.type==="tasks");const metrics=PMCPlannedActual.summarize(allTasks);const tasks=metrics.eligible;const total=allTasks.length;const done=tasks.filter(i=>["مكتملة","معتمدة","Completed","Cleared"].includes(i.status)).length;const active=tasks.filter(i=>["قيد التنفيذ","متأخرة","متاخرة","تحت المتابعة","In Progress","Watch","Overdue"].includes(i.status)).length;const risk=state.items.filter(i=>i.type==="risks"&&!["مغلقة","مكتملة","معتمدة"].includes(i.status)).length;const lateTasks=tasks.filter(i=>isTaskOverdue(i)).length;const notStarted=tasks.filter(i=>["لم يبدأ","لم تبدأ","Not Started"].includes(i.status)).length;const dependentTasks=tasks.filter(i=>i.dependsOn&&String(i.dependsOn).trim()!=="").length;return{total,done,active,risk,lateTasks,notStarted,dependentTasks,overall:metrics.actual,days:daysToOpen()}}
+function kpis(){const allTasks=(state.items||[]).filter(i=>i.type==="tasks");const metrics=PMCPlannedActual.summarize(allTasks);const tasks=metrics.eligible;const total=allTasks.length;const held=allTasks.filter(isTaskHeld).length;const done=tasks.filter(i=>["مكتملة","معتمدة","Completed","Cleared"].includes(i.status)).length;const active=tasks.filter(i=>["قيد التنفيذ","متأخرة","متاخرة","تحت المتابعة","In Progress","Watch","Overdue"].includes(i.status)).length;const risk=state.items.filter(i=>i.type==="risks"&&!["مغلقة","مكتملة","معتمدة"].includes(i.status)).length;const lateTasks=tasks.filter(i=>isTaskOverdue(i)).length;const notStarted=tasks.filter(i=>["لم يبدأ","لم تبدأ","Not Started"].includes(i.status)).length;const dependentTasks=tasks.filter(i=>i.dependsOn&&String(i.dependsOn).trim()!=="").length;return{total,held,done,active,risk,lateTasks,notStarted,dependentTasks,overall:metrics.actual,days:daysToOpen()}}
 function renderKpis(){const k=kpis();overviewKpis.innerHTML=[["cyan",k.total,"إجمالي المهام"],["green",k.done,"المهام المنجزة"],["amber",k.active,"مهام نشطة"],["gray",k.notStarted,"لم تبدأ"],["red",k.risk,"مخاطر مفتوحة"],["sand",k.overall+"%","الإنجاز العام"],["cyan",k.days,"يوم على الافتتاح"]].map(x=>`<article class="kpi glass ${x[0]}"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("")}
 function trackCard(t){return`<article class="track-card glass" style="--accent:${t.accent};--value:${t.progress}"><div class="track-head"><div class="track-title"><div class="badge">${t.id}</div><div><h3>${t.name}</h3><h4>${t.ar}</h4></div></div><div class="status">${t.status}</div></div><div class="track-body"><div class="ring"><b>${t.progress}%</b></div><div class="mini-grid"><div class="mini"><b>${t.tasks}</b><small>المهام</small></div><div class="mini"><b style="color:#8E7BFF">${t.done}</b><small>منجزة</small></div><div class="mini"><b style="color:#D8CCFF">${t.active}</b><small>نشطة</small></div><div class="mini"><b style="color:#C17CFF">${t.risk}</b><small>خطر</small></div></div></div><div class="spark"></div><div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div></article>`}
 function renderOverview(){tracksSummary.innerHTML=state.tracks.map(trackCard).join("");const risks=state.items.filter(i=>i.type==="risks");riskSnapshot.innerHTML=risks.length?risks.map(r=>`<div class="risk-row"><span>${r.title}</span><strong class="${colorByStatus(r.status)}">${r.status}</strong></div>`).join(""):`<p>لا توجد مخاطر مسجلة.</p>`}
@@ -140,7 +140,8 @@ function showDetails(type, trackId=null){
     const dateSummaryHtml=dateSummary&&dateSummary.incomplete
       ? `<div class="schedule-completeness-summary">⚠ ${dateSummary.incomplete} مهام بتواريخ غير مكتملة</div>`
       : "";
-    modal.list.innerHTML = items.length ? dateSummaryHtml+items.map(i=>{
+    const heldFilterHtml=type==="tasks-held"?`<label class="held-track-filter">تصفية حسب المسار<select onchange="showDetails('tasks-held',this.value||null)"><option value="">كل المسارات</option>${(state.tracks||[]).map(t=>`<option value="${escH(t.id)}" ${trackId===t.id?'selected':''}>${escH(t.id)} · ${escH(t.name)}</option>`).join("")}</select></label>`:"";
+    modal.list.innerHTML = heldFilterHtml+(items.length ? dateSummaryHtml+items.map(i=>{
     const depLine = i.dependsOn && String(i.dependsOn).trim()!=="" ? `<p style="margin:2px 0"><b>تعتمد على:</b> ${String(i.dependsOn).split(",").map(s=>s.trim()).filter(Boolean).map(id=>{ const p=itemById(id); return p ? `${escH(p.title)} <span class="${colorByStatus(displayStatus(p))}">(${escH(displayStatus(p))})</span>` : escH(id); }).join("، ")}</p>` : "";
     const notes = taskNotesText(i.notes);
     const notesLine = notes ? `<p class="task-notes" style="margin:2px 0;white-space:normal;overflow-wrap:anywhere"><b>الملاحظات:</b> ${escH(notes)}</p>` : "";
@@ -155,13 +156,13 @@ function showDetails(type, trackId=null){
       <p style="margin:2px 0"><b>المسار:</b> ${escH(i.track)}</p>
       <p style="margin:2px 0"><b>النوع:</b> ${escH(i.type)}</p>
       <p style="margin:2px 0"><b>المسؤول:</b> ${escH(i.owner) || "-"}</p>
-      <p style="margin:2px 0"><b>الحالة:</b> <span class="${colorByStatus(displayStatus(i))}">${escH(displayStatus(i)) || "-"}</span></p>
+      <p style="margin:2px 0"><b>${type==="tasks-held"?'الحالة الأصلية':'الحالة'}:</b> <span class="${colorByStatus(type==="tasks-held"?i.status:displayStatus(i))}">${escH(type==="tasks-held"?i.status:displayStatus(i)) || "-"}</span></p>
       <p style="margin:2px 0"><b>تاريخ البداية:</b> ${escH(formatTaskDate(i.startDate))}</p>
       <p style="margin:2px 0"><b>الاستحقاق:</b> ${escH(formatTaskDate(i.due))}</p>
       ${notesLine}
       ${depLine}
     </div>
-  `;}).join("") : `<div class="hint">لا توجد عناصر مطابقة.</div>`;
+  `;}).join("") : `<div class="hint">لا توجد عناصر مطابقة.</div>`);
   }
   modal.overlay.style.display = "flex";
 }
@@ -273,7 +274,7 @@ function renderOverview(){
       ${paHtml(planned, actualRaw)}
     </div>
     ${state.tracks.map(trackCard).join("")}
-    ${crossTrackDependencyHtml()}`;
+    ${heldTaskDistributionHtml()}`;
   const globalConflictsEl = document.getElementById("globalConflictsSection");
   if(globalConflictsEl) globalConflictsEl.innerHTML = globalConflictAlertHtml();
   const risks=state.items.filter(i=>i.type==="risks");
@@ -492,6 +493,28 @@ function crossTrackDependencyHtml(){
     </div>
     <div class="cross-track-list">${rows}</div>
   </div>`;
+}
+
+function heldTaskDistributionHtml(){
+  const allTasks=(state.items||[]).filter(i=>i.type==="tasks");
+  const heldTasks=allTasks.filter(isTaskHeld);
+  const rows=(state.tracks||[]).map(t=>{
+    const trackTasks=allTasks.filter(i=>i.track===t.id);
+    const heldCount=heldTasks.filter(i=>i.track===t.id).length;
+    const percentage=trackTasks.length?Math.round(heldCount/trackTasks.length*100):0;
+    return `<button type="button" class="held-distribution-row" onclick="showDetails('tasks-held','${escH(t.id)}')">
+      <span class="held-distribution-track"><b>${escH(t.id)} · ${escH(t.name)}</b><small>${heldCount} من ${trackTasks.length} مهمة</small></span>
+      <span class="held-distribution-visual"><i style="width:${percentage}%"></i></span>
+      <span class="held-distribution-value"><b>${heldCount}</b><small>${percentage}% · نسبة المهام المعلقة من إجمالي مهام المسار</small></span>
+    </button>`;
+  }).join("");
+  const distributed=(state.tracks||[]).reduce((sum,t)=>sum+heldTasks.filter(i=>i.track===t.id).length,0);
+  return `<section class="glass panel held-distribution-panel">
+    <div class="panel-title"><b></b><h3>توزيع المهام المعلقة على المسارات</h3></div>
+    <div class="held-distribution-summary"><strong>${heldTasks.length}</strong><span>إجمالي المهام المعلقة · مستبعدة من حساب الإنجاز</span></div>
+    <div class="held-distribution-list">${rows}</div>
+    ${distributed!==heldTasks.length?`<p class="held-distribution-warning">توجد ${heldTasks.length-distributed} مهام معلقة غير مرتبطة بمسار معرّف.</p>`:""}
+  </section>`;
 }
 
 function v20OverdueItems(){
@@ -789,10 +812,10 @@ function renderKpis(){
     ["amber",k.active,"مهام نشطة","tasks-active"],
     ["green",k.done,"المهام المنجزة","tasks-done"],
     ["cyan",k.total,"إجمالي المهام","tasks"],
-    ["purple",k.dependentTasks,"مهام اعتمادية","dependent"],
+    ["purple",k.held,"إجمالي المهام المعلقة","tasks-held","مستبعدة من حساب الإنجاز"],
     ["sand",k.overall+"%","الإنجاز العام","track"],
     ["cyan",readiness+"%","جاهزية الافتتاح","milestones"]
-  ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="showDetails('${x[3]}')"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
+  ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="showDetails('${x[3]}')"><h3>${x[1]}</h3><small>${x[2]}</small>${x[4]?`<span class="kpi-note">${x[4]}</span>`:""}</article>`).join("");
 }
 
 let varianceFiltersBound=false;
