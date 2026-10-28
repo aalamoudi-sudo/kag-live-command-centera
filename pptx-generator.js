@@ -6,7 +6,8 @@
  */
 
 const PptxGenJS = require("pptxgenjs");
-const {isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
+const {isTaskHeld,isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
+const PMCPlannedActual=require("./public/pmc-planned-actual");
 
 const TRACK_NAMES = {
   "أ": "التخطيط والتنسيق",
@@ -47,7 +48,7 @@ function todayStr() {
   return new Date().toLocaleDateString("ar-SA", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
 }
 function daysToOpen(openingDate) {
-  const d = new Date(openingDate || "2026-11-01");
+  const d = new Date(`${openingDate || "2026-12-30"}T00:00:00+03:00`);
   const n = new Date();
   return Math.max(0, Math.ceil((d - n) / (1000*60*60*24)));
 }
@@ -380,25 +381,27 @@ async function buildComprehensivePptx(state) {
 
   const tracks  = state.tracks  || [];
   const items   = state.items   || [];
-  const tasks   = items.filter(i=>!isRisk(i));
+  const tasks   = items.filter(i=>i.type==="tasks");
   const risks   = items.filter(i=>isRisk(i)&&!isDone(i.status));
-  const totDone = tasks.filter(i=>isDone(i.status)).length;
-  const totAct  = tasks.filter(i=>isActive(i.status)).length;
-  const totLate = tasks.filter(isTaskOverdue).length;
-  const ovr     = tracks.length ? Math.round(tracks.reduce((s,t)=>s+(t.progress||0),0)/tracks.length) : 0;
+  const projectMetrics = PMCPlannedActual.summarize(items);
+  const countedTasks = projectMetrics.eligible;
+  const totDone = countedTasks.filter(i=>isDone(i.status)).length;
+  const totAct  = countedTasks.filter(i=>isActive(i.status)).length;
+  const totLate = countedTasks.filter(isTaskOverdue).length;
+  const ovr     = projectMetrics.actual;
   const days    = daysToOpen(state.project?.openingDate);
 
   // 1. الغلاف
   addCoverSlide(pptx, "التقرير الشامل", "المسارات الأربعة · المخاطر · القرارات · الجدول الزمني", [
     { value: `${ovr}%`,       label: "نسبة الإنجاز الكلية" },
-    { value: tasks.length,    label: "إجمالي المهام" },
+    { value: tasks.length,        label: "إجمالي المهام" },
     { value: totDone,         label: "المهام المكتملة" },
     { value: `${days}`,       label: "يوم على الافتتاح" }
   ]);
 
   // 2. KPIs
   addKpiSlide(pptx, [
-    { value: tasks.length, label: "إجمالي المهام",    color: NAVY  },
+    { value: tasks.length, label: "إجمالي المهام", color: NAVY },
     { value: totDone,      label: "مكتملة",           color: GREEN },
     { value: totAct,       label: "قيد التنفيذ",      color: BLUE  },
     { value: totLate,      label: "متأخرة",           color: RED   },
@@ -407,10 +410,13 @@ async function buildComprehensivePptx(state) {
   ], "مؤشرات الأداء الرئيسية");
 
   // 3. المسارات
-  addTracksSlide(pptx, tracks);
+  addTracksSlide(pptx, tracks.map(track=>({
+    ...track,
+    progress:PMCPlannedActual.summarize(items,{trackId:track.id}).actual
+  })));
 
   // 4. المهام الجارية والمتأخرة
-  const criticals = tasks.filter(i=>isTaskOverdue(i)||isActive(i.status)).slice(0,30);
+  const criticals = countedTasks.filter(i=>isTaskOverdue(i)||isActive(i.status)).slice(0,30);
   if (criticals.length) addTasksSlide(pptx, criticals, "المهام الجارية والمتأخرة", null);
 
   // 5. المخاطر
@@ -446,16 +452,19 @@ async function buildTrackPptx(state, tid) {
   const items   = state.items  || [];
   const track   = tracks.find(t=>t.id===tid) || { id:tid, name:nm, progress:0, status:"—", lead:"—" };
   const ti      = items.filter(i=>i.track===tid);
-  const tTasks  = ti.filter(i=>!isRisk(i));
+  const tTasks  = ti.filter(i=>i.type==="tasks");
   const tRisks  = ti.filter(i=>isRisk(i)&&!isDone(i.status));
-  const tDone   = tTasks.filter(i=>isDone(i.status)).length;
-  const tAct    = tTasks.filter(i=>isActive(i.status)).length;
-  const tLate   = tTasks.filter(isTaskOverdue).length;
+  const trackMetrics = PMCPlannedActual.summarize(items,{trackId:tid});
+  const countedTasks = trackMetrics.eligible;
+  const tDone   = countedTasks.filter(i=>isDone(i.status)).length;
+  const trackProgress = trackMetrics.actual;
+  const tAct    = countedTasks.filter(i=>isActive(i.status)).length;
+  const tLate   = countedTasks.filter(isTaskOverdue).length;
   const days    = daysToOpen(state.project?.openingDate);
 
   // 1. الغلاف
   addCoverSlide(pptx, `مسار ${tid}: ${nm}`, track.focus || track.lead || "", [
-    { value: `${track.progress||0}%`, label: "نسبة الإنجاز" },
+    { value: `${trackProgress}%`,     label: "نسبة الإنجاز" },
     { value: tTasks.length,           label: "إجمالي المهام" },
     { value: tDone,                   label: "مكتملة" },
     { value: `${days}`,               label: "يوم على الافتتاح" }
@@ -463,16 +472,16 @@ async function buildTrackPptx(state, tid) {
 
   // 2. KPIs المسار
   addKpiSlide(pptx, [
-    { value: tTasks.length,   label: "إجمالي المهام",  color: tc.bg    },
+    { value: tTasks.length, label: "إجمالي المهام", color: tc.bg },
     { value: tDone,           label: "مكتملة",         color: GREEN    },
     { value: tAct,            label: "قيد التنفيذ",    color: BLUE     },
     { value: tLate,           label: "متأخرة",         color: RED      },
-    { value: `${track.progress||0}%`, label: "الإنجاز", color: tc.accent },
+    { value: `${trackProgress}%`, label: "الإنجاز", color: tc.accent },
     { value: tRisks.length,   label: "مخاطر مفتوحة",  color: RED      }
   ], `مؤشرات مسار ${tid}: ${nm}`);
 
   // 3. المهام الجارية
-  const activeTasks = tTasks.filter(i=>isActive(i.status)||isTaskOverdue(i));
+  const activeTasks = countedTasks.filter(i=>isActive(i.status)||isTaskOverdue(i));
   if (activeTasks.length) addTasksSlide(pptx, activeTasks, "المهام الجارية والمتأخرة", tid);
 
   // 4. سجل المهام الكامل
