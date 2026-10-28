@@ -815,7 +815,7 @@ function renderKpis(){
     ["purple",k.held,"إجمالي المهام المعلقة","tasks-held"],
     ["sand",k.overall+"%","الإنجاز العام","track"],
     ["cyan",readiness+"%","جاهزية الافتتاح","milestones"]
-  ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="showDetails('${x[3]}')"><h3>${x[1]}</h3><small>${x[2]}</small></article>`).join("");
+  ].map(x=>`<article class="kpi glass ${x[0]} clickable-kpi" onclick="showDetails('${x[3]}')"><h3>${x[1]}</h3><small>${x[2]}</small>${x[4]?`<span class="kpi-note">${x[4]}</span>`:""}</article>`).join("");
 }
 
 let varianceFiltersBound=false;

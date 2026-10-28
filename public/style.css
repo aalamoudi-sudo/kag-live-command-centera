@@ -3009,4 +3009,5 @@ footer{display:none!important;}
 }
 @media(max-width:600px){
   #overview .home-kpi-grid{grid-template-columns:1fr!important}
+  #overview .home-kpi-grid .kpi:nth-child(n+7){height:126px;min-height:126px}
 }
