@@ -1,5 +1,6 @@
 "use strict";
-const {isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
+const {isTaskHeld,isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
+const PMCPlannedActual=require("./public/pmc-planned-actual");
 /**
  * report-generator.js — v6 Executive Edition
  * تصميم حكومي رسمي راقٍ: كحلي عميق / ذهبي / أبيض
@@ -579,26 +580,32 @@ function buildComprehensive(state, reportDate){
   const items     = state.items    || [];
   const decisions = (state.decisions||[]).filter(d=>d.status!=="معتمد");
 
-  const tasks    = items.filter(i=>!isRiskItem(i));
+  const tasks    = items.filter(i=>i.type==="tasks");
   const risks    = items.filter(i=>isRiskItem(i)&&!isDone(i.status));
-  const totDone  = tasks.filter(i=>isDone(i.status)).length;
-  const totAct   = tasks.filter(i=>isActive(i.status)).length;
-  const totLate  = tasks.filter(isTaskOverdue).length;
-  const ovr      = tracks.length
-    ? Math.round(tracks.reduce((s,t)=>s+(t.progress||0),0)/tracks.length) : 0;
+  const projectMetrics = PMCPlannedActual.summarize(items,{measurementDate:reportDate});
+  const countedTasks = projectMetrics.eligible;
+  const totDone  = countedTasks.filter(i=>isDone(i.status)).length;
+  const totAct   = countedTasks.filter(i=>isActive(i.status)).length;
+  const totLate  = countedTasks.filter(isTaskOverdue).length;
+  const ovr      = projectMetrics.actual;
+  const planned  = projectMetrics.planned;
+  const variance = PMCPlannedActual.variance(planned,ovr);
 
-  const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(tasks,buckets);
-  const criticals = tasks.filter(isTaskOverdue).slice(0,20);
+  const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(countedTasks,buckets);
+  const criticals = countedTasks.filter(isTaskOverdue).slice(0,20);
 
   // بطاقات المسارات
   const trackCards = tracks.map(t=>{
     const tc = TRACK_COLORS[t.id]||{bg:"#0B1F35",accent:"#C9A84C",light:"#EDF2F8",bar:"#1C3D5E"};
     const ti  = items.filter(i=>i.track===t.id);
-    const tT  = ti.filter(i=>!isRiskItem(i));
+    const tT  = ti.filter(i=>i.type==="tasks");
     const tR  = ti.filter(i=>isRiskItem(i)&&!isDone(i.status));
-    const tD  = tT.filter(i=>isDone(i.status)).length;
-    const tA  = tT.filter(i=>isActive(i.status)).length;
-    const tLt = tT.filter(isTaskOverdue).length;
+    const trackMetrics = PMCPlannedActual.summarize(items,{trackId:t.id,measurementDate:reportDate});
+    const countedTT = trackMetrics.eligible;
+    const tD  = countedTT.filter(i=>isDone(i.status)).length;
+    const tA  = countedTT.filter(i=>isActive(i.status)).length;
+    const tLt = countedTT.filter(isTaskOverdue).length;
+    const tPct = trackMetrics.actual;
     return `<div class="track-card">
       <div class="track-head" style="background:${tc.bg}">
         <div class="track-letter">${t.id||""}</div>
@@ -609,7 +616,7 @@ function buildComprehensive(state, reportDate){
         ${trackStatusChip(t.status)}
       </div>
       <div class="track-body">
-        ${progressBar(t.progress, tc.accent)}
+        ${progressBar(tPct, tc.accent)}
         <div class="track-stats">
           <div class="ts-box" style="background:#EDF2F8">
             <div class="ts-num" style="color:var(--navy)">${tT.length}</div>
@@ -635,10 +642,11 @@ function buildComprehensive(state, reportDate){
   // شريط تقدم المسارات
   const trackBarsHTML = tracks.map(t=>{
     const tc = TRACK_COLORS[t.id]||{accent:"#C9A84C"};
+    const pct=PMCPlannedActual.summarize(items,{trackId:t.id,measurementDate:reportDate}).actual;
     return `<div class="ppb-track">
       <div class="ppb-track-name">${TRACK_NAMES[t.id]||t.id}</div>
-      <div class="ppb-track-bar"><div class="ppb-track-fill" style="width:${t.progress||0}%;background:${tc.accent}"></div></div>
-      <div class="ppb-track-pct">${t.progress||0}%</div>
+      <div class="ppb-track-bar"><div class="ppb-track-fill" style="width:${pct}%;background:${tc.accent}"></div></div>
+      <div class="ppb-track-pct">${pct}%</div>
     </div>`;
   }).join("");
 
@@ -685,6 +693,11 @@ function buildComprehensive(state, reportDate){
     <div class="kpi-card k-late"><div class="kpi-num">${totLate}</div><div class="kpi-label">متأخرة</div></div>
     <div class="kpi-card k-pct"><div class="kpi-num">${ovr}%</div><div class="kpi-label">نسبة الإنجاز</div></div>
     <div class="kpi-card k-risk"><div class="kpi-num">${risks.length}</div><div class="kpi-label">مخاطر مفتوحة</div></div>
+  </div>
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-num">${planned}%</div><div class="kpi-label">المخطط</div></div>
+    <div class="kpi-card k-pct"><div class="kpi-num">${ovr}%</div><div class="kpi-label">الفعلي</div></div>
+    <div class="kpi-card ${variance<0?'k-late':'k-done'}"><div class="kpi-num">${variance>0?'+':''}${variance}%</div><div class="kpi-label">الانحراف</div></div>
   </div>
 
   <!-- شريط تقدم المسارات -->
@@ -789,17 +802,21 @@ function buildTrack(state, tid, reportDate){
     {id:tid,name:TRACK_NAMES[tid],progress:0,status:"—",lead:"—",focus:"—"};
   const tc  = TRACK_COLORS[tid]||{bg:"#0B1F35",accent:"#C9A84C",light:"#EDF2F8",bar:"#1C3D5E"};
   const nm  = track.name||TRACK_NAMES[tid]||tid;
-  const pct = track.progress||0;
 
   const ti       = items.filter(i=>i.track===tid);
-  const tT       = ti.filter(i=>!isRiskItem(i));
+  const tT       = ti.filter(i=>i.type==="tasks");
   const tR       = ti.filter(i=>isRiskItem(i)&&!isDone(i.status));
-  const tDone    = tT.filter(i=>isDone(i.status)).length;
-  const tActive  = tT.filter(i=>isActive(i.status)).length;
-  const tLate    = tT.filter(isTaskOverdue).length;
+  const trackMetrics = PMCPlannedActual.summarize(items,{trackId:tid,measurementDate:reportDate});
+  const countedTT = trackMetrics.eligible;
+  const tDone    = countedTT.filter(i=>isDone(i.status)).length;
+  const pct      = trackMetrics.actual;
+  const planned  = trackMetrics.planned;
+  const variance = PMCPlannedActual.variance(planned,pct);
+  const tActive  = countedTT.filter(i=>isActive(i.status)).length;
+  const tLate    = countedTT.filter(isTaskOverdue).length;
 
-  const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(tT,buckets);
-  const activeTasks = tT.filter(i=>isActive(i.status)||isTaskOverdue(i)).slice(0,20);
+  const {done:yd,active:td,next:tm,hasExactDates} = bucketItems(countedTT,buckets);
+  const activeTasks = countedTT.filter(i=>isActive(i.status)||isTaskOverdue(i)).slice(0,20);
   const allTasks    = tT.slice(0,40);
 
   const execGrid = latestLog ? `
@@ -865,6 +882,11 @@ function buildTrack(state, tid, reportDate){
     <div class="kpi-card k-late"><div class="kpi-num">${tLate}</div><div class="kpi-label">متأخرة</div></div>
     <div class="kpi-card k-pct"><div class="kpi-num">${pct}%</div><div class="kpi-label">نسبة الإنجاز</div></div>
     <div class="kpi-card k-risk"><div class="kpi-num">${tR.length}</div><div class="kpi-label">مخاطر مفتوحة</div></div>
+  </div>
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-num">${planned}%</div><div class="kpi-label">المخطط</div></div>
+    <div class="kpi-card k-pct"><div class="kpi-num">${pct}%</div><div class="kpi-label">الفعلي</div></div>
+    <div class="kpi-card ${variance<0?'k-late':'k-done'}"><div class="kpi-num">${variance>0?'+':''}${variance}%</div><div class="kpi-label">الانحراف</div></div>
   </div>
 
   <!-- الوضع التنفيذي -->

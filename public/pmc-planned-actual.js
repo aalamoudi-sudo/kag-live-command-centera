@@ -5,9 +5,14 @@
 })(typeof globalThis!=="undefined"?globalThis:this,function(){
   "use strict";
 
-  const CUTOFF_DATE="2026-11-01";
+  const CUTOFF_DATE="2026-12-30";
   const PROJECT_TIME_ZONE="Asia/Riyadh";
   const DONE_STATUSES=new Set(["مكتملة","معتمدة","Completed","Cleared"]);
+
+  function isTaskHeld(item){
+    if(typeof PMCTaskStatus!=="undefined"&&PMCTaskStatus.isTaskHeld) return PMCTaskStatus.isTaskHeld(item);
+    return !!(item&&(String(item.title||"").includes("*")||String(item.status||"").includes("*")));
+  }
 
   function validDateKey(year,month,day){
     const date=new Date(Date.UTC(year,month-1,day));
@@ -33,6 +38,12 @@
     return dateKey(now||new Date());
   }
 
+  function variance(planned,actual){
+    const p=Number(planned)||0;
+    const a=Number(actual)||0;
+    return p>0?Math.round(((a/p)-1)*100):(a>0?100:0);
+  }
+
   // `due` is deliberately the same end-date source used by the existing planned calculation.
   // Missing and invalid dates remain eligible, preserving their existing denominator/status behavior.
   function summarize(items,options){
@@ -42,6 +53,7 @@
     const eligible=[];
     const excluded=[];
     tasks.forEach(item=>{
+      if(isTaskHeld(item)){ excluded.push(item); return; }
       const endDate=dateKey(item.due);
       if(endDate&&endDate>CUTOFF_DATE) excluded.push(item);
       else eligible.push({item,endDate});
@@ -58,5 +70,5 @@
     };
   }
 
-  return {CUTOFF_DATE,PROJECT_TIME_ZONE,DONE_STATUSES,dateKey,measurementDateKey,summarize};
+  return {CUTOFF_DATE,PROJECT_TIME_ZONE,DONE_STATUSES,dateKey,measurementDateKey,variance,summarize};
 });
