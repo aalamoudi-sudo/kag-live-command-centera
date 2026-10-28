@@ -238,13 +238,13 @@ function trackCard(t){
   const held = (state.items||[]).filter(i=>i.type==="tasks"&&i.track===t.id&&isTaskHeld(i)).length;
   const variance = paCompliance(planned, actual).ratio;
   const displayTrackStatus = overviewTrackStatus(variance);
-  return `<article class="track-card glass clickable-card" onclick="showDetails('track','${t.id}')" style="--accent:${t.accent};--value:${t.progress}">
+  return `<article class="track-card glass clickable-card" onclick="showDetails('track','${t.id}')" style="--accent:${t.accent};--value:${actual}">
     <div class="track-head">
       <div class="track-title"><div class="badge">${t.id}</div><div><h3>${t.name}</h3><h4>${t.ar}</h4></div></div>
       <div class="status clickable-status overview-track-status overview-track-status--${displayTrackStatus.tone}" onclick="event.stopPropagation();showDetails('risks','${t.id}')">${displayTrackStatus.label}</div>
     </div>
     <div class="track-body">
-      <div class="ring"><b>${t.progress}%</b></div>
+      <div class="ring"><b>${actual}%</b></div>
       <div class="mini-grid">
         <div class="mini clickable-kpi" onclick="event.stopPropagation();showDetails('tasks','${t.id}')"><b>${t.tasks}</b><small>المهام</small></div>
         <div class="mini clickable-kpi" onclick="event.stopPropagation();showDetails('tasks-done','${t.id}')"><b style="color:#43ee8d">${t.done}</b><small>منجزة</small></div>
@@ -291,7 +291,7 @@ function renderTrackPages(){
     const actual = PMCPlannedActual.summarize(state.items||[],{trackId:t.id}).actual;
     const trackConflictCount = dependencyConflictsForTrack(t.id).length;
     el.innerHTML=`<div class="track-dashboard" style="--accent:${t.accent}">
-      <div class="track-hero glass"><div class="track-hero-inner"><div><h2>${t.id} · ${t.name}</h2><p>${t.ar} · ${t.sub}</p></div><div class="ring"><b>${t.progress}%</b></div></div>
+      <div class="track-hero glass"><div class="track-hero-inner"><div><h2>${t.id} · ${t.name}</h2><p>${t.ar} · ${t.sub}</p></div><div class="ring"><b>${actual}%</b></div></div>
       <div class="track-kpis">
         <div class="track-kpi clickable-kpi" onclick="showDetails('tasks','${t.id}')"><b>${t.tasks}</b><small>إجمالي المهام</small></div>
         <div class="track-kpi clickable-kpi" onclick="showDetails('tasks-done','${t.id}')"><b>${t.done}</b><small>المهام المنجزة</small></div>

@@ -7,6 +7,7 @@
 
 const PptxGenJS = require("pptxgenjs");
 const {isTaskHeld,isTaskOverdue,getTaskDisplayStatus}=require("./public/task-status");
+const PMCPlannedActual=require("./public/pmc-planned-actual");
 
 const TRACK_NAMES = {
   "أ": "التخطيط والتنسيق",
@@ -380,13 +381,14 @@ async function buildComprehensivePptx(state) {
 
   const tracks  = state.tracks  || [];
   const items   = state.items   || [];
-  const tasks   = items.filter(i=>!isRisk(i));
+  const tasks   = items.filter(i=>i.type==="tasks");
   const risks   = items.filter(i=>isRisk(i)&&!isDone(i.status));
-  const countedTasks = tasks.filter(i=>!isTaskHeld(i));
+  const projectMetrics = PMCPlannedActual.summarize(items);
+  const countedTasks = projectMetrics.eligible;
   const totDone = countedTasks.filter(i=>isDone(i.status)).length;
   const totAct  = countedTasks.filter(i=>isActive(i.status)).length;
   const totLate = countedTasks.filter(isTaskOverdue).length;
-  const ovr     = countedTasks.length ? Math.round(totDone/countedTasks.length*100) : 0;
+  const ovr     = projectMetrics.actual;
   const days    = daysToOpen(state.project?.openingDate);
 
   // 1. الغلاف
@@ -408,7 +410,10 @@ async function buildComprehensivePptx(state) {
   ], "مؤشرات الأداء الرئيسية");
 
   // 3. المسارات
-  addTracksSlide(pptx, tracks);
+  addTracksSlide(pptx, tracks.map(track=>({
+    ...track,
+    progress:PMCPlannedActual.summarize(items,{trackId:track.id}).actual
+  })));
 
   // 4. المهام الجارية والمتأخرة
   const criticals = countedTasks.filter(i=>isTaskOverdue(i)||isActive(i.status)).slice(0,30);
@@ -447,11 +452,12 @@ async function buildTrackPptx(state, tid) {
   const items   = state.items  || [];
   const track   = tracks.find(t=>t.id===tid) || { id:tid, name:nm, progress:0, status:"—", lead:"—" };
   const ti      = items.filter(i=>i.track===tid);
-  const tTasks  = ti.filter(i=>!isRisk(i));
+  const tTasks  = ti.filter(i=>i.type==="tasks");
   const tRisks  = ti.filter(i=>isRisk(i)&&!isDone(i.status));
-  const countedTasks = tTasks.filter(i=>!isTaskHeld(i));
+  const trackMetrics = PMCPlannedActual.summarize(items,{trackId:tid});
+  const countedTasks = trackMetrics.eligible;
   const tDone   = countedTasks.filter(i=>isDone(i.status)).length;
-  const trackProgress = countedTasks.length?Math.round(tDone/countedTasks.length*100):0;
+  const trackProgress = trackMetrics.actual;
   const tAct    = countedTasks.filter(i=>isActive(i.status)).length;
   const tLate   = countedTasks.filter(isTaskOverdue).length;
   const days    = daysToOpen(state.project?.openingDate);

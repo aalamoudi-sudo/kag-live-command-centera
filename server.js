@@ -26,6 +26,7 @@ const crypto = require("crypto");
 const { generateReport } = require("./report-generator");
 const { generatePptx }   = require("./pptx-generator");
 const { isTaskHeld } = require("./public/task-status");
+const PMCPlannedActual = require("./public/pmc-planned-actual");
 
 const PORT = Number(process.env.PORT || 3000);
 // معرّف جدول حدائق الملك عبدالله المثبّت مسبقًا (يمكن تجاوزه بمتغيّر البيئة SHEET_ID)
@@ -265,7 +266,8 @@ function buildState(items){
     const ti=items.filter(i=>i.track===t.id);
     const tasks=ti.filter(i=>i.type==="tasks");
     const held=tasks.filter(isTaskHeld);
-    const countedTasks=tasks.filter(i=>!isTaskHeld(i));
+    const metrics=PMCPlannedActual.summarize(items,{trackId:t.id});
+    const countedTasks=metrics.eligible;
     const risks=ti.filter(i=>i.type==="risks" && i.status!=="مغلقة");
     t.tasks=tasks.length;
     t.held=held.length;
@@ -273,7 +275,7 @@ function buildState(items){
     t.active=countedTasks.filter(i=>ACTIVE_SET.includes(i.status)).length;
     t.risk=risks.length + countedTasks.filter(i=>RISK_SET.includes(i.status)).length;
     if(countedTasks.length>0){
-      t.progress=Math.round((t.done/countedTasks.length)*100);
+      t.progress=metrics.actual;
       t.status = t.progress>=70 ? "ضمن المسار" : t.progress>=45 ? "تحت المتابعة" : "معرض للخطر";
     }else{ t.progress=0; t.status="تحت المتابعة"; }
     return t;
