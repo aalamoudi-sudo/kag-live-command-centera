@@ -3019,3 +3019,46 @@ footer{display:none!important;}
 #overview .track-card .ring{position:relative;flex-shrink:0}
 #overview .track-card .ring b{font-size:22px!important;line-height:1;white-space:nowrap;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.4px;direction:ltr}
 @media(max-width:600px){#overview .track-card .ring b{font-size:18px!important}}
+
+/* Compact PMC overview: consistent two-column comparison of the four tracks. */
+#overview .home-tracks-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+#overview .home-tracks-grid .track-card{padding:14px!important;min-height:0!important}
+#overview .home-tracks-grid .track-head{display:flex!important;align-items:flex-start;justify-content:space-between;gap:10px!important}
+#overview .home-tracks-grid .track-title{min-width:0;gap:8px!important}
+#overview .home-tracks-grid .track-title>div:last-child{min-width:0}
+#overview .home-tracks-grid .track-card h3{font-size:21px!important;line-height:1.3!important;margin:0}
+#overview .home-tracks-grid .track-card h4{font-size:14px!important;line-height:1.3!important;margin:4px 0 0}
+#overview .home-tracks-grid .badge{width:38px;height:38px;font-size:19px}
+#overview .home-tracks-grid .track-head .status{font-size:13px;padding:6px 9px;white-space:nowrap;flex-shrink:0}
+#overview .home-tracks-grid .track-body{display:grid!important;grid-template-columns:96px minmax(0,1fr)!important;grid-template-areas:"ring mini" "deadline deadline";align-items:center;gap:10px 12px!important;margin-top:12px!important}
+#overview .home-tracks-grid .ring{width:88px!important;height:88px!important}
+#overview .home-tracks-grid .ring:before{width:64px!important;height:64px!important}
+#overview .home-tracks-grid .ring b{font-size:22px!important}
+#overview .home-tracks-grid .mini-grid{gap:8px!important;width:100%;min-width:0}
+#overview .home-tracks-grid .mini{box-sizing:border-box;min-height:60px!important;padding:7px 6px!important;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#overview .home-tracks-grid .mini b{font-size:25px!important;line-height:1.15}
+#overview .home-tracks-grid .mini small{font-size:13px!important;line-height:1.3;margin-top:3px}
+#overview .home-tracks-grid .planned-actual-box{margin-top:10px!important;gap:10px}
+#overview .home-tracks-grid .pa-row{grid-template-columns:100px minmax(0,1fr) 66px!important;gap:8px;font-size:15px!important;min-height:20px}
+#overview .home-tracks-grid .pa-row>b{font-size:15px!important;white-space:nowrap;direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+#overview .home-tracks-grid .pa-bar{height:8px}
+#overview .home-tracks-grid .spark{height:10px!important;min-height:0;margin-top:12px!important}
+#overview .home-tracks-grid .track-foot{display:flex!important;justify-content:space-between;flex-wrap:wrap;gap:4px 12px!important;margin-top:8px!important;font-size:13px!important;line-height:1.4!important}
+#overview .home-tracks-grid .track-foot span{margin-top:0!important}
+@media(max-width:1000px){
+  #overview .home-tracks-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:600px){
+  #overview .home-tracks-grid .track-card{padding:12px!important}
+  #overview .home-tracks-grid .track-head{flex-wrap:wrap}
+  #overview .home-tracks-grid .track-card h3{font-size:20px!important}
+  #overview .home-tracks-grid .track-card h4{font-size:13px!important}
+  #overview .home-tracks-grid .track-body{grid-template-columns:82px minmax(0,1fr)!important;gap:8px!important}
+  #overview .home-tracks-grid .ring{width:78px!important;height:78px!important}
+  #overview .home-tracks-grid .ring:before{width:56px!important;height:56px!important}
+  #overview .home-tracks-grid .ring b{font-size:19px!important}
+  #overview .home-tracks-grid .mini b{font-size:23px!important}
+  #overview .home-tracks-grid .mini small{font-size:12px!important}
+  #overview .home-tracks-grid .pa-row{grid-template-columns:90px minmax(0,1fr) 60px!important;font-size:14px!important;gap:6px}
+  #overview .home-tracks-grid .pa-row>b{font-size:14px!important}
+}
