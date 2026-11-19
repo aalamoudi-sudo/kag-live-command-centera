@@ -275,7 +275,7 @@ function renderOverview(){
         <div class="project-pa-metric"><b class="${diff>=0?'green':'red'}">${diff>0?'+':''}${diff}%</b><span>الانحراف</span></div>
         <div class="project-pa-metric project-pa-suspended" title="عدد المهام المعلّقة ÷ إجمالي عدد المهام × ١٠٠"><b>${heldPercentage}%</b><span>المهام المعلّقة</span><small>${heldCount} مهمة من أصل ${projectTasks.length}</small></div>
       </div>
-      ${paHtml(planned, actualRaw)}
+      ${paHtml(planned, actualRaw).replace(/<\/div>$/, `<div class="pa-row project-pa-held-row"><span>المهام المعلّقة</span><div class="pa-bar"><i style="width:${heldPercentage}%;background:#ffc247"></i></div><b style="color:#ffc247">${heldPercentage}%</b></div></div>`)}
     </div>
     ${state.tracks.map(trackCard).join("")}
     ${heldTaskDistributionHtml()}`;
