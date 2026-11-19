@@ -237,7 +237,9 @@ function scheduleCompletenessForTrack(trackId){
 function trackCard(t){
   const planned = plannedForTrack(t);
   const actual = PMCPlannedActual.summarize(state.items||[],{trackId:t.id}).actual;
-  const held = (state.items||[]).filter(i=>i.type==="tasks"&&i.track===t.id&&isTaskHeld(i)).length;
+  const trackTasks=(state.items||[]).filter(i=>i.type==="tasks"&&i.track===t.id);
+  const held=trackTasks.filter(isTaskHeld).length;
+  const heldPercentage=trackTasks.length?Math.round(held/trackTasks.length*10000)/100:0;
   const variance = paCompliance(planned, actual).ratio;
   const displayTrackStatus = overviewTrackStatus(variance);
   return `<article class="track-card glass clickable-card" onclick="showDetails('track','${t.id}')" style="--accent:${t.accent};--value:${actual}">
@@ -254,7 +256,7 @@ function trackCard(t){
         <div class="mini clickable-kpi" onclick="event.stopPropagation();showDetails('tasks-held','${t.id}')"><b style="color:#c17cff">${held}</b><small>المهام المعلقة</small></div>
       </div>
     </div>
-    ${paHtml(planned, actual)}
+    ${paHtml(planned, actual).replace(/<\/div>$/, `<div class="pa-row track-pa-held-row" title="عدد المهام المعلّقة في المسار ÷ إجمالي مهام المسار × ١٠٠"><span>المهام المعلّقة</span><div class="pa-bar"><i style="width:${heldPercentage}%;background:#c17cff"></i></div><b style="color:#c17cff">${heldPercentage}%</b></div></div>`)}
     <div class="spark"></div>
     <div class="track-foot"><span>المسؤول: <b>${t.lead}</b></span><span><b>${t.focus}</b></span></div>
   </article>`;
