@@ -3014,3 +3014,8 @@ footer{display:none!important;}
 
 .project-pa-metric.project-pa-suspended b{color:#ffc247}
 .project-pa-suspended small{display:block;margin-top:6px;color:var(--muted);font-size:13px}
+
+/* Keep three-digit completion percentages comfortably inside overview rings. */
+#overview .track-card .ring{position:relative;flex-shrink:0}
+#overview .track-card .ring b{font-size:22px!important;line-height:1;white-space:nowrap;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.4px;direction:ltr}
+@media(max-width:600px){#overview .track-card .ring b{font-size:18px!important}}
