@@ -260,6 +260,9 @@ function trackCard(t){
   </article>`;
 }
 function renderOverview(){
+  const projectTasks=(state.items||[]).filter(item=>item.type==="tasks");
+  const heldCount=projectTasks.filter(isTaskHeld).length;
+  const heldPercentage=projectTasks.length?Math.round(heldCount/projectTasks.length*10000)/100:0;
   const planned = projectPlanned();
   const actualRaw = projectActual();
   const {actual: actualVal, ratio: diff} = paCompliance(planned, actualRaw);
@@ -270,6 +273,7 @@ function renderOverview(){
         <div class="project-pa-metric"><b>${planned}%</b><span>المخطط</span></div>
         <div class="project-pa-metric"><b>${actualVal}%</b><span>الفعلي</span></div>
         <div class="project-pa-metric"><b class="${diff>=0?'green':'red'}">${diff>0?'+':''}${diff}%</b><span>الانحراف</span></div>
+        <div class="project-pa-metric project-pa-suspended" title="عدد المهام المعلّقة ÷ إجمالي عدد المهام × ١٠٠"><b>${heldPercentage}%</b><span>المهام المعلّقة</span><small>${heldCount} مهمة من أصل ${projectTasks.length}</small></div>
       </div>
       ${paHtml(planned, actualRaw)}
     </div>
