@@ -789,6 +789,9 @@ function v21HomeStatusLabel(score){
 }
 function v21RenderHomeSummary(){
   if(typeof homeOverallNumber === "undefined") return;
+  const projectTasks=(state.items||[]).filter(item=>item.type==="tasks");
+  const heldCount=projectTasks.filter(isTaskHeld).length;
+  const heldPercentage=projectTasks.length?Math.round(heldCount/projectTasks.length*10000)/100:0;
   const actual = v21SafeProjectActual();
   const planned = v21SafeProjectPlanned();
   const {actual: actualVal, ratio: diff} = paCompliance(planned, actual);
@@ -804,6 +807,7 @@ function v21RenderHomeSummary(){
     <div class="home-pa-line"><span>المخطط</span><div class="home-pa-track planned"><i style="width:${Math.max(0,Math.min(100,planned))}%"></i></div><b>${planned}%</b></div>
     <div class="home-pa-line"><span>الفعلي</span><div class="home-pa-track actual"><i style="width:${Math.max(0,Math.min(100,actualVal))}%"></i></div><b>${actualVal}%</b></div>
     <div class="home-pa-line"><span>الانحراف</span><div class="home-pa-track variance"><i style="width:${Math.max(0,Math.min(100,Math.abs(diff)))}%;background:${diff>=0?'#43ee8d':'#ff5e6b'}"></i></div><b class="${diff>=0?'green':'red'}">${diff>0?'+':''}${diff}%</b></div>
+    <div class="home-pa-line home-pa-held-line" title="عدد المهام المعلّقة ÷ إجمالي مهام المشروع × ١٠٠"><span>المهام المعلّقة</span><div class="home-pa-track"><i style="width:${heldPercentage}%;background:#c17cff"></i></div><b style="color:#c17cff">${heldPercentage}%</b></div>
   </div>`;
 }
 
